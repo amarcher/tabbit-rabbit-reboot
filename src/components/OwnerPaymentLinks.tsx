@@ -24,8 +24,6 @@ export default function OwnerPaymentLinks({ ownerProfile, amount, note }: OwnerP
         <Button
           variant="outline-primary"
           href={venmoLink(ownerProfile.venmo_username, amount, note)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
           Venmo
         </Button>
@@ -34,8 +32,6 @@ export default function OwnerPaymentLinks({ ownerProfile, amount, note }: OwnerP
         <Button
           variant="outline-success"
           href={cashAppLink(ownerProfile.cashapp_cashtag, amount)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
           Cash App
         </Button>
@@ -44,8 +40,6 @@ export default function OwnerPaymentLinks({ ownerProfile, amount, note }: OwnerP
         <Button
           variant="outline-info"
           href={paypalLink(ownerProfile.paypal_username, amount)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
           PayPal
         </Button>

@@ -25,8 +25,6 @@ export default function PaymentLinks({ rabbit, amount, tabName }: PaymentLinksPr
         <Button
           variant="outline-primary"
           href={venmoLink(profile.venmo_username, amount, note)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
           Venmo
         </Button>
@@ -35,8 +33,6 @@ export default function PaymentLinks({ rabbit, amount, tabName }: PaymentLinksPr
         <Button
           variant="outline-success"
           href={cashAppLink(profile.cashapp_cashtag, amount)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
           Cash App
         </Button>
@@ -45,8 +41,6 @@ export default function PaymentLinks({ rabbit, amount, tabName }: PaymentLinksPr
         <Button
           variant="outline-info"
           href={paypalLink(profile.paypal_username, amount)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
           PayPal
         </Button>
