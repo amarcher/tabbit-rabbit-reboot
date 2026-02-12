@@ -21,3 +21,12 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.vercel
+
+# mobile (Expo)
+mobile/node_modules
+mobile/.expo
+mobile/dist
+mobile/ios
+mobile/android
+mobile/.env
