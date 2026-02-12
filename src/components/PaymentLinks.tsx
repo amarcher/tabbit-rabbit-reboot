@@ -6,14 +6,13 @@ import { venmoLink, cashAppLink, paypalLink } from '../utils/payments';
 interface PaymentLinksProps {
   rabbit: Rabbit;
   amount: number;
-  tabName: string;
+  note: string;
 }
 
-export default function PaymentLinks({ rabbit, amount, tabName }: PaymentLinksProps) {
+export default function PaymentLinks({ rabbit, amount, note }: PaymentLinksProps) {
   const profile = rabbit.profile;
   if (!profile) return null;
 
-  const note = `${tabName} - ${rabbit.name}'s share`;
   const hasAny =
     profile.venmo_username || profile.cashapp_cashtag || profile.paypal_username;
 

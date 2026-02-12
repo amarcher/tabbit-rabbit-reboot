@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Alert, Button, Card, Form, ListGroup, Row, Col } from 'react-bootstrap';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { formatCents } from '../utils/currency';
+import { buildPaymentNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
 import PaymentLinks from './PaymentLinks';
 
@@ -151,7 +152,14 @@ export default function TotalsView({
                     <PaymentLinks
                       rabbit={rabbit}
                       amount={total / 100}
-                      tabName={tab.name}
+                      note={buildPaymentNote(tab.name, rabbit.name,
+                        assignments
+                          .filter((a) => a.rabbit_id === rabbit.id)
+                          .map((a) => ({
+                            description: items.find((i) => i.id === a.item_id)?.description || '',
+                            splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
+                          }))
+                      )}
                     />
                   </div>
                 </div>

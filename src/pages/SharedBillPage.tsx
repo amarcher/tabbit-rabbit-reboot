@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Card, ListGroup, Container, Spinner, Alert } from 'react-bootstrap';
 import { useSharedTab } from '../hooks/useSharedTab';
 import { formatCents } from '../utils/currency';
+import { buildPaymentNote } from '../utils/payments';
 import { getGradientStyle } from '../utils/gradients';
 import { COLOR_HEX, RabbitColor } from '../types';
 import OwnerPaymentLinks from '../components/OwnerPaymentLinks';
@@ -129,7 +130,14 @@ export default function SharedBillPage() {
                       <OwnerPaymentLinks
                         ownerProfile={ownerProfile}
                         amount={total / 100}
-                        note={`${tab.name} - ${rabbit.name}'s share`}
+                        note={buildPaymentNote(tab.name, rabbit.name,
+                          assignments
+                            .filter((a) => a.rabbit_id === rabbit.id)
+                            .map((a) => ({
+                              description: items.find((i) => i.id === a.item_id)?.description || '',
+                              splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
+                            }))
+                        )}
                       />
                     </div>
                   </div>
