@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { makeRedirectUri } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { User, Session } from '@supabase/supabase-js';
@@ -16,7 +15,6 @@ export function useAuth() {
 
   const [, googleResponse, promptGoogleAsync] = Google.useIdTokenAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    redirectUri: makeRedirectUri({ scheme: 'tabbitrabbit' }),
   });
 
   const fetchProfile = useCallback(async (userId: string) => {

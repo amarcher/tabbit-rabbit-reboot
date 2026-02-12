@@ -16,7 +16,19 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tabbitrabbit.app",
-      "associatedDomains": ["applinks:tabbitrabbit.com"]
+      "associatedDomains": [
+        "applinks:tabbitrabbit.com"
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.347412360151-egk9cj9e0ljv6okhp80e2frr2q5kl769"
+            ]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -36,6 +48,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e9b76fea-509b-4fde-a602-129ffde73b8c"
+      }
+    },
+    "owner": "aarcher"
   }
 }
