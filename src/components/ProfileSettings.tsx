@@ -36,9 +36,9 @@ export default function ProfileSettings({ user, profile, fetchProfile }: Profile
       .from('profiles')
       .update({
         display_name: displayName.trim() || null,
-        venmo_username: venmoUsername.trim() || null,
-        cashapp_cashtag: cashappCashtag.trim() || null,
-        paypal_username: paypalUsername.trim() || null,
+        venmo_username: venmoUsername.trim().replace(/^@/, '') || null,
+        cashapp_cashtag: cashappCashtag.trim().replace(/^\$/, '') || null,
+        paypal_username: paypalUsername.trim().replace(/^@/, '') || null,
       })
       .eq('id', user.id);
 
