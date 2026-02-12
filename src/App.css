@@ -1,38 +1,25 @@
-.App {
-  text-align: center;
+/* Offset body for fixed navbar */
+body {
+  padding-top: 56px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Sticky footer */
+.footer {
+  border-top: 1px solid #dee2e6;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Item row hover when a rabbit is selected */
+.list-group-item[role='button']:hover,
+.list-group-item.action:hover {
+  outline: none;
+  border-color: #edd29e;
+  box-shadow: 0 0 10px #edd29e;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+/* Tab name editable cursor */
+h4[title='Click to edit'] {
+  border-bottom: 1px dashed #ccc;
 }
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+h4[title='Click to edit']:hover {
+  border-bottom-color: #333;
 }
