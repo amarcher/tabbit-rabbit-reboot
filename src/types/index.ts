@@ -16,6 +16,7 @@ export interface Tab {
   tip_percent: number;
   receipt_image_url: string | null;
   created_at: string;
+  share_token: string;
   updated_at: string;
   items?: Item[];
   rabbits?: Rabbit[];

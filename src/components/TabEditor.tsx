@@ -173,6 +173,7 @@ export default function TabEditor() {
         rabbits={rabbits}
         assignments={assignments}
         onUpdateTab={updateTab}
+        shareToken={tab.share_token}
       />
 
       <AddRabbitModal

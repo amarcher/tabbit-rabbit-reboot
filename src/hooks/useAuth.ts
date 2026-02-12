@@ -38,25 +38,11 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
 
-  const signUp = async (email: string, password: string, username: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username },
-      },
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
     });
     if (error) throw error;
-    return data;
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
-    return data;
   };
 
   const signOut = async () => {
@@ -64,5 +50,5 @@ export function useAuth() {
     if (error) throw error;
   };
 
-  return { user, profile, session, loading, signUp, signIn, signOut, fetchProfile };
+  return { user, profile, session, loading, signInWithGoogle, signOut, fetchProfile };
 }

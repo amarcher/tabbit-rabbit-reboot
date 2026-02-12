@@ -3,13 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
 import LoginForm from './components/LoginForm';
-import SignupForm from './components/SignupForm';
+import ProfileSettings from './components/ProfileSettings';
 import Dashboard from './pages/Dashboard';
 import TabPage from './pages/TabPage';
+import SharedBillPage from './pages/SharedBillPage';
 import './App.css';
 
 function App() {
-  const { user, loading, signIn, signUp, signOut } = useAuth();
+  const { user, profile, loading, signInWithGoogle, signOut, fetchProfile } = useAuth();
 
   if (loading) {
     return (
@@ -28,13 +29,21 @@ function App() {
           <Route
             path="/login"
             element={
-              user ? <Navigate to="/" /> : <LoginForm onSignIn={signIn} />
+              user ? (
+                <Navigate to="/" />
+              ) : (
+                <LoginForm onSignInWithGoogle={signInWithGoogle} />
+              )
             }
           />
           <Route
-            path="/signup"
+            path="/profile"
             element={
-              user ? <Navigate to="/" /> : <SignupForm onSignUp={signUp} />
+              user ? (
+                <ProfileSettings user={user} profile={profile} fetchProfile={fetchProfile} />
+              ) : (
+                <Navigate to="/login" />
+              )
             }
           />
           <Route
@@ -45,6 +54,7 @@ function App() {
             path="/tabs/:tabId"
             element={user ? <TabPage /> : <Navigate to="/login" />}
           />
+          <Route path="/bill/:shareToken" element={<SharedBillPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

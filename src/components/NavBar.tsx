@@ -31,6 +31,9 @@ export default function NavBar({ user, onSignOut }: NavBarProps) {
                 <Nav.Link as={Link} to="/">
                   My Tabs
                 </Nav.Link>
+                <Nav.Link as={Link} to="/profile">
+                  Profile
+                </Nav.Link>
               </Nav>
               <Nav>
                 <Navbar.Text className="me-3">{user.email}</Navbar.Text>
@@ -50,9 +53,6 @@ export default function NavBar({ user, onSignOut }: NavBarProps) {
             <Nav className="ms-auto">
               <Nav.Link as={Link} to="/login">
                 Log In
-              </Nav.Link>
-              <Nav.Link as={Link} to="/signup">
-                Sign Up
               </Nav.Link>
             </Nav>
           )}
