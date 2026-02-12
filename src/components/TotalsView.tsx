@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Card, Form, ListGroup, Row, Col, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Alert, Card, Form, ListGroup, Row, Col } from 'react-bootstrap';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { formatCents } from '../utils/currency';
 import { COLOR_HEX } from '../types';
@@ -11,6 +10,7 @@ interface TotalsViewProps {
   items: Item[];
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
+  onUpdateTab: (updates: Partial<Tab>) => void;
 }
 
 interface RabbitTotal {
@@ -21,9 +21,30 @@ interface RabbitTotal {
   total: number;
 }
 
-export default function TotalsView({ tab, items, rabbits, assignments }: TotalsViewProps) {
+export default function TotalsView({
+  tab,
+  items,
+  rabbits,
+  assignments,
+  onUpdateTab,
+}: TotalsViewProps) {
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 8.75);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
+
+  const itemsSubtotal = useMemo(
+    () => items.reduce((sum, item) => sum + item.price_cents, 0),
+    [items]
+  );
+
+  const assignedItemIds = useMemo(
+    () => new Set(assignments.map((a) => a.item_id)),
+    [assignments]
+  );
+
+  const unassignedItems = useMemo(
+    () => items.filter((item) => !assignedItemIds.has(item.id)),
+    [items, assignedItemIds]
+  );
 
   const totals = useMemo(() => {
     return rabbits.map((rabbit) => {
@@ -54,84 +75,115 @@ export default function TotalsView({ tab, items, rabbits, assignments }: TotalsV
     });
   }, [rabbits, items, assignments, taxPercent, tipPercent]);
 
-  const grandSubtotal = totals.reduce((s, t) => s + t.subtotal, 0);
-  const grandTotal = totals.reduce((s, t) => s + t.total, 0);
+  const taxAmount = Math.round(itemsSubtotal * (taxPercent / 100));
+  const tipAmount = Math.round(itemsSubtotal * (tipPercent / 100));
+  const grandTotal = itemsSubtotal + taxAmount + tipAmount;
+
+  const handleTaxChange = (val: number) => {
+    setTaxPercent(val);
+    onUpdateTab({ tax_percent: val });
+  };
+
+  const handleTipChange = (val: number) => {
+    setTipPercent(val);
+    onUpdateTab({ tip_percent: val });
+  };
+
+  if (items.length === 0) return null;
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="mb-0">{tab.name} &mdash; Totals</h4>
-        <Link to={`/tabs/${tab.id}`}>
-          <Button variant="outline-secondary" size="sm">
-            Back to Tab
-          </Button>
-        </Link>
-      </div>
+    <div className="mt-4 pt-4 border-top">
+      <h5 className="mb-3">Totals</h5>
 
-      <Row className="mb-4">
-        <Col sm={6}>
+      <Row className="mb-3">
+        <Col xs={6}>
           <Form.Group>
-            <Form.Label>Tax %</Form.Label>
+            <Form.Label className="small text-muted mb-1">Tax %</Form.Label>
             <Form.Control
               type="number"
+              size="sm"
               step="0.01"
               value={taxPercent}
-              onChange={(e) => setTaxPercent(parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleTaxChange(parseFloat(e.target.value) || 0)}
             />
           </Form.Group>
         </Col>
-        <Col sm={6}>
+        <Col xs={6}>
           <Form.Group>
-            <Form.Label>Tip %</Form.Label>
+            <Form.Label className="small text-muted mb-1">Tip %</Form.Label>
             <Form.Range
               min={0}
               max={30}
               step={1}
               value={tipPercent}
-              onChange={(e) => setTipPercent(parseFloat(e.target.value))}
+              onChange={(e) => handleTipChange(parseFloat(e.target.value))}
             />
-            <div className="d-flex justify-content-between">
+            <div className="d-flex justify-content-between small">
               <span>{tipPercent}%</span>
-              <span>{formatCents(Math.round(grandSubtotal * (tipPercent / 100)))}</span>
+              <span>{formatCents(tipAmount)}</span>
             </div>
           </Form.Group>
         </Col>
       </Row>
 
-      <ListGroup className="mb-4">
-        {totals.map(({ rabbit, subtotal, tax, tip, total }) => (
-          <ListGroup.Item
-            key={rabbit.id}
-            style={{ backgroundColor: COLOR_HEX[rabbit.color] }}
-          >
-            <div className="d-flex justify-content-between align-items-start">
-              <div>
-                <strong>{rabbit.name}</strong>
-                <br />
-                <small className="text-muted">
-                  Subtotal: {formatCents(subtotal)} + Tax: {formatCents(tax)} + Tip:{' '}
-                  {formatCents(tip)}
-                </small>
-              </div>
-              <div className="text-end">
-                <strong className="fs-5">{formatCents(total)}</strong>
-                <div className="mt-1">
-                  <PaymentLinks
-                    rabbit={rabbit}
-                    amount={total / 100}
-                    tabName={tab.name}
-                  />
+      {/* Per-rabbit breakdown */}
+      {totals.length > 0 && (
+        <ListGroup className="mb-3">
+          {totals.map(({ rabbit, subtotal, tax, tip, total }) => (
+            <ListGroup.Item
+              key={rabbit.id}
+              style={{ backgroundColor: COLOR_HEX[rabbit.color] }}
+            >
+              <div className="d-flex justify-content-between align-items-start">
+                <div>
+                  <strong>{rabbit.name}</strong>
+                  <br />
+                  <small className="text-muted">
+                    {formatCents(subtotal)} + {formatCents(tax)} tax + {formatCents(tip)} tip
+                  </small>
+                </div>
+                <div className="text-end">
+                  <strong className="fs-5">{formatCents(total)}</strong>
+                  <div className="mt-1">
+                    <PaymentLinks
+                      rabbit={rabbit}
+                      amount={total / 100}
+                      tabName={tab.name}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      )}
+
+      {unassignedItems.length > 0 && rabbits.length > 0 && (
+        <Alert variant="warning" className="py-2 small mb-3">
+          {unassignedItems.length} item{unassignedItems.length > 1 ? 's' : ''} not
+          assigned to anyone yet.
+        </Alert>
+      )}
 
       <Card>
-        <Card.Body className="d-flex justify-content-between">
-          <span>Grand Total</span>
-          <strong className="fs-5">{formatCents(grandTotal)}</strong>
+        <Card.Body className="py-2">
+          <div className="d-flex justify-content-between small">
+            <span>Subtotal</span>
+            <span>{formatCents(itemsSubtotal)}</span>
+          </div>
+          <div className="d-flex justify-content-between small">
+            <span>Tax ({taxPercent}%)</span>
+            <span>{formatCents(taxAmount)}</span>
+          </div>
+          <div className="d-flex justify-content-between small mb-1">
+            <span>Tip ({tipPercent}%)</span>
+            <span>{formatCents(tipAmount)}</span>
+          </div>
+          <hr className="my-1" />
+          <div className="d-flex justify-content-between">
+            <strong>Grand Total</strong>
+            <strong>{formatCents(grandTotal)}</strong>
+          </div>
         </Card.Body>
       </Card>
     </div>

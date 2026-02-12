@@ -7,12 +7,19 @@ interface ParsedItem {
   price: number;
 }
 
-interface ReceiptUploadProps {
-  tabId: string;
-  onItemsParsed: (items: ParsedItem[]) => void;
+export interface ReceiptResult {
+  items: ParsedItem[];
+  subtotal?: number;
+  tax?: number;
+  total?: number;
 }
 
-export default function ReceiptUpload({ tabId, onItemsParsed }: ReceiptUploadProps) {
+interface ReceiptUploadProps {
+  tabId: string;
+  onReceiptParsed: (result: ReceiptResult) => void;
+}
+
+export default function ReceiptUpload({ tabId, onReceiptParsed }: ReceiptUploadProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -46,7 +53,7 @@ export default function ReceiptUpload({ tabId, onItemsParsed }: ReceiptUploadPro
       if (fnError) throw fnError;
 
       if (data?.items?.length) {
-        onItemsParsed(data.items);
+        onReceiptParsed(data as ReceiptResult);
       } else {
         setError('No items found in receipt. Try a clearer photo.');
       }

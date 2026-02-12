@@ -6,7 +6,6 @@ import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import Dashboard from './pages/Dashboard';
 import TabPage from './pages/TabPage';
-import TotalsPage from './pages/TotalsPage';
 import './App.css';
 
 function App() {
@@ -45,10 +44,6 @@ function App() {
           <Route
             path="/tabs/:tabId"
             element={user ? <TabPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/tabs/:tabId/totals"
-            element={user ? <TotalsPage /> : <Navigate to="/login" />}
           />
         </Routes>
       </Layout>

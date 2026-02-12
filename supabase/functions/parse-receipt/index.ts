@@ -1,7 +1,6 @@
-import "https://deno.land/x/xhr@0.3.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,41 +23,52 @@ serve(async (req: Request) => {
       );
     }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Fetch the image and convert to base64
+    const imageResponse = await fetch(image_url);
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const base64Image = btoa(
+      String.fromCharCode(...new Uint8Array(imageBuffer))
+    );
+    const mediaType = imageResponse.headers.get("content-type") || "image/jpeg";
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "x-api-key": ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1024,
         messages: [
-          {
-            role: "system",
-            content:
-              "You are a receipt parser. Extract line items from receipt images. Return ONLY valid JSON with this exact structure: { \"items\": [{ \"description\": \"Item name\", \"price\": 12.99 }], \"subtotal\": 25.98, \"tax\": 2.27, \"total\": 28.25 }. Prices should be numbers (dollars, not cents). If you cannot read an item, skip it. Do not include tax or tip as line items.",
-          },
           {
             role: "user",
             content: [
               {
-                type: "text",
-                text: "Extract all line items with prices from this receipt image.",
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: mediaType,
+                  data: base64Image,
+                },
               },
-              { type: "image_url", image_url: { url: image_url } },
+              {
+                type: "text",
+                text: 'Extract all line items with prices from this receipt image. Return ONLY valid JSON with this exact structure: { "items": [{ "description": "Item name", "price": 12.99 }], "subtotal": 25.98, "tax": 2.27, "total": 28.25 }. Prices should be numbers (dollars, not cents). If you cannot read an item, skip it. Do not include tax or tip as line items.',
+              },
             ],
           },
         ],
-        max_tokens: 1000,
       }),
     });
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    const content = data.content?.[0]?.text;
 
     if (!content) {
       return new Response(
-        JSON.stringify({ error: "No response from vision model" }),
+        JSON.stringify({ error: "No response from vision model", details: data }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

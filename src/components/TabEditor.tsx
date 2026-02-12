@@ -1,12 +1,14 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Button, Form, Spinner } from 'react-bootstrap';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTab } from '../hooks/useTab';
 import { useRealtime } from '../hooks/useRealtime';
 import ItemList from './ItemList';
 import RabbitBar from './RabbitBar';
 import AddRabbitModal from './AddRabbitModal';
 import ReceiptUpload from './ReceiptUpload';
+import TotalsView from './TotalsView';
+import type { ReceiptResult } from './ReceiptUpload';
 import type { RabbitColor } from '../types';
 
 export default function TabEditor() {
@@ -17,13 +19,17 @@ export default function TabEditor() {
     rabbits,
     assignments,
     loading,
+    saving,
+    isDirty,
     fetchTab,
     updateTab,
     addItem,
+    addItems,
     deleteItem,
     addRabbit,
     removeRabbit,
     toggleAssignment,
+    saveChanges,
   } = useTab(tabId);
 
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
@@ -54,18 +60,23 @@ export default function TabEditor() {
     return result;
   }, [rabbits, items, assignments]);
 
-  const handleNameSave = async () => {
+  const handleNameSave = () => {
     if (tabName.trim() && tabName.trim() !== tab?.name) {
-      await updateTab({ name: tabName.trim() });
+      updateTab({ name: tabName.trim() });
     }
     setEditingName(false);
   };
 
-  const handleReceiptItems = async (
-    parsedItems: { description: string; price: number }[]
-  ) => {
-    for (const item of parsedItems) {
-      await addItem(item.description, Math.round(item.price * 100));
+  const handleReceiptParsed = (result: ReceiptResult) => {
+    const batchItems = result.items.map((item) => ({
+      description: item.description,
+      price_cents: Math.round(item.price * 100),
+    }));
+    addItems(batchItems);
+
+    if (result.tax && result.subtotal && result.subtotal > 0) {
+      const taxPercent = Math.round((result.tax / result.subtotal) * 10000) / 100;
+      updateTab({ tax_percent: taxPercent });
     }
   };
 
@@ -109,11 +120,19 @@ export default function TabEditor() {
             {tab.name}
           </h4>
         )}
-        <Link to={`/tabs/${tab.id}/totals`}>
-          <Button variant="primary" size="sm">
-            View Totals
-          </Button>
-        </Link>
+        <div className="d-flex align-items-center gap-2">
+          {saving && (
+            <small className="text-muted">
+              <Spinner animation="border" size="sm" className="me-1" />
+              Saving...
+            </small>
+          )}
+          {isDirty && !saving && (
+            <Button variant="outline-success" size="sm" onClick={saveChanges}>
+              Save
+            </Button>
+          )}
+        </div>
       </div>
 
       <RabbitBar
@@ -136,7 +155,7 @@ export default function TabEditor() {
         </p>
       )}
 
-      <ReceiptUpload tabId={tab.id} onItemsParsed={handleReceiptItems} />
+      <ReceiptUpload tabId={tab.id} onReceiptParsed={handleReceiptParsed} />
 
       <ItemList
         items={items}
@@ -146,6 +165,14 @@ export default function TabEditor() {
         onToggle={toggleAssignment}
         onAddItem={addItem}
         onDeleteItem={deleteItem}
+      />
+
+      <TotalsView
+        tab={tab}
+        items={items}
+        rabbits={rabbits}
+        assignments={assignments}
+        onUpdateTab={updateTab}
       />
 
       <AddRabbitModal
