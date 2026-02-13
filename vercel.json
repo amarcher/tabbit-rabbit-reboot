@@ -15,7 +15,6 @@
   ],
   "rewrites": [
     { "source": "/privacy", "destination": "/privacy" },
-    { "source": "/.well-known/:path*", "destination": "/.well-known/:path*" },
-    { "source": "/((?!static|.*\\..*).*)", "destination": "/index.html" }
+    { "source": "/((?!\\.well-known|static|.*\\..*).*)", "destination": "/index.html" }
   ]
 }
