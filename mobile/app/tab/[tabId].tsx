@@ -7,8 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Share,
 } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useTab } from '@/src/hooks/useTab';
@@ -215,8 +215,10 @@ export default function TabEditorScreen() {
   const handleShareBill = async () => {
     if (!tab?.share_token) return;
     const url = `https://tabbitrabbit.com/bill/${tab.share_token}`;
-    await Clipboard.setStringAsync(url);
-    Alert.alert('Link Copied', url);
+    await Share.share({
+      message: `Check out this bill for ${tab.name}: ${url}`,
+      url,
+    });
   };
 
   if (loading || !tab) {
