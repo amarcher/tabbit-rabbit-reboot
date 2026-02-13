@@ -8,7 +8,8 @@
     }
   ],
   "rewrites": [
+    { "source": "/.well-known/apple-app-site-association", "destination": "/api/aasa" },
     { "source": "/privacy", "destination": "/privacy" },
-    { "source": "/((?!static|.*\\..*).*)", "destination": "/index.html" }
+    { "source": "/((?!static|api|.*\\..*).*)", "destination": "/index.html" }
   ]
 }
