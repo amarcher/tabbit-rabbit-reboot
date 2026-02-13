@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import * as Crypto from 'expo-crypto';
 import { supabase } from '../supabaseClient';
 import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
 
@@ -261,7 +261,7 @@ export function useTab(tabId: string | undefined) {
     (description: string, priceCents: number) => {
       if (!tabId) return;
       const newItem: Item = {
-        id: uuidv4(),
+        id: Crypto.randomUUID(),
         tab_id: tabId,
         description,
         price_cents: priceCents,
@@ -278,7 +278,7 @@ export function useTab(tabId: string | undefined) {
     (newItems: { description: string; price_cents: number }[]) => {
       if (!tabId || newItems.length === 0) return;
       const created = newItems.map((item) => ({
-        id: uuidv4(),
+        id: Crypto.randomUUID(),
         tab_id: tabId,
         description: item.description,
         price_cents: item.price_cents,
@@ -313,7 +313,7 @@ export function useTab(tabId: string | undefined) {
     (name: string, color: string) => {
       if (!tabId) return;
       const newRabbit: Rabbit = {
-        id: uuidv4(),
+        id: Crypto.randomUUID(),
         tab_id: tabId,
         profile_id: null,
         name,

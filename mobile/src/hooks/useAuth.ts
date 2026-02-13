@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { User, Session } from '@supabase/supabase-js';
@@ -48,12 +49,29 @@ export function useAuth() {
 
   // Handle Google auth response
   useEffect(() => {
-    if (googleResponse?.type === 'success') {
-      const { id_token } = googleResponse.params;
-      supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: id_token,
-      });
+    if (!googleResponse) return;
+
+    if (googleResponse.type === 'success') {
+      const idToken = googleResponse.params?.id_token;
+      if (!idToken) {
+        Alert.alert('Auth Error', 'No ID token received from Google.');
+        return;
+      }
+      supabase.auth
+        .signInWithIdToken({
+          provider: 'google',
+          token: idToken,
+        })
+        .then(({ error }) => {
+          if (error) {
+            Alert.alert('Sign In Failed', error.message);
+          }
+        });
+    } else if (googleResponse.type === 'error') {
+      Alert.alert(
+        'Google Auth Error',
+        googleResponse.error?.message || 'Unknown error'
+      );
     }
   }, [googleResponse]);
 
