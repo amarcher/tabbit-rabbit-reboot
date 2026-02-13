@@ -1,21 +1,16 @@
 {
-  "headers": [
+  "routes": [
     {
-      "source": "/.well-known/apple-app-site-association",
-      "headers": [
-        { "key": "Content-Type", "value": "application/json" }
-      ]
+      "src": "/.well-known/apple-app-site-association",
+      "dest": "/aasa.json",
+      "headers": { "Content-Type": "application/json" }
     },
     {
-      "source": "/privacy",
-      "headers": [
-        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
-      ]
-    }
-  ],
-  "rewrites": [
-    { "source": "/privacy", "destination": "/privacy" },
-    { "source": "/.well-known/apple-app-site-association", "destination": "/aasa.json" },
-    { "source": "/((?!static|.*\\..*).*)", "destination": "/index.html" }
+      "src": "/privacy",
+      "dest": "/privacy",
+      "headers": { "Content-Type": "text/html; charset=utf-8" }
+    },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
