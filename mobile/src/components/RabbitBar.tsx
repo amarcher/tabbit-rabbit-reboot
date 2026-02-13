@@ -78,7 +78,8 @@ export default function RabbitBar({
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingLeft: 4,
+    paddingRight: 16,
     gap: 8,
   },
   chip: {
