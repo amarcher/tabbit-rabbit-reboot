@@ -1,18 +1,14 @@
 {
-  "framework": null,
-  "buildCommand": "npm run build",
-  "outputDirectory": "build",
-  "routes": [
+  "headers": [
     {
-      "src": "/.well-known/apple-app-site-association",
-      "dest": "/api/.well-known/apple-app-site-association.js"
-    },
-    {
-      "src": "/privacy",
-      "dest": "/privacy",
-      "headers": { "Content-Type": "text/html; charset=utf-8" }
-    },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+      "source": "/privacy",
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/privacy", "destination": "/privacy" },
+    { "source": "/((?!static|.*\\..*).*)", "destination": "/index.html" }
   ]
 }
