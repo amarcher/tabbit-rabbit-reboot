@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,60 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useTabs } from '@/src/hooks/useTab';
+import type { Tab } from '@/src/types';
+
+function TabRow({
+  tab,
+  onPress,
+  onDelete,
+}: {
+  tab: Tab;
+  onPress: () => void;
+  onDelete: () => void;
+}) {
+  const swipeableRef = useRef<Swipeable>(null);
+
+  const renderRightActions = () => (
+    <View style={styles.swipeActions}>
+      <TouchableOpacity
+        style={styles.deleteAction}
+        onPress={() => {
+          swipeableRef.current?.close();
+          onDelete();
+        }}
+      >
+        <Text style={styles.actionText}>Delete</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.cancelAction}
+        onPress={() => swipeableRef.current?.close()}
+      >
+        <Text style={styles.actionText}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      overshootRight={false}
+      rightThreshold={40}
+    >
+      <TouchableOpacity style={styles.tabRow} onPress={onPress}>
+        <Text style={styles.tabName}>{tab.name}</Text>
+        <Text style={styles.tabDate}>
+          {new Date(tab.created_at).toLocaleDateString()}
+        </Text>
+      </TouchableOpacity>
+    </Swipeable>
+  );
+}
 
 export default function DashboardScreen() {
   const { user } = useAuth();
@@ -32,17 +81,6 @@ export default function DashboardScreen() {
     } finally {
       setCreating(false);
     }
-  };
-
-  const handleDelete = (tabId: string, tabName: string) => {
-    Alert.alert(
-      `Delete "${tabName}"?`,
-      'This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => deleteTab(tabId) },
-      ]
-    );
   };
 
   if (loading) {
@@ -89,24 +127,11 @@ export default function DashboardScreen() {
           data={tabs}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.tabRow}
+            <TabRow
+              tab={item}
               onPress={() => router.push(`/tab/${item.id}`)}
-            >
-              <View style={styles.tabInfo}>
-                <Text style={styles.tabName}>{item.name}</Text>
-                <Text style={styles.tabDate}>
-                  {new Date(item.created_at).toLocaleDateString()}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDelete(item.id, item.name)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Text style={styles.deleteText}>&times;</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
+              onDelete={() => deleteTab(item.id)}
+            />
           )}
           contentContainerStyle={styles.list}
         />
@@ -162,18 +187,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   tabRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     backgroundColor: '#fff',
     padding: 16,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#dee2e6',
-  },
-  tabInfo: {
-    flex: 1,
   },
   tabName: {
     fontSize: 17,
@@ -185,20 +204,28 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 2,
   },
-  deleteButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#dc3545',
+  swipeActions: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  deleteAction: {
+    backgroundColor: '#dc3545',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
+    width: 80,
   },
-  deleteText: {
-    color: '#dc3545',
-    fontSize: 18,
+  cancelAction: {
+    backgroundColor: '#6c757d',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+  },
+  actionText: {
+    color: '#fff',
     fontWeight: '600',
+    fontSize: 14,
   },
   emptyState: {
     flex: 1,

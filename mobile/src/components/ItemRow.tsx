@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Item, Rabbit, ItemRabbit } from '../types';
 import { formatCents } from '../utils/currency';
@@ -22,6 +23,8 @@ export default function ItemRow({
   onToggle,
   onDelete,
 }: ItemRowProps) {
+  const swipeableRef = useRef<Swipeable>(null);
+
   const itemRabbitIds = assignments
     .filter((a) => a.item_id === item.id)
     .map((a) => a.rabbit_id);
@@ -39,36 +42,54 @@ export default function ItemRow({
     }
   };
 
-  return (
-    <TouchableOpacity
-      onPress={handlePress}
-      disabled={!selectedRabbitId}
-      activeOpacity={selectedRabbitId ? 0.7 : 1}
-    >
-      <LinearGradient
-        colors={gradientColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={[
-          styles.row,
-          isSelectedRabbitAssigned && styles.highlighted,
-        ]}
+  const renderRightActions = () => (
+    <View style={styles.swipeActions}>
+      <TouchableOpacity
+        style={styles.confirmButton}
+        onPress={() => {
+          swipeableRef.current?.close();
+          onDelete(item.id);
+        }}
       >
-        <Text style={styles.description} numberOfLines={1}>
-          {item.description}
-        </Text>
-        <View style={styles.rightSide}>
+        <Text style={styles.actionText}>Delete</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.cancelButton}
+        onPress={() => swipeableRef.current?.close()}
+      >
+        <Text style={styles.actionText}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      overshootRight={false}
+      rightThreshold={40}
+    >
+      <TouchableOpacity
+        onPress={handlePress}
+        disabled={!selectedRabbitId}
+        activeOpacity={selectedRabbitId ? 0.7 : 1}
+      >
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[
+            styles.row,
+            isSelectedRabbitAssigned && styles.highlighted,
+          ]}
+        >
+          <Text style={styles.description} numberOfLines={1}>
+            {item.description}
+          </Text>
           <Text style={styles.price}>{formatCents(item.price_cents)}</Text>
-          <TouchableOpacity
-            onPress={() => onDelete(item.id)}
-            style={styles.deleteButton}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.deleteText}>&times;</Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
+        </LinearGradient>
+      </TouchableOpacity>
+    </Swipeable>
   );
 }
 
@@ -95,29 +116,29 @@ const styles = StyleSheet.create({
     color: '#333',
     marginRight: 8,
   },
-  rightSide: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   price: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
   },
-  deleteButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#dc3545',
+  swipeActions: {
+    flexDirection: 'row',
+  },
+  confirmButton: {
+    backgroundColor: '#dc3545',
     justifyContent: 'center',
     alignItems: 'center',
+    width: 80,
   },
-  deleteText: {
-    color: '#dc3545',
-    fontSize: 16,
+  cancelButton: {
+    backgroundColor: '#6c757d',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+  },
+  actionText: {
+    color: '#fff',
     fontWeight: '600',
-    marginTop: -1,
+    fontSize: 14,
   },
 });

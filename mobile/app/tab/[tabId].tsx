@@ -2,22 +2,78 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useTab } from '@/src/hooks/useTab';
 import { useRealtime } from '@/src/hooks/useRealtime';
+import { supabase } from '@/src/supabaseClient';
 import ItemList from '@/src/components/ItemList';
 import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
-import ReceiptUpload from '@/src/components/ReceiptUpload';
 import TotalsView from '@/src/components/TotalsView';
-import type { ReceiptResult } from '@/src/components/ReceiptUpload';
 import type { RabbitColor } from '@/src/types';
+
+interface ReceiptResult {
+  items: { description: string; price: number }[];
+  subtotal?: number;
+  tax?: number;
+  total?: number;
+}
+
+function ActionBar({
+  onScanReceipt,
+  onShareBill,
+  onSave,
+  scanning,
+  saving,
+  isDirty,
+  shareToken,
+}: {
+  onScanReceipt: () => void;
+  onShareBill: () => void;
+  onSave: () => void;
+  scanning: boolean;
+  saving: boolean;
+  isDirty: boolean;
+  shareToken: string | undefined;
+}) {
+  return (
+    <View style={styles.actionBar}>
+      <TouchableOpacity
+        style={styles.actionButton}
+        onPress={onScanReceipt}
+        disabled={scanning}
+      >
+        <Text style={styles.actionButtonText}>
+          {scanning ? 'Scanning...' : 'Scan Receipt'}
+        </Text>
+      </TouchableOpacity>
+      {shareToken && (
+        <TouchableOpacity style={styles.actionButton} onPress={onShareBill}>
+          <Text style={styles.actionButtonText}>Share Bill</Text>
+        </TouchableOpacity>
+      )}
+      {isDirty && (
+        <TouchableOpacity
+          style={[styles.actionButton, styles.saveActionButton]}
+          onPress={onSave}
+          disabled={saving}
+        >
+          <Text style={[styles.actionButtonText, styles.saveActionText]}>
+            {saving ? 'Saving...' : 'Save'}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
 
 export default function TabEditorScreen() {
   const { tabId } = useLocalSearchParams<{ tabId: string }>();
@@ -43,12 +99,10 @@ export default function TabEditorScreen() {
 
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
   const [showAddRabbit, setShowAddRabbit] = useState(false);
-  const [editingName, setEditingName] = useState(false);
-  const [tabName, setTabName] = useState('');
+  const [scanning, setScanning] = useState(false);
 
   useRealtime(tabId, useCallback(() => fetchTab(), [fetchTab]));
 
-  // Set nav title
   React.useEffect(() => {
     if (tab?.name) {
       navigation.setOptions({ title: tab.name });
@@ -76,24 +130,93 @@ export default function TabEditorScreen() {
     return result;
   }, [rabbits, items, assignments]);
 
-  const handleNameSave = () => {
-    if (tabName.trim() && tabName.trim() !== tab?.name) {
-      updateTab({ name: tabName.trim() });
-    }
-    setEditingName(false);
+  const handleScanReceipt = async () => {
+    Alert.alert('Scan Receipt', 'Choose image source', [
+      {
+        text: 'Camera',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permission needed', 'Camera permission is required.');
+            return;
+          }
+          const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images'],
+            quality: 0.8,
+          });
+          if (!result.canceled && result.assets[0]) {
+            await processReceiptImage(result.assets[0].uri);
+          }
+        },
+      },
+      {
+        text: 'Photo Library',
+        onPress: async () => {
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            quality: 0.8,
+          });
+          if (!result.canceled && result.assets[0]) {
+            await processReceiptImage(result.assets[0].uri);
+          }
+        },
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
-  const handleReceiptParsed = (result: ReceiptResult) => {
-    const batchItems = result.items.map((item) => ({
-      description: item.description,
-      price_cents: Math.round(item.price * 100),
-    }));
-    addItems(batchItems);
+  const processReceiptImage = async (uri: string) => {
+    if (!tabId) return;
+    setScanning(true);
+    try {
+      const filename = `${Date.now()}.jpg`;
+      const filePath = `receipts/${tabId}/${filename}`;
+      const response = await fetch(uri);
+      const blob = await response.blob();
 
-    if (result.tax && result.subtotal && result.subtotal > 0) {
-      const taxPercent = Math.round((result.tax / result.subtotal) * 10000) / 100;
-      updateTab({ tax_percent: taxPercent });
+      const { error: uploadError } = await supabase.storage
+        .from('receipts')
+        .upload(filePath, blob, { contentType: 'image/jpeg' });
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('receipts').getPublicUrl(filePath);
+
+      const { data, error: fnError } = await supabase.functions.invoke(
+        'parse-receipt',
+        { body: { image_url: publicUrl } }
+      );
+      if (fnError) throw fnError;
+
+      if (data?.items?.length) {
+        const result = data as ReceiptResult;
+        addItems(
+          result.items.map((item) => ({
+            description: item.description,
+            price_cents: Math.round(item.price * 100),
+          }))
+        );
+        if (result.tax && result.subtotal && result.subtotal > 0) {
+          const taxPercent =
+            Math.round((result.tax / result.subtotal) * 10000) / 100;
+          updateTab({ tax_percent: taxPercent });
+        }
+      } else {
+        Alert.alert('No items found', 'Try a clearer photo.');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to process receipt');
+    } finally {
+      setScanning(false);
     }
+  };
+
+  const handleShareBill = async () => {
+    if (!tab?.share_token) return;
+    const url = `https://tabbitrabbit.com/bill/${tab.share_token}`;
+    await Clipboard.setStringAsync(url);
+    Alert.alert('Link Copied', url);
   };
 
   if (loading || !tab) {
@@ -106,42 +229,16 @@ export default function TabEditorScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Tab Name */}
-      <View style={styles.header}>
-        {editingName ? (
-          <TextInput
-            style={styles.nameInput}
-            value={tabName}
-            onChangeText={setTabName}
-            autoFocus
-            onBlur={handleNameSave}
-            onSubmitEditing={handleNameSave}
-            returnKeyType="done"
-          />
-        ) : (
-          <TouchableOpacity
-            onPress={() => {
-              setTabName(tab.name);
-              setEditingName(true);
-            }}
-          >
-            <Text style={styles.tabName}>{tab.name}</Text>
-          </TouchableOpacity>
-        )}
-        <View style={styles.headerRight}>
-          {saving && (
-            <View style={styles.savingRow}>
-              <ActivityIndicator size="small" />
-              <Text style={styles.savingText}>Saving...</Text>
-            </View>
-          )}
-          {isDirty && !saving && (
-            <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
-              <Text style={styles.saveButtonText}>Save</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      {/* Action Bar (top) */}
+      <ActionBar
+        onScanReceipt={handleScanReceipt}
+        onShareBill={handleShareBill}
+        onSave={saveChanges}
+        scanning={scanning}
+        saving={saving}
+        isDirty={isDirty}
+        shareToken={tab.share_token}
+      />
 
       {/* Rabbit Bar */}
       <RabbitBar
@@ -164,9 +261,6 @@ export default function TabEditorScreen() {
         </Text>
       )}
 
-      {/* Receipt Upload */}
-      <ReceiptUpload tabId={tab.id} onReceiptParsed={handleReceiptParsed} />
-
       {/* Item List */}
       <ItemList
         items={items}
@@ -178,13 +272,23 @@ export default function TabEditorScreen() {
         onDeleteItem={deleteItem}
       />
 
-      {/* Totals */}
+      {/* Totals (no share button — it's in the action bar now) */}
       <TotalsView
         tab={tab}
         items={items}
         rabbits={rabbits}
         assignments={assignments}
         onUpdateTab={updateTab}
+      />
+
+      {/* Action Bar (bottom) */}
+      <ActionBar
+        onScanReceipt={handleScanReceipt}
+        onShareBill={handleShareBill}
+        onSave={saveChanges}
+        scanning={scanning}
+        saving={saving}
+        isDirty={isDirty}
         shareToken={tab.share_token}
       />
 
@@ -214,52 +318,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
+  actionBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: 8,
     marginBottom: 12,
   },
-  tabName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
-  },
-  nameInput: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
-    borderBottomWidth: 2,
-    borderBottomColor: '#0d6efd',
-    paddingVertical: 4,
+  actionButton: {
     flex: 1,
-    marginRight: 12,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  savingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  savingText: {
-    fontSize: 13,
-    color: '#999',
-  },
-  saveButton: {
     borderWidth: 1.5,
-    borderColor: '#198754',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderColor: '#0dcaf0',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
   },
-  saveButtonText: {
-    color: '#198754',
+  actionButtonText: {
+    color: '#0dcaf0',
     fontWeight: '600',
     fontSize: 14,
+  },
+  saveActionButton: {
+    borderColor: '#198754',
+  },
+  saveActionText: {
+    color: '#198754',
   },
   assignHint: {
     fontSize: 13,

@@ -4,9 +4,7 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  TouchableOpacity,
 } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { formatCents } from '../utils/currency';
 import { buildPaymentNote } from '../utils/payments';
@@ -19,7 +17,6 @@ interface TotalsViewProps {
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
   onUpdateTab: (updates: Partial<Tab>) => void;
-  shareToken?: string;
 }
 
 interface RabbitTotal {
@@ -36,11 +33,9 @@ export default function TotalsView({
   rabbits,
   assignments,
   onUpdateTab,
-  shareToken,
 }: TotalsViewProps) {
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 8.75);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
-  const [copied, setCopied] = useState(false);
 
   const itemsSubtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.price_cents, 0),
@@ -100,14 +95,6 @@ export default function TotalsView({
     const num = parseFloat(val) || 0;
     setTipPercent(num);
     onUpdateTab({ tip_percent: num });
-  };
-
-  const handleShare = async () => {
-    if (!shareToken) return;
-    const url = `https://tabbitrabbit.com/bill/${shareToken}`;
-    await Clipboard.setStringAsync(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   if (items.length === 0) return null;
@@ -205,14 +192,6 @@ export default function TotalsView({
         </View>
       </View>
 
-      {/* Share button */}
-      {shareToken && (
-        <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-          <Text style={styles.shareButtonText}>
-            {copied ? 'Copied!' : 'Share Bill'}
-          </Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
@@ -330,19 +309,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#333',
-  },
-  shareButton: {
-    marginTop: 16,
-    alignSelf: 'center',
-    borderWidth: 1.5,
-    borderColor: '#198754',
-    borderRadius: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-  },
-  shareButtonText: {
-    color: '#198754',
-    fontWeight: '600',
-    fontSize: 16,
   },
 });

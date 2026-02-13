@@ -61,14 +61,10 @@ export default function AddRabbitModal({
             <Text style={styles.colorLabel}>Color:</Text>
             <View
               style={[
-                styles.colorPreview,
+                styles.colorDot,
                 { backgroundColor: BUTTON_COLORS[nextColor].bg },
               ]}
-            >
-              <Text style={[styles.colorPreviewText, { color: BUTTON_COLORS[nextColor].text }]}>
-                {nextColor}
-              </Text>
-            </View>
+            />
           </View>
 
           <View style={styles.buttons}>
@@ -133,14 +129,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  colorPreview: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+  colorDot: {
+    width: 24,
+    height: 24,
     borderRadius: 12,
-  },
-  colorPreviewText: {
-    fontSize: 13,
-    fontWeight: '600',
   },
   buttons: {
     flexDirection: 'row',

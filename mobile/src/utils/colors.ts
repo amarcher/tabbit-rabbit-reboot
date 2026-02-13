@@ -9,6 +9,16 @@ const COLOR_ORDER: RabbitColor[] = [
   'secondary',
 ];
 
+/** More saturated gradient colors — bolder than the pastel COLOR_HEX */
+const GRADIENT_HEX: Record<RabbitColor, string> = {
+  success: '#6ec985',
+  info: '#5cd6e8',
+  warning: '#ffd24d',
+  danger: '#f08a93',
+  primary: '#6aabf0',
+  secondary: '#a8abaf',
+};
+
 function sortColors(colors: RabbitColor[]): RabbitColor[] {
   return [...colors].sort(
     (a, b) => COLOR_ORDER.indexOf(a) - COLOR_ORDER.indexOf(b)
@@ -18,8 +28,8 @@ function sortColors(colors: RabbitColor[]): RabbitColor[] {
 /** Returns a tuple of hex color strings for use with expo-linear-gradient */
 export function getGradientColors(colors: RabbitColor[]): [string, string, ...string[]] {
   if (colors.length === 0) return ['#ffffff', '#ffffff'];
-  if (colors.length === 1) return [COLOR_HEX[colors[0]], COLOR_HEX[colors[0]]];
-  const sorted = sortColors(colors).map((c) => COLOR_HEX[c]);
+  if (colors.length === 1) return [GRADIENT_HEX[colors[0]], GRADIENT_HEX[colors[0]]];
+  const sorted = sortColors(colors).map((c) => GRADIENT_HEX[c]);
   return [sorted[0], sorted[1], ...sorted.slice(2)];
 }
 
