@@ -5,8 +5,7 @@
   "routes": [
     {
       "src": "/.well-known/apple-app-site-association",
-      "dest": "/aasa.json",
-      "headers": { "Content-Type": "application/json" }
+      "dest": "/api/.well-known/apple-app-site-association.js"
     },
     {
       "src": "/privacy",
