@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "J39B2498YF.com.tabbitrabbit.app",
+        "paths": ["/bill/*"]
+      }
+    ]
+  }
+}
