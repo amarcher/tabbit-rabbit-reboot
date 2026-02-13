@@ -9,15 +9,15 @@
   },
   "routes": [
     {
-      "src": "/.well-known/apple-app-site-association",
-      "dest": "/api/aasa"
-    },
-    {
       "src": "/privacy",
       "dest": "/privacy",
       "headers": { "Content-Type": "text/html; charset=utf-8" }
     },
     { "handle": "filesystem" },
+    {
+      "src": "/.well-known/apple-app-site-association",
+      "dest": "/api/aasa"
+    },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
