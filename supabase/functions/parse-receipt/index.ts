@@ -26,9 +26,12 @@ serve(async (req: Request) => {
     // Fetch the image and convert to base64
     const imageResponse = await fetch(image_url);
     const imageBuffer = await imageResponse.arrayBuffer();
-    const base64Image = btoa(
-      String.fromCharCode(...new Uint8Array(imageBuffer))
-    );
+    const bytes = new Uint8Array(imageBuffer);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64Image = btoa(binary);
     const rawType = imageResponse.headers.get("content-type") || "image/jpeg";
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     const mediaType = allowedTypes.includes(rawType) ? rawType : "image/jpeg";
