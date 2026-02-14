@@ -106,6 +106,7 @@ EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=<iOS OAuth client ID>
 ## Gotchas
 
 - **Hermes + crypto**: React Native's Hermes engine lacks `crypto.getRandomValues()`. Use `expo-crypto` (`Crypto.randomUUID()`) instead of the `uuid` package.
+- **Base64 in Deno edge functions**: Never use `String.fromCharCode(...new Uint8Array(buf))` — the spread overflows the call stack on large files. Use a loop instead.
 - **Supabase queries in `Promise.all`**: Query builders aren't `PromiseLike` — append `.then()` to make them work with `Promise.all`.
 - **expo-linear-gradient colors**: Requires tuple type `[string, string, ...string[]]`, not `string[]`.
 - **Google OAuth (mobile)**: Requires the reversed client ID as a URL scheme in `app.json` `CFBundleURLTypes`. Supabase dashboard must have the iOS client ID in the authorized client IDs list with "Skip nonce checks" enabled.
