@@ -29,7 +29,9 @@ serve(async (req: Request) => {
     const base64Image = btoa(
       String.fromCharCode(...new Uint8Array(imageBuffer))
     );
-    const mediaType = imageResponse.headers.get("content-type") || "image/jpeg";
+    const rawType = imageResponse.headers.get("content-type") || "image/jpeg";
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const mediaType = allowedTypes.includes(rawType) ? rawType : "image/jpeg";
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
