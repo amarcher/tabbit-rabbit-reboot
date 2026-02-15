@@ -8,6 +8,8 @@ import {
   Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 import { supabase } from '../supabaseClient';
 
 interface ParsedItem {
@@ -65,12 +67,13 @@ export default function ReceiptUpload({ tabId, onReceiptParsed }: ReceiptUploadP
       const filename = `${Date.now()}.jpg`;
       const filePath = `receipts/${tabId}/${filename}`;
 
-      const response = await fetch(uri);
-      const blob = await response.blob();
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
       const { error: uploadError } = await supabase.storage
         .from('receipts')
-        .upload(filePath, blob, { contentType: 'image/jpeg' });
+        .upload(filePath, decode(base64), { contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 
