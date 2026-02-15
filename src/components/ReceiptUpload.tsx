@@ -71,7 +71,6 @@ export default function ReceiptUpload({ tabId, onReceiptParsed }: ReceiptUploadP
         ref={fileRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={handleUpload}
         style={{ display: 'none' }}
       />
