@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
-import { RABBIT_COLORS, RabbitColor } from '../types';
+import { RABBIT_COLORS, RabbitColor, COLOR_HEX } from '../types';
 
 interface AddRabbitModalProps {
   show: boolean;
@@ -46,11 +46,18 @@ export default function AddRabbitModal({
               required
             />
           </Form.Group>
-          <div className="d-flex gap-2">
-            <span className="me-2 align-self-center">Color:</span>
-            <Button variant={nextColor} size="sm" disabled>
-              {nextColor}
-            </Button>
+          <div className="d-flex align-items-center gap-2">
+            <span>Color:</span>
+            <span
+              style={{
+                display: 'inline-block',
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                backgroundColor: COLOR_HEX[nextColor],
+                border: '1px solid rgba(0,0,0,0.15)',
+              }}
+            />
           </div>
         </Modal.Body>
         <Modal.Footer>

@@ -1,13 +1,13 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Button, Form, Spinner } from 'react-bootstrap';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Alert, Button, Form, Spinner } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import { useTab } from '../hooks/useTab';
 import { useAuth } from '../hooks/useAuth';
 import { useRealtime } from '../hooks/useRealtime';
+import { supabase } from '../supabaseClient';
 import ItemList from './ItemList';
 import RabbitBar from './RabbitBar';
 import AddRabbitModal from './AddRabbitModal';
-import ReceiptUpload from './ReceiptUpload';
 import TotalsView from './TotalsView';
 import type { ReceiptResult } from './ReceiptUpload';
 import type { RabbitColor } from '../types';
@@ -38,6 +38,14 @@ export default function TabEditor() {
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [tabName, setTabName] = useState('');
+
+  // Receipt upload state
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState('');
+
+  // Share bill state
+  const [copied, setCopied] = useState(false);
 
   useRealtime(tabId, useCallback(() => fetchTab(), [fetchTab]));
 
@@ -82,6 +90,54 @@ export default function TabEditor() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !tab) return;
+
+    setScanError('');
+    setScanning(true);
+
+    try {
+      const filePath = `receipts/${tab.id}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('receipts')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('receipts').getPublicUrl(filePath);
+
+      const { data, error: fnError } = await supabase.functions.invoke(
+        'parse-receipt',
+        { body: { image_url: publicUrl } }
+      );
+
+      if (fnError) throw fnError;
+
+      if (data?.items?.length) {
+        handleReceiptParsed(data as ReceiptResult);
+      } else {
+        setScanError('No items found in receipt. Try a clearer photo.');
+      }
+    } catch (err: any) {
+      setScanError(err.message || 'Failed to process receipt');
+    } finally {
+      setScanning(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const handleShareBill = () => {
+    if (!tab?.share_token) return;
+    const url = `${window.location.origin}/bill/${tab.share_token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   if (loading || !tab) {
     return (
       <div className="text-center py-5">
@@ -90,8 +146,46 @@ export default function TabEditor() {
     );
   }
 
+  const actionBar = (
+    <div className="d-flex gap-2 mb-3">
+      <Button
+        variant="outline-info"
+        size="sm"
+        onClick={() => fileRef.current?.click()}
+        disabled={scanning}
+      >
+        {scanning ? (
+          <>
+            <Spinner animation="border" size="sm" className="me-1" />
+            Scanning...
+          </>
+        ) : (
+          'Scan Receipt'
+        )}
+      </Button>
+      {tab.share_token && (
+        <Button variant="outline-success" size="sm" onClick={handleShareBill}>
+          {copied ? 'Copied!' : 'Share Bill'}
+        </Button>
+      )}
+      {isDirty && !saving && (
+        <Button variant="outline-success" size="sm" onClick={saveChanges}>
+          Save
+        </Button>
+      )}
+    </div>
+  );
+
   return (
     <div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileUpload}
+        style={{ display: 'none' }}
+      />
+
       <div className="d-flex justify-content-between align-items-center mb-3">
         {editingName ? (
           <Form
@@ -122,20 +216,21 @@ export default function TabEditor() {
             {tab.name}
           </h4>
         )}
-        <div className="d-flex align-items-center gap-2">
-          {saving && (
-            <small className="text-muted">
-              <Spinner animation="border" size="sm" className="me-1" />
-              Saving...
-            </small>
-          )}
-          {isDirty && !saving && (
-            <Button variant="outline-success" size="sm" onClick={saveChanges}>
-              Save
-            </Button>
-          )}
-        </div>
+        {saving && (
+          <small className="text-muted">
+            <Spinner animation="border" size="sm" className="me-1" />
+            Saving...
+          </small>
+        )}
       </div>
+
+      {actionBar}
+
+      {scanError && (
+        <Alert variant="warning" className="py-2 small" dismissible onClose={() => setScanError('')}>
+          {scanError}
+        </Alert>
+      )}
 
       <RabbitBar
         rabbits={rabbits}
@@ -157,8 +252,6 @@ export default function TabEditor() {
         </p>
       )}
 
-      <ReceiptUpload tabId={tab.id} onReceiptParsed={handleReceiptParsed} />
-
       <ItemList
         items={items}
         rabbits={rabbits}
@@ -175,9 +268,10 @@ export default function TabEditor() {
         rabbits={rabbits}
         assignments={assignments}
         onUpdateTab={updateTab}
-        shareToken={tab.share_token}
         currentUserProfile={profile}
       />
+
+      {actionBar}
 
       <AddRabbitModal
         show={showAddRabbit}

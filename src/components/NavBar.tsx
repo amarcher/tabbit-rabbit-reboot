@@ -16,12 +16,12 @@ export default function NavBar({ user, onSignOut }: NavBarProps) {
         <Navbar.Brand as={Link} to="/">
           <img
             src="/tbicon.png"
-            alt="Tabbit"
+            alt="Tabbit Rabbit"
             width="24"
             height="24"
             className="d-inline-block align-top me-2"
           />
-          Tabbit
+          Tabbit Rabbit
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="main-nav" />
         <Navbar.Collapse id="main-nav">
