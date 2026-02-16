@@ -8,8 +8,6 @@ import {
   Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
-import { decode } from 'base64-arraybuffer';
 import { supabase } from '../supabaseClient';
 
 interface ParsedItem {
@@ -62,25 +60,45 @@ export default function ReceiptUpload({ tabId, onReceiptParsed }: ReceiptUploadP
 
   const processImage = async (uri: string) => {
     setUploading(true);
+    let step = 'reading file';
 
     try {
       const filename = `${Date.now()}.jpg`;
       const filePath = `receipts/${tabId}/${filename}`;
 
-      const base64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Use FormData with file URI — the only reliable upload method on React Native
+      step = 'uploading to storage';
+      const formData = new FormData();
+      formData.append('file', {
+        uri,
+        name: filename,
+        type: 'image/jpeg',
+      } as any);
 
-      const { error: uploadError } = await supabase.storage
-        .from('receipts')
-        .upload(filePath, decode(base64), { contentType: 'image/jpeg' });
+      const session = (await supabase.auth.getSession()).data.session;
+      const uploadRes = await fetch(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/receipts/${filePath}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            'x-upsert': 'true',
+          },
+          body: formData,
+        }
+      );
 
-      if (uploadError) throw uploadError;
+      if (!uploadRes.ok) {
+        const errBody = await uploadRes.text();
+        throw new Error(`Upload failed (${uploadRes.status}): ${errBody}`);
+      }
 
+      step = 'getting public URL';
       const {
         data: { publicUrl },
       } = supabase.storage.from('receipts').getPublicUrl(filePath);
 
+      step = `calling edge function`;
       const { data, error: fnError } = await supabase.functions.invoke(
         'parse-receipt',
         {
@@ -88,7 +106,10 @@ export default function ReceiptUpload({ tabId, onReceiptParsed }: ReceiptUploadP
         }
       );
 
-      if (fnError) throw fnError;
+      if (fnError) {
+        const detail = typeof data === 'object' ? JSON.stringify(data) : String(data ?? '');
+        throw new Error(`${fnError.message}${detail ? `\n\n${detail}` : ''}`);
+      }
 
       if (data?.items?.length) {
         onReceiptParsed(data as ReceiptResult);
@@ -96,7 +117,7 @@ export default function ReceiptUpload({ tabId, onReceiptParsed }: ReceiptUploadP
         Alert.alert('No items found', 'No items found in receipt. Try a clearer photo.');
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to process receipt');
+      Alert.alert('Error', `Failed at: ${step}\n\n${err.message || err}`);
     } finally {
       setUploading(false);
     }
@@ -136,7 +157,7 @@ const styles = StyleSheet.create({
   },
   button: {
     borderWidth: 1.5,
-    borderColor: '#0dcaf0',
+    borderColor: '#00ff00',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -147,7 +168,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#0dcaf0',
+    color: '#00ff00',
     fontWeight: '600',
     fontSize: 15,
   },
