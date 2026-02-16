@@ -12,6 +12,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useTab } from '@/src/hooks/useTab';
+import { useAuth } from '@/src/hooks/useAuth';
 import { useRealtime } from '@/src/hooks/useRealtime';
 import { supabase } from '@/src/supabaseClient';
 import ItemList from '@/src/components/ItemList';
@@ -78,6 +79,7 @@ function ActionBar({
 export default function TabEditorScreen() {
   const { tabId } = useLocalSearchParams<{ tabId: string }>();
   const navigation = useNavigation();
+  const { profile } = useAuth();
   const {
     tab,
     items,
@@ -302,6 +304,7 @@ export default function TabEditorScreen() {
         rabbits={rabbits}
         assignments={assignments}
         onUpdateTab={updateTab}
+        currentUserProfile={profile}
       />
 
       {/* Action Bar (bottom) */}
