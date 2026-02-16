@@ -37,7 +37,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
   return (
     <div>
       <div className="text-center mb-4">
-        <img src="/tblogo.png" alt="Tabbit" style={{ maxWidth: 250 }} className="mb-3" />
+        <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 250 }} className="mb-3" />
       </div>
 
       <Form onSubmit={handleCreate} className="mb-4">

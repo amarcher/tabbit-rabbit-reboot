@@ -7,9 +7,14 @@ export function getGradientStyle(colors: RabbitColor[]): React.CSSProperties {
   }
 
   const sorted = sortColors(colors);
-  const stops = sorted.map((color, i) => {
-    const pct = sorted.length === 1 ? 0 : (i / (sorted.length - 1)) * 100;
-    return `${COLOR_HEX[color]} ${pct}%`;
+  const bandSize = 100 / sorted.length;
+  const blend = 3; // percentage of transition between bands
+  const stops: string[] = [];
+  sorted.forEach((color, i) => {
+    const start = i * bandSize;
+    const end = (i + 1) * bandSize;
+    stops.push(`${COLOR_HEX[color]} ${Math.max(0, start + (i > 0 ? blend : 0))}%`);
+    stops.push(`${COLOR_HEX[color]} ${Math.min(100, end - (i < sorted.length - 1 ? blend : 0))}%`);
   });
 
   return {

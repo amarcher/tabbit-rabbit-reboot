@@ -55,7 +55,7 @@ export default function SharedBillPage() {
       <Container className="d-flex justify-content-center" style={{ paddingTop: '80px' }}>
         <Card style={{ maxWidth: 500, width: '100%' }}>
           <Card.Body className="text-center">
-            <img src="/tblogo.png" alt="Tabbit" style={{ maxWidth: 150 }} className="mb-3" />
+            <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 150 }} className="mb-3" />
             <Alert variant="warning">{error || 'Bill not found'}</Alert>
             <Link to="/login" className="btn btn-success">
               Sign in to Tabbit Rabbit
@@ -75,7 +75,7 @@ export default function SharedBillPage() {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto' }}>
       <div className="text-center mb-4">
-        <img src="/tblogo.png" alt="Tabbit" style={{ maxWidth: 120 }} className="mb-2" />
+        <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 120 }} className="mb-2" />
         <h3>{tab.name}</h3>
         {ownerProfile.display_name && (
           <p className="text-muted">Shared by {ownerProfile.display_name}</p>

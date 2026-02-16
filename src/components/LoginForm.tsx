@@ -25,7 +25,7 @@ export default function LoginForm({ onSignInWithGoogle }: LoginFormProps) {
       <Card style={{ maxWidth: 400, width: '100%' }}>
         <Card.Body>
           <div className="text-center mb-4">
-            <img src="/tblogo.png" alt="Tabbit" style={{ maxWidth: 200 }} />
+            <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 200 }} />
           </div>
           <h4 className="text-center mb-3">Sign In</h4>
           {error && <Alert variant="danger">{error}</Alert>}

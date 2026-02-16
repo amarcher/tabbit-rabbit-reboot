@@ -12,7 +12,6 @@ interface TotalsViewProps {
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
   onUpdateTab: (updates: Partial<Tab>) => void;
-  shareToken?: string;
   currentUserProfile?: Profile | null;
 }
 
@@ -30,12 +29,10 @@ export default function TotalsView({
   rabbits,
   assignments,
   onUpdateTab,
-  shareToken,
   currentUserProfile,
 }: TotalsViewProps) {
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 8.75);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
-  const [copied, setCopied] = useState(false);
 
   const itemsSubtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.price_cents, 0),
@@ -148,41 +145,37 @@ export default function TotalsView({
                     {formatCents(subtotal)} + {formatCents(tax)} tax + {formatCents(tip)} tip
                   </small>
                 </div>
-                <div className="text-end">
-                  <strong className="fs-5">{formatCents(total)}</strong>
-                  <div className="mt-1">
-                    <PaymentLinks
-                      rabbit={rabbit}
-                      amount={total / 100}
-                      note={buildPaymentNote(tab.name, rabbit.name,
-                        assignments
-                          .filter((a) => a.rabbit_id === rabbit.id)
-                          .map((a) => ({
-                            description: items.find((i) => i.id === a.item_id)?.description || '',
-                            splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
-                          }))
-                      )}
-                    />
-                  </div>
-                  {currentUserProfile?.venmo_username && total > 0 && (
-                    <div className="mt-1">
-                      <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        href={venmoChargeLink(total / 100, buildChargeNote(tab.name, rabbit.name,
-                          assignments
-                            .filter((a) => a.rabbit_id === rabbit.id)
-                            .map((a) => ({
-                              description: items.find((i) => i.id === a.item_id)?.description || '',
-                              splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
-                            }))
-                        ))}
-                      >
-                        Request via Venmo
-                      </Button>
-                    </div>
+                <strong className="fs-5">{formatCents(total)}</strong>
+              </div>
+              <div className="d-flex justify-content-end gap-2 mt-1">
+                <PaymentLinks
+                  rabbit={rabbit}
+                  amount={total / 100}
+                  note={buildPaymentNote(tab.name, rabbit.name,
+                    assignments
+                      .filter((a) => a.rabbit_id === rabbit.id)
+                      .map((a) => ({
+                        description: items.find((i) => i.id === a.item_id)?.description || '',
+                        splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
+                      }))
                   )}
-                </div>
+                />
+                {currentUserProfile?.venmo_username && total > 0 && (
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    href={venmoChargeLink(total / 100, buildChargeNote(tab.name, rabbit.name,
+                      assignments
+                        .filter((a) => a.rabbit_id === rabbit.id)
+                        .map((a) => ({
+                          description: items.find((i) => i.id === a.item_id)?.description || '',
+                          splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
+                        }))
+                    ))}
+                  >
+                    Request via Venmo
+                  </Button>
+                )}
               </div>
             </ListGroup.Item>
           ))}
@@ -218,22 +211,6 @@ export default function TotalsView({
         </Card.Body>
       </Card>
 
-      {shareToken && (
-        <div className="mt-3 text-center">
-          <Button
-            variant="outline-success"
-            onClick={() => {
-              const url = `${window.location.origin}/bill/${shareToken}`;
-              navigator.clipboard.writeText(url).then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              });
-            }}
-          >
-            {copied ? 'Copied!' : 'Share Bill'}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
