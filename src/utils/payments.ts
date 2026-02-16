@@ -18,7 +18,19 @@ export function venmoLink(
   amount: number,
   note: string
 ): string {
-  return `https://venmo.com/${username}?txn=pay&amount=${amount.toFixed(2)}&note=${note}`;
+  return `https://venmo.com/${username}?txn=pay&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
+}
+
+export function venmoChargeLink(amount: number, note: string): string {
+  return `https://venmo.com/?txn=charge&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
+}
+
+export function buildChargeNote(tabName: string, rabbitName: string, items: NoteItem[]): string {
+  if (items.length === 0) return `${rabbitName}'s share of ${tabName}`;
+  const itemParts = items.map((item) =>
+    item.splitCount > 1 ? `${item.description} (1/${item.splitCount})` : item.description
+  );
+  return `${rabbitName}'s share of ${tabName}:\n${itemParts.join('\n')}`;
 }
 
 export function cashAppLink(cashtag: string, amount: number): string {
