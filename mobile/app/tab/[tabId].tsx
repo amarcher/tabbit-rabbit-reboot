@@ -171,13 +171,31 @@ export default function TabEditorScreen() {
     try {
       const filename = `${Date.now()}.jpg`;
       const filePath = `receipts/${tabId}/${filename}`;
-      const response = await fetch(uri);
-      const blob = await response.blob();
 
-      const { error: uploadError } = await supabase.storage
-        .from('receipts')
-        .upload(filePath, blob, { contentType: 'image/jpeg' });
-      if (uploadError) throw uploadError;
+      // Use FormData with file URI — only reliable upload method on React Native
+      const formData = new FormData();
+      formData.append('file', {
+        uri,
+        name: filename,
+        type: 'image/jpeg',
+      } as any);
+
+      const session = (await supabase.auth.getSession()).data.session;
+      const uploadRes = await fetch(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/receipts/${filePath}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            'x-upsert': 'true',
+          },
+          body: formData,
+        }
+      );
+      if (!uploadRes.ok) {
+        const errBody = await uploadRes.text();
+        throw new Error(`Upload failed (${uploadRes.status}): ${errBody}`);
+      }
 
       const {
         data: { publicUrl },
@@ -187,7 +205,10 @@ export default function TabEditorScreen() {
         'parse-receipt',
         { body: { image_url: publicUrl } }
       );
-      if (fnError) throw fnError;
+      if (fnError) {
+        const detail = typeof data === 'object' ? JSON.stringify(data) : String(data ?? '');
+        throw new Error(`${fnError.message}${detail ? `\n\n${detail}` : ''}`);
+      }
 
       if (data?.items?.length) {
         const result = data as ReceiptResult;
