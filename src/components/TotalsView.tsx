@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, Button, Card, Form, ListGroup, Row, Col } from 'react-bootstrap';
-import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
+import type { Item, Rabbit, ItemRabbit, Tab, Profile } from '../types';
 import { formatCents } from '../utils/currency';
-import { buildPaymentNote } from '../utils/payments';
+import { buildPaymentNote, venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
 import PaymentLinks from './PaymentLinks';
 
@@ -13,6 +13,7 @@ interface TotalsViewProps {
   assignments: ItemRabbit[];
   onUpdateTab: (updates: Partial<Tab>) => void;
   shareToken?: string;
+  currentUserProfile?: Profile | null;
 }
 
 interface RabbitTotal {
@@ -30,6 +31,7 @@ export default function TotalsView({
   assignments,
   onUpdateTab,
   shareToken,
+  currentUserProfile,
 }: TotalsViewProps) {
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 8.75);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
@@ -162,6 +164,24 @@ export default function TotalsView({
                       )}
                     />
                   </div>
+                  {currentUserProfile?.venmo_username && total > 0 && (
+                    <div className="mt-1">
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        href={venmoChargeLink(total / 100, buildChargeNote(tab.name, rabbit.name,
+                          assignments
+                            .filter((a) => a.rabbit_id === rabbit.id)
+                            .map((a) => ({
+                              description: items.find((i) => i.id === a.item_id)?.description || '',
+                              splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
+                            }))
+                        ))}
+                      >
+                        Request via Venmo
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </ListGroup.Item>

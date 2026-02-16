@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Button, Form, Spinner } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import { useTab } from '../hooks/useTab';
+import { useAuth } from '../hooks/useAuth';
 import { useRealtime } from '../hooks/useRealtime';
 import ItemList from './ItemList';
 import RabbitBar from './RabbitBar';
@@ -13,6 +14,7 @@ import type { RabbitColor } from '../types';
 
 export default function TabEditor() {
   const { tabId } = useParams<{ tabId: string }>();
+  const { profile } = useAuth();
   const {
     tab,
     items,
@@ -174,6 +176,7 @@ export default function TabEditor() {
         assignments={assignments}
         onUpdateTab={updateTab}
         shareToken={tab.share_token}
+        currentUserProfile={profile}
       />
 
       <AddRabbitModal
