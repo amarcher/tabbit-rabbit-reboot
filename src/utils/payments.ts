@@ -13,11 +13,18 @@ export function buildPaymentNote(tabName: string, rabbitName: string, items: Not
   return `${tabName} - ${rabbitName}: ${itemParts.join(', ')}`;
 }
 
+function isMobile(): boolean {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+}
+
 export function venmoLink(
   username: string,
   amount: number,
   note: string
 ): string {
+  if (isMobile()) {
+    return `venmo://paycharge?txn=pay&recipients=${username}&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
+  }
   return `https://venmo.com/${username}?txn=pay&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
 }
 
