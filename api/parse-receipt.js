@@ -1,8 +1,6 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = async function handler(req, res) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'content-type');
@@ -68,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(502).json({ error: 'Anthropic API error', details: data });
     }
 
-    const content = data.content?.[0]?.text;
+    const content = data.content && data.content[0] && data.content[0].text;
 
     if (!content) {
       return res.status(500).json({ error: 'No response from vision model', details: data });
@@ -79,7 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const parsed = JSON.parse(jsonStr);
 
     return res.status(200).json(parsed);
-  } catch (error: any) {
+  } catch (error) {
     return res.status(500).json({ error: error.message });
   }
-}
+};
