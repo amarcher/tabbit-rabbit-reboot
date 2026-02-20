@@ -183,7 +183,7 @@ export default function TabEditor() {
   }
 
   const actionBar = (
-    <div className="d-flex gap-2 mb-3">
+    <div className="d-flex gap-2 my-3">
       <Button
         variant="outline-info"
         size="sm"
