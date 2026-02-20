@@ -1,84 +1,77 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { supabase } from '../supabaseClient';
 import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
 
+const TABS_INDEX_KEY = 'tabbitrabbit:tabs';
+const TAB_PREFIX = 'tabbitrabbit:tab:';
 const AUTO_SAVE_DELAY = 2 * 60 * 1000; // 2 minutes of inactivity
 
-export function useTabs(userId: string | undefined) {
+interface TabData {
+  tab: Tab;
+  items: Item[];
+  rabbits: Rabbit[];
+  assignments: ItemRabbit[];
+}
+
+export function useTabs() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTabs = useCallback(async () => {
-    if (!userId) return;
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('tabs')
-      .select('*, rabbits(count)')
-      .eq('owner_id', userId)
-      .order('created_at', { ascending: false });
-    if (!error && data) setTabs(data);
+  const fetchTabs = useCallback(() => {
+    const raw = localStorage.getItem(TABS_INDEX_KEY);
+    const tabsList: Tab[] = raw ? JSON.parse(raw) : [];
+    tabsList.sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    setTabs(tabsList);
     setLoading(false);
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     fetchTabs();
   }, [fetchTabs]);
 
   const createTab = async (name: string) => {
-    if (!userId) return null;
-    const { data, error } = await supabase
-      .from('tabs')
-      .insert({ name, owner_id: userId })
-      .select()
-      .single();
-    if (error) throw error;
-    await fetchTabs();
-    return data as Tab;
+    const newTab: Tab = {
+      id: crypto.randomUUID(),
+      name,
+      owner_id: '',
+      tax_percent: 0,
+      tip_percent: 0,
+      receipt_image_url: null,
+      created_at: new Date().toISOString(),
+      share_token: crypto.randomUUID(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Save tab data
+    const tabData: TabData = {
+      tab: newTab,
+      items: [],
+      rabbits: [],
+      assignments: [],
+    };
+    localStorage.setItem(TAB_PREFIX + newTab.id, JSON.stringify(tabData));
+
+    // Update index
+    const raw = localStorage.getItem(TABS_INDEX_KEY);
+    const tabsList: Tab[] = raw ? JSON.parse(raw) : [];
+    tabsList.unshift(newTab);
+    localStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
+
+    setTabs(tabsList);
+    return newTab;
   };
 
   const deleteTab = async (tabId: string) => {
-    const { error } = await supabase.from('tabs').delete().eq('id', tabId);
-    if (error) throw error;
-    await fetchTabs();
+    localStorage.removeItem(TAB_PREFIX + tabId);
+    const raw = localStorage.getItem(TABS_INDEX_KEY);
+    let tabsList: Tab[] = raw ? JSON.parse(raw) : [];
+    tabsList = tabsList.filter((t) => t.id !== tabId);
+    localStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
+    setTabs(tabsList);
   };
 
   return { tabs, loading, createTab, deleteTab, fetchTabs };
-}
-
-// --- Pending changes tracking ---
-
-interface PendingChanges {
-  newItems: Item[];
-  deletedItemIds: Set<string>;
-  newRabbits: Rabbit[];
-  deletedRabbitIds: Set<string>;
-  addedAssignments: ItemRabbit[];
-  removedAssignments: ItemRabbit[];
-  tabUpdates: Partial<Tab>;
-}
-
-function emptyPending(): PendingChanges {
-  return {
-    newItems: [],
-    deletedItemIds: new Set(),
-    newRabbits: [],
-    deletedRabbitIds: new Set(),
-    addedAssignments: [],
-    removedAssignments: [],
-    tabUpdates: {},
-  };
-}
-
-function hasPendingChanges(p: PendingChanges): boolean {
-  return (
-    p.newItems.length > 0 ||
-    p.deletedItemIds.size > 0 ||
-    p.newRabbits.length > 0 ||
-    p.deletedRabbitIds.size > 0 ||
-    p.addedAssignments.length > 0 ||
-    p.removedAssignments.length > 0 ||
-    Object.keys(p.tabUpdates).length > 0
-  );
 }
 
 export function useTab(tabId: string | undefined) {
@@ -89,45 +82,23 @@ export function useTab(tabId: string | undefined) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const pending = useRef<PendingChanges>(emptyPending());
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
-  // --- Fetch from DB (initial load only) ---
+  // --- Load from localStorage ---
 
-  const fetchTab = useCallback(async () => {
+  const fetchTab = useCallback(() => {
     if (!tabId) return;
     setLoading(true);
 
-    const itemIds =
-      (await supabase.from('items').select('id').eq('tab_id', tabId)).data?.map(
-        (i) => i.id
-      ) || [];
-
-    const [tabRes, itemsRes, rabbitsRes, assignRes] = await Promise.all([
-      supabase.from('tabs').select('*').eq('id', tabId).single(),
-      supabase
-        .from('items')
-        .select('*')
-        .eq('tab_id', tabId)
-        .order('created_at'),
-      supabase
-        .from('rabbits')
-        .select('*, profile:profiles(*)')
-        .eq('tab_id', tabId)
-        .order('created_at'),
-      itemIds.length > 0
-        ? supabase
-            .from('item_rabbits')
-            .select('*')
-            .in('item_id', itemIds)
-        : Promise.resolve({ data: [] as ItemRabbit[] }),
-    ]);
-
-    if (tabRes.data) setTab(tabRes.data);
-    if (itemsRes.data) setItems(itemsRes.data);
-    if (rabbitsRes.data) setRabbits(rabbitsRes.data);
-    if (assignRes.data) setAssignments(assignRes.data!);
+    const raw = localStorage.getItem(TAB_PREFIX + tabId);
+    if (raw) {
+      const data: TabData = JSON.parse(raw);
+      setTab(data.tab);
+      setItems(data.items);
+      setRabbits(data.rabbits);
+      setAssignments(data.assignments);
+    }
     setLoading(false);
   }, [tabId]);
 
@@ -156,120 +127,44 @@ export function useTab(tabId: string | undefined) {
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty]);
 
-  // Cleanup timer on unmount; flush if dirty
+  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
   }, []);
 
-  // --- Flush pending changes to DB ---
+  // --- Flush to localStorage ---
 
-  const flushChanges = useCallback(async () => {
-    const p = pending.current;
-    if (!tabId || !hasPendingChanges(p)) return;
+  const flushChanges = useCallback(() => {
+    if (!tabId || !tab) return;
 
     setSaving(true);
     try {
-      const promises: PromiseLike<unknown>[] = [];
+      const data: TabData = { tab, items, rabbits, assignments };
+      localStorage.setItem(TAB_PREFIX + tabId, JSON.stringify(data));
 
-      // Tab updates
-      if (Object.keys(p.tabUpdates).length > 0) {
-        promises.push(
-          supabase
-            .from('tabs')
-            .update({ ...p.tabUpdates, updated_at: new Date().toISOString() })
-            .eq('id', tabId)
-            .then()
-        );
+      // Also update the tab in the index
+      const raw = localStorage.getItem(TABS_INDEX_KEY);
+      if (raw) {
+        let tabsList: Tab[] = JSON.parse(raw);
+        tabsList = tabsList.map((t) => (t.id === tabId ? tab : t));
+        localStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
       }
 
-      // New items (batch insert)
-      if (p.newItems.length > 0) {
-        promises.push(
-          supabase.from('items').insert(
-            p.newItems.map((item) => ({
-              id: item.id,
-              tab_id: tabId,
-              description: item.description,
-              price_cents: item.price_cents,
-            }))
-          ).then()
-        );
-      }
-
-      // Deleted items
-      if (p.deletedItemIds.size > 0) {
-        promises.push(
-          supabase
-            .from('items')
-            .delete()
-            .in('id', Array.from(p.deletedItemIds))
-            .then()
-        );
-      }
-
-      // New rabbits
-      if (p.newRabbits.length > 0) {
-        promises.push(
-          supabase.from('rabbits').insert(
-            p.newRabbits.map((r) => ({
-              id: r.id,
-              tab_id: tabId,
-              name: r.name,
-              color: r.color,
-              profile_id: r.profile_id,
-            }))
-          ).then()
-        );
-      }
-
-      // Deleted rabbits
-      if (p.deletedRabbitIds.size > 0) {
-        promises.push(
-          supabase
-            .from('rabbits')
-            .delete()
-            .in('id', Array.from(p.deletedRabbitIds))
-            .then()
-        );
-      }
-
-      // Wait for items/rabbits to be created before assignments
-      await Promise.all(promises);
-
-      // Assignment additions
-      if (p.addedAssignments.length > 0) {
-        await supabase.from('item_rabbits').insert(p.addedAssignments);
-      }
-
-      // Assignment removals
-      for (const a of p.removedAssignments) {
-        await supabase
-          .from('item_rabbits')
-          .delete()
-          .eq('item_id', a.item_id)
-          .eq('rabbit_id', a.rabbit_id);
-      }
-
-      pending.current = emptyPending();
       setIsDirty(false);
     } catch (err) {
       console.error('Failed to save changes:', err);
     } finally {
       setSaving(false);
     }
-  }, [tabId]);
+  }, [tabId, tab, items, rabbits, assignments]);
 
   // --- Local-first mutations ---
 
   const updateTab = useCallback(
     (updates: Partial<Tab>) => {
       setTab((prev) => (prev ? { ...prev, ...updates } : prev));
-      pending.current.tabUpdates = {
-        ...pending.current.tabUpdates,
-        ...updates,
-      };
       markDirty();
     },
     [markDirty]
@@ -286,7 +181,6 @@ export function useTab(tabId: string | undefined) {
         created_at: new Date().toISOString(),
       };
       setItems((prev) => [...prev, newItem]);
-      pending.current.newItems.push(newItem);
       markDirty();
     },
     [tabId, markDirty]
@@ -303,7 +197,6 @@ export function useTab(tabId: string | undefined) {
         created_at: new Date().toISOString(),
       }));
       setItems((prev) => [...prev, ...created]);
-      pending.current.newItems.push(...created);
       markDirty();
     },
     [tabId, markDirty]
@@ -313,17 +206,6 @@ export function useTab(tabId: string | undefined) {
     (itemId: string) => {
       setItems((prev) => prev.filter((i) => i.id !== itemId));
       setAssignments((prev) => prev.filter((a) => a.item_id !== itemId));
-      // If it was a locally-created item, just remove from newItems
-      const idx = pending.current.newItems.findIndex((i) => i.id === itemId);
-      if (idx >= 0) {
-        pending.current.newItems.splice(idx, 1);
-      } else {
-        pending.current.deletedItemIds.add(itemId);
-      }
-      // Clean up any pending assignments for this item
-      pending.current.addedAssignments = pending.current.addedAssignments.filter(
-        (a) => a.item_id !== itemId
-      );
       markDirty();
     },
     [markDirty]
@@ -341,7 +223,6 @@ export function useTab(tabId: string | undefined) {
         created_at: new Date().toISOString(),
       };
       setRabbits((prev) => [...prev, newRabbit]);
-      pending.current.newRabbits.push(newRabbit);
       markDirty();
     },
     [tabId, markDirty]
@@ -351,18 +232,6 @@ export function useTab(tabId: string | undefined) {
     (rabbitId: string) => {
       setRabbits((prev) => prev.filter((r) => r.id !== rabbitId));
       setAssignments((prev) => prev.filter((a) => a.rabbit_id !== rabbitId));
-      const idx = pending.current.newRabbits.findIndex(
-        (r) => r.id === rabbitId
-      );
-      if (idx >= 0) {
-        pending.current.newRabbits.splice(idx, 1);
-      } else {
-        pending.current.deletedRabbitIds.add(rabbitId);
-      }
-      pending.current.addedAssignments =
-        pending.current.addedAssignments.filter(
-          (a) => a.rabbit_id !== rabbitId
-        );
       markDirty();
     },
     [markDirty]
@@ -379,27 +248,8 @@ export function useTab(tabId: string | undefined) {
             (a) => !(a.item_id === itemId && a.rabbit_id === rabbitId)
           )
         );
-        // Check if this was a pending addition
-        const addIdx = pending.current.addedAssignments.findIndex(
-          (a) => a.item_id === itemId && a.rabbit_id === rabbitId
-        );
-        if (addIdx >= 0) {
-          pending.current.addedAssignments.splice(addIdx, 1);
-        } else {
-          pending.current.removedAssignments.push({ item_id: itemId, rabbit_id: rabbitId });
-        }
       } else {
-        const newAssignment = { item_id: itemId, rabbit_id: rabbitId };
-        setAssignments((prev) => [...prev, newAssignment]);
-        // Check if this reverses a pending removal
-        const rmIdx = pending.current.removedAssignments.findIndex(
-          (a) => a.item_id === itemId && a.rabbit_id === rabbitId
-        );
-        if (rmIdx >= 0) {
-          pending.current.removedAssignments.splice(rmIdx, 1);
-        } else {
-          pending.current.addedAssignments.push(newAssignment);
-        }
+        setAssignments((prev) => [...prev, { item_id: itemId, rabbit_id: rabbitId }]);
       }
       markDirty();
     },
@@ -409,7 +259,7 @@ export function useTab(tabId: string | undefined) {
   // Expose save for manual trigger and navigation
   const saveChanges = useCallback(async () => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    await flushChanges();
+    flushChanges();
   }, [flushChanges]);
 
   return {

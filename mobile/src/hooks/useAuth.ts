@@ -1,88 +1,48 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert } from 'react-native';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../supabaseClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Profile } from '../types';
 
-WebBrowser.maybeCompleteAuthSession();
+const PROFILE_KEY = '@profile';
+
+export interface LocalProfile extends Profile {
+  email: string | null;
+}
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<LocalProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [, googleResponse, promptGoogleAsync] = Google.useIdTokenAuthRequest({
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  });
-
-  const fetchProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    setProfile(data);
-  }, []);
-
+  // Load profile from AsyncStorage on mount
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
+    AsyncStorage.getItem(PROFILE_KEY).then((raw) => {
+      if (raw) {
+        setProfile(JSON.parse(raw));
+      }
       setLoading(false);
     });
+  }, []);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      else setProfile(null);
+  const updateProfile = useCallback(async (updates: Partial<LocalProfile>) => {
+    setProfile((prev) => {
+      const base: LocalProfile = prev || {
+        id: Date.now().toString(),
+        username: '',
+        display_name: null,
+        email: null,
+        venmo_username: null,
+        cashapp_cashtag: null,
+        paypal_username: null,
+        created_at: new Date().toISOString(),
+      };
+      const updated = { ...base, ...updates };
+      AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(updated));
+      return updated;
     });
+  }, []);
 
-    return () => subscription.unsubscribe();
-  }, [fetchProfile]);
-
-  // Handle Google auth response
-  useEffect(() => {
-    if (!googleResponse) return;
-
-    if (googleResponse.type === 'success') {
-      const idToken = googleResponse.params?.id_token;
-      if (!idToken) {
-        Alert.alert('Auth Error', 'No ID token received from Google.');
-        return;
-      }
-      supabase.auth
-        .signInWithIdToken({
-          provider: 'google',
-          token: idToken,
-        })
-        .then(({ error }) => {
-          if (error) {
-            Alert.alert('Sign In Failed', error.message);
-          }
-        });
-    } else if (googleResponse.type === 'error') {
-      Alert.alert(
-        'Google Auth Error',
-        googleResponse.error?.message || 'Unknown error'
-      );
-    }
-  }, [googleResponse]);
-
-  const signInWithGoogle = async () => {
-    await promptGoogleAsync();
+  return {
+    profile,
+    loading,
+    updateProfile,
   };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  };
-
-  return { user, profile, session, loading, signInWithGoogle, signOut, fetchProfile };
 }

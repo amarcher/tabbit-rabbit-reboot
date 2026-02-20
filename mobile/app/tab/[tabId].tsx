@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -10,23 +10,19 @@ import {
   Share,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useTab } from '@/src/hooks/useTab';
 import { useAuth } from '@/src/hooks/useAuth';
-import { useRealtime } from '@/src/hooks/useRealtime';
-import { supabase } from '@/src/supabaseClient';
+import { encodeBill } from '@/src/utils/billEncoder';
+import { canScanFree, incrementScanCount, remainingFreeScans, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
+import { scanReceiptDirect, getStoredApiKey } from '@/src/utils/anthropic';
+import type { ReceiptResult } from '@/src/utils/anthropic';
 import ItemList from '@/src/components/ItemList';
 import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
 import TotalsView from '@/src/components/TotalsView';
 import type { RabbitColor } from '@/src/types';
-
-interface ReceiptResult {
-  items: { description: string; price: number }[];
-  subtotal?: number;
-  tax?: number;
-  total?: number;
-}
 
 function ActionBar({
   onScanReceipt,
@@ -35,7 +31,6 @@ function ActionBar({
   scanning,
   saving,
   isDirty,
-  shareToken,
 }: {
   onScanReceipt: () => void;
   onShareBill: () => void;
@@ -43,7 +38,6 @@ function ActionBar({
   scanning: boolean;
   saving: boolean;
   isDirty: boolean;
-  shareToken: string | undefined;
 }) {
   return (
     <View style={styles.actionBar}>
@@ -56,11 +50,9 @@ function ActionBar({
           {scanning ? 'Scanning...' : 'Scan Receipt'}
         </Text>
       </TouchableOpacity>
-      {shareToken && (
-        <TouchableOpacity style={styles.actionButton} onPress={onShareBill}>
-          <Text style={styles.actionButtonText}>Share Bill</Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity style={styles.actionButton} onPress={onShareBill}>
+        <Text style={styles.actionButtonText}>Share Bill</Text>
+      </TouchableOpacity>
       {isDirty && (
         <TouchableOpacity
           style={[styles.actionButton, styles.saveActionButton]}
@@ -88,7 +80,6 @@ export default function TabEditorScreen() {
     loading,
     saving,
     isDirty,
-    fetchTab,
     updateTab,
     addItem,
     addItems,
@@ -103,7 +94,6 @@ export default function TabEditorScreen() {
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);
 
-  useRealtime(tabId, useCallback(() => fetchTab(), [fetchTab]));
 
   React.useEffect(() => {
     if (tab?.name) {
@@ -133,6 +123,17 @@ export default function TabEditorScreen() {
   }, [rabbits, items, assignments]);
 
   const handleScanReceipt = async () => {
+    const byokKey = await getStoredApiKey();
+    if (!byokKey && !(await canScanFree())) {
+      Alert.alert(
+        'Out of Free Scans',
+        `You've used all ${FREE_SCAN_LIMIT} free scans this month. Add your own Anthropic API key in Profile for unlimited scans.`,
+        [
+          { text: 'OK', style: 'cancel' },
+        ]
+      );
+      return;
+    }
     Alert.alert('Scan Receipt', 'Choose image source', [
       {
         text: 'Camera',
@@ -144,7 +145,7 @@ export default function TabEditorScreen() {
           }
           const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ['images'],
-            quality: 0.8,
+            quality: 0.5,
           });
           if (!result.canceled && result.assets[0]) {
             await processReceiptImage(result.assets[0].uri);
@@ -156,7 +157,7 @@ export default function TabEditorScreen() {
         onPress: async () => {
           const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
-            quality: 0.8,
+            quality: 0.5,
           });
           if (!result.canceled && result.assets[0]) {
             await processReceiptImage(result.assets[0].uri);
@@ -171,49 +172,35 @@ export default function TabEditorScreen() {
     if (!tabId) return;
     setScanning(true);
     try {
-      const filename = `${Date.now()}.jpg`;
-      const filePath = `receipts/${tabId}/${filename}`;
+      const image_base64 = await readAsStringAsync(uri, {
+        encoding: EncodingType.Base64,
+      });
 
-      // Use FormData with file URI — only reliable upload method on React Native
-      const formData = new FormData();
-      formData.append('file', {
-        uri,
-        name: filename,
-        type: 'image/jpeg',
-      } as any);
+      const byokKey = await getStoredApiKey();
+      let result: ReceiptResult;
 
-      const session = (await supabase.auth.getSession()).data.session;
-      const uploadRes = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/receipts/${filePath}`,
-        {
+      if (byokKey) {
+        // BYOK: call Anthropic directly, no scan counter
+        result = await scanReceiptDirect(byokKey, image_base64, 'image/jpeg');
+      } else {
+        // Free scan via Vercel function
+        const res = await fetch('https://tabbitrabbit.com/api/parse-receipt', {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-            'x-upsert': 'true',
-          },
-          body: formData,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_base64, media_type: 'image/jpeg' }),
+        });
+        if (!res.ok) {
+          const errBody = await res.text();
+          throw new Error(`OCR failed (${res.status}): ${errBody}`);
         }
-      );
-      if (!uploadRes.ok) {
-        const errBody = await uploadRes.text();
-        throw new Error(`Upload failed (${uploadRes.status}): ${errBody}`);
+        result = await res.json();
+        const remaining = FREE_SCAN_LIMIT - (await incrementScanCount());
+        if (remaining > 0) {
+          Alert.alert('Scan Complete', `${remaining} free scan${remaining === 1 ? '' : 's'} remaining this month.`);
+        }
       }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('receipts').getPublicUrl(filePath);
-
-      const { data, error: fnError } = await supabase.functions.invoke(
-        'parse-receipt',
-        { body: { image_url: publicUrl } }
-      );
-      if (fnError) {
-        const detail = typeof data === 'object' ? JSON.stringify(data) : String(data ?? '');
-        throw new Error(`${fnError.message}${detail ? `\n\n${detail}` : ''}`);
-      }
-
-      if (data?.items?.length) {
-        const result = data as ReceiptResult;
+      if (result?.items?.length) {
         addItems(
           result.items.map((item) => ({
             description: item.description,
@@ -236,8 +223,20 @@ export default function TabEditorScreen() {
   };
 
   const handleShareBill = async () => {
-    if (!tab?.share_token) return;
-    const url = `https://tabbitrabbit.com/bill/${tab.share_token}`;
+    if (!tab) return;
+    const encoded = encodeBill(
+      tab,
+      items,
+      rabbits,
+      assignments,
+      {
+        display_name: profile?.display_name || null,
+        venmo_username: profile?.venmo_username || null,
+        cashapp_cashtag: profile?.cashapp_cashtag || null,
+        paypal_username: profile?.paypal_username || null,
+      }
+    );
+    const url = `https://tabbitrabbit.com/bill/${encoded}`;
     await Share.share({
       message: `Check out this bill for ${tab.name}: ${url}`,
       url,
@@ -262,7 +261,6 @@ export default function TabEditorScreen() {
         scanning={scanning}
         saving={saving}
         isDirty={isDirty}
-        shareToken={tab.share_token}
       />
 
       {/* Rabbit Bar */}
@@ -315,7 +313,6 @@ export default function TabEditorScreen() {
         scanning={scanning}
         saving={saving}
         isDirty={isDirty}
-        shareToken={tab.share_token}
       />
 
       {/* Add Rabbit Modal */}

@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@/src/hooks/useAuth';
 import { useTabs } from '@/src/hooks/useTab';
 import type { Tab } from '@/src/types';
 
@@ -63,8 +62,7 @@ function TabRow({
 }
 
 export default function DashboardScreen() {
-  const { user } = useAuth();
-  const { tabs, loading, createTab, deleteTab } = useTabs(user?.id);
+  const { tabs, loading, createTab, deleteTab } = useTabs();
   const router = useRouter();
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -97,6 +95,7 @@ export default function DashboardScreen() {
         <TextInput
           style={styles.createInput}
           placeholder="New tab name (e.g. Friday Dinner)"
+          placeholderTextColor="#999"
           value={newName}
           onChangeText={setNewName}
           returnKeyType="done"

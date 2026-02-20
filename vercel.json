@@ -9,6 +9,21 @@
       "dest": "/privacy",
       "headers": { "Content-Type": "text/html; charset=utf-8" }
     },
+    {
+      "src": "/api/bill-image(.*)",
+      "dest": "/api/bill-image.tsx"
+    },
+    {
+      "src": "/bill/(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot|Discordbot|TelegramBot).*"
+        }
+      ],
+      "dest": "/api/bill-og"
+    },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

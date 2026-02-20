@@ -1,18 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { Button, Spinner, Alert } from 'react-bootstrap';
-import { supabase } from '../supabaseClient';
+import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '../utils/scanCounter';
+import { scanReceiptDirect, getStoredApiKey } from '../utils/anthropic';
+import type { ReceiptResult } from '../utils/anthropic';
 
-interface ParsedItem {
-  description: string;
-  price: number;
-}
-
-export interface ReceiptResult {
-  items: ParsedItem[];
-  subtotal?: number;
-  tax?: number;
-  total?: number;
-}
+export type { ReceiptResult };
 
 interface ReceiptUploadProps {
   tabId: string;
@@ -28,32 +20,48 @@ export default function ReceiptUpload({ tabId, onReceiptParsed }: ReceiptUploadP
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const byokKey = getStoredApiKey();
+    if (!byokKey && !canScanFree()) {
+      setError(`You've used all ${FREE_SCAN_LIMIT} free scans this month. Add your own API key in Profile for unlimited scans.`);
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
+
     setError('');
     setUploading(true);
 
     try {
-      const filePath = `receipts/${tabId}/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('receipts')
-        .upload(filePath, file);
+      const image_base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          resolve(dataUrl.split(',')[1]);
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
 
-      if (uploadError) throw uploadError;
+      const media_type = file.type || 'image/jpeg';
+      let result: ReceiptResult;
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('receipts').getPublicUrl(filePath);
-
-      const { data, error: fnError } = await supabase.functions.invoke(
-        'parse-receipt',
-        {
-          body: { image_url: publicUrl },
+      if (byokKey) {
+        result = await scanReceiptDirect(byokKey, image_base64, media_type);
+      } else {
+        const res = await fetch('/api/parse-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_base64, media_type }),
+        });
+        if (!res.ok) {
+          const errBody = await res.text();
+          throw new Error(`OCR failed (${res.status}): ${errBody}`);
         }
-      );
+        result = await res.json();
+        incrementScanCount();
+      }
 
-      if (fnError) throw fnError;
-
-      if (data?.items?.length) {
-        onReceiptParsed(data as ReceiptResult);
+      if (result?.items?.length) {
+        onReceiptParsed(result);
       } else {
         setError('No items found in receipt. Try a clearer photo.');
       }

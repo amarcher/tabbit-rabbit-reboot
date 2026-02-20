@@ -50,6 +50,7 @@ export default function AddRabbitModal({
           <TextInput
             style={styles.input}
             placeholder="e.g. Alex"
+            placeholderTextColor="#999"
             value={name}
             onChangeText={setName}
             autoFocus

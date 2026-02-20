@@ -68,7 +68,8 @@ RLS on all tables. Cross-table policies use `security definer` helper functions 
 ### Two-Project Structure
 
 Web (`src/`) and mobile (`mobile/src/`) share the same architecture but are independent copies adapted per platform:
-- **types, currency, payments** — nearly identical
+- **types, currency** — nearly identical
+- **payments** — same helpers (`venmoLink`, `cashAppLink`, `paypalLink`, `venmoChargeLink`, `buildPaymentNote`, `buildChargeNote`) but web uses `isMobile()` UA detection to choose `venmo://` vs `https://venmo.com`; mobile always uses `venmo://paycharge`
 - **useTab.ts** — same local-first pattern; web uses `crypto.randomUUID()`, mobile uses `expo-crypto`
 - **useAuth.ts** — web uses Supabase OAuth redirect, mobile uses expo-auth-session ID token flow
 - **colors** — web has `gradients.ts` (CSS linear-gradient strings), mobile has `colors.ts` (hex arrays for `expo-linear-gradient`)
@@ -80,7 +81,9 @@ Web (`src/`) and mobile (`mobile/src/`) share the same architecture but are inde
 
 **Multi-rabbit gradients**: Items assigned to multiple rabbits show a gradient using each rabbit's color. This is the app's signature visual feature.
 
-**Receipt OCR flow**: Upload image → Supabase Storage → Edge Function sends base64 to Claude Haiku 4.5 → structured JSON (items, subtotal, tax, total) → batch-inserted locally, tax auto-inferred.
+**Receipt OCR flow**: Upload image → Supabase Storage → Edge Function sends base64 to Claude Haiku 4.5 → structured JSON (items, subtotal, tax, total) → batch-inserted locally, tax auto-inferred. On mobile, the upload uses `FormData` + direct `fetch` to the Supabase REST API (not the JS client — see Gotchas). Receipt scanning logic lives inline in `mobile/app/tab/[tabId].tsx`.
+
+**Venmo charge requests**: Tab owners can send Venmo charge requests to rabbits. Uses `venmoChargeLink()` which builds a `venmo://paycharge?txn=charge` URL (mobile) or `https://venmo.com/?txn=charge` URL (web desktop). `buildChargeNote()` produces a multiline note with item breakdown.
 
 **Swipe-to-delete** (mobile): Items and tabs use `react-native-gesture-handler` `Swipeable` with Delete/Cancel actions instead of delete buttons.
 
@@ -112,6 +115,10 @@ EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=<iOS OAuth client ID>
 - **Google OAuth (mobile)**: Requires the reversed client ID as a URL scheme in `app.json` `CFBundleURLTypes`. Supabase dashboard must have the iOS client ID in the authorized client IDs list with "Skip nonce checks" enabled.
 - **AASA file**: Vercel's SPA rewrite can swallow `/.well-known/*` paths — needs an explicit passthrough rewrite in `vercel.json`.
 - **EAS build env vars**: Set via `eas secret:create` or Expo dashboard, not via `.env` file (which is local-only).
+- **Supabase Storage on React Native**: `supabase.storage.upload()` produces 0-byte files — both `blob` and `ArrayBuffer` approaches fail silently. Use `FormData` + direct `fetch` to `/storage/v1/object/{bucket}/{path}` with the file URI and `Authorization: Bearer` header.
+- **Venmo deep link encoding**: Venmo's web URL handler decodes query params as form-urlencoded, rendering spaces as "+" in notes. Use `venmo://paycharge` deep links on mobile to encode notes correctly. Web uses `isMobile()` UA detection to choose the right scheme.
+- **React Native decimal inputs**: `parseFloat("10.")` strips the trailing dot, so `value={String(num)}` round-trips lose it. Use separate string state for raw input while editing; parse to number only on blur.
+- **Keyboard occlusion**: Add `automaticallyAdjustKeyboardInsets` to `ScrollView` components containing `TextInput` fields so they scroll above the virtual keyboard when focused.
 
 ## iOS App Details
 
