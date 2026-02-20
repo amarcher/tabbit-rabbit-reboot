@@ -3,7 +3,7 @@ import { Alert, Button, Form, Spinner } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import { useTab } from '../hooks/useTab';
 import { useAuth } from '../hooks/useAuth';
-import { encodeBill } from '../utils/billEncoder';
+import { shareBill } from '../utils/billEncoder';
 import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '../utils/scanCounter';
 import { scanReceiptDirect, getStoredApiKey } from '../utils/anthropic';
 import type { ReceiptResult } from '../utils/anthropic';
@@ -46,6 +46,7 @@ export default function TabEditor() {
 
   // Share bill state
   const [copied, setCopied] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
 
   const subtotals = useMemo(() => {
@@ -146,25 +147,31 @@ export default function TabEditor() {
     }
   };
 
-  const handleShareBill = () => {
+  const handleShareBill = async () => {
     if (!tab) return;
-    const encoded = encodeBill(
-      tab,
-      items,
-      rabbits,
-      assignments,
-      {
-        display_name: profile?.display_name || null,
-        venmo_username: profile?.venmo_username || null,
-        cashapp_cashtag: profile?.cashapp_cashtag || null,
-        paypal_username: profile?.paypal_username || null,
-      }
-    );
-    const url = `${window.location.origin}/bill/${encoded}`;
-    navigator.clipboard.writeText(url).then(() => {
+    setSharing(true);
+    try {
+      const token = await shareBill({
+        tab,
+        items,
+        rabbits,
+        assignments,
+        ownerProfile: {
+          display_name: profile?.display_name || null,
+          venmo_username: profile?.venmo_username || null,
+          cashapp_cashtag: profile?.cashapp_cashtag || null,
+          paypal_username: profile?.paypal_username || null,
+        },
+      });
+      const url = `${window.location.origin}/bill/${token}`;
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    } catch {
+      // Silently fail — user can retry
+    } finally {
+      setSharing(false);
+    }
   };
 
   if (loading || !tab) {
@@ -176,7 +183,7 @@ export default function TabEditor() {
   }
 
   const actionBar = (
-    <div className="d-flex gap-2 mt-3 mb-3">
+    <div className="d-flex gap-2 my-3">
       <Button
         variant="outline-info"
         size="sm"
@@ -192,8 +199,8 @@ export default function TabEditor() {
           'Scan Receipt'
         )}
       </Button>
-      <Button variant="outline-success" size="sm" onClick={handleShareBill}>
-        {copied ? 'Copied!' : 'Share Bill'}
+      <Button variant="outline-success" size="sm" onClick={handleShareBill} disabled={sharing}>
+        {sharing ? 'Sharing...' : copied ? 'Copied!' : 'Share Bill'}
       </Button>
       {isDirty && !saving && (
         <Button variant="outline-success" size="sm" onClick={saveChanges}>

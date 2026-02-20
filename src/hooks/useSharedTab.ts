@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { decodeBill, type SharedTabData } from '../utils/billEncoder';
+import { decodeBill, isLegacyToken, type SharedTabData } from '../utils/billEncoder';
 
 export type { SharedTabData };
 
@@ -15,13 +15,25 @@ export function useSharedTab(shareToken: string | undefined) {
       return;
     }
 
-    const decoded = decodeBill(shareToken);
-    if (decoded) {
-      setData(decoded);
-    } else {
-      setError('Could not decode bill data');
+    if (isLegacyToken(shareToken)) {
+      const decoded = decodeBill(shareToken);
+      if (decoded) {
+        setData(decoded);
+      } else {
+        setError('Could not decode bill data');
+      }
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    fetch(`/api/bill/${shareToken}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Bill not found');
+        return res.json();
+      })
+      .then((bill) => setData(bill))
+      .catch(() => setError('Could not load bill'))
+      .finally(() => setLoading(false));
   }, [shareToken]);
 
   return { data, loading, error };
