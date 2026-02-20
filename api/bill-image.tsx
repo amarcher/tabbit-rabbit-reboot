@@ -1,5 +1,6 @@
 import { ImageResponse } from '@vercel/og';
 import { decompressFromEncodedURIComponent } from 'lz-string';
+import { kv } from '@vercel/kv';
 
 export const config = {
   runtime: 'edge',
@@ -15,7 +16,11 @@ const COLOR_HEX: Record<string, string> = {
   secondary: '#e2e3e5',
 };
 
-function decodeBill(encoded: string) {
+function isLegacyToken(token: string) {
+  return token.length > 20;
+}
+
+function decodeLegacyBill(encoded: string) {
   try {
     const json = decompressFromEncodedURIComponent(encoded);
     if (!json) return null;
@@ -52,19 +57,26 @@ function decodeBill(encoded: string) {
   }
 }
 
+async function getBill(token: string) {
+  if (isLegacyToken(token)) {
+    return decodeLegacyBill(token);
+  }
+  return await kv.get(`bill:${token}`);
+}
+
 function formatCents(cents: number) {
   return '$' + (Math.round(cents) / 100).toFixed(2);
 }
 
-export default function handler(req: Request) {
+export default async function handler(req: Request) {
   const { searchParams } = new URL(req.url);
-  const encoded = searchParams.get('data');
+  const token = searchParams.get('token') || searchParams.get('data');
 
-  if (!encoded) {
-    return new Response('Missing data', { status: 400 });
+  if (!token) {
+    return new Response('Missing token', { status: 400 });
   }
 
-  const data = decodeBill(encoded);
+  const data = await getBill(token) as any;
   if (!data) {
     return new Response('Invalid data', { status: 400 });
   }
@@ -116,7 +128,7 @@ export default function handler(req: Request) {
             <div style={{ fontSize: 48, fontWeight: 700, color: '#333' }}>
               {tab.name}
             </div>
-            {data.ownerProfile.display_name && (
+            {data.ownerProfile?.display_name && (
               <div style={{ fontSize: 24, color: '#666', marginTop: 8 }}>
                 by {data.ownerProfile.display_name}
               </div>

@@ -14,7 +14,7 @@ import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useTab } from '@/src/hooks/useTab';
 import { useAuth } from '@/src/hooks/useAuth';
-import { encodeBill } from '@/src/utils/billEncoder';
+import { shareBill } from '@/src/utils/billEncoder';
 import { canScanFree, incrementScanCount, remainingFreeScans, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
 import { scanReceiptDirect, getStoredApiKey } from '@/src/utils/anthropic';
 import type { ReceiptResult } from '@/src/utils/anthropic';
@@ -29,6 +29,7 @@ function ActionBar({
   onShareBill,
   onSave,
   scanning,
+  sharing,
   saving,
   isDirty,
 }: {
@@ -36,6 +37,7 @@ function ActionBar({
   onShareBill: () => void;
   onSave: () => void;
   scanning: boolean;
+  sharing: boolean;
   saving: boolean;
   isDirty: boolean;
 }) {
@@ -50,8 +52,10 @@ function ActionBar({
           {scanning ? 'Scanning...' : 'Scan Receipt'}
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.actionButton} onPress={onShareBill}>
-        <Text style={styles.actionButtonText}>Share Bill</Text>
+      <TouchableOpacity style={styles.actionButton} onPress={onShareBill} disabled={sharing}>
+        <Text style={styles.actionButtonText}>
+          {sharing ? 'Sharing...' : 'Share Bill'}
+        </Text>
       </TouchableOpacity>
       {isDirty && (
         <TouchableOpacity
@@ -93,6 +97,7 @@ export default function TabEditorScreen() {
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
 
   React.useEffect(() => {
@@ -224,23 +229,27 @@ export default function TabEditorScreen() {
 
   const handleShareBill = async () => {
     if (!tab) return;
-    const encoded = encodeBill(
-      tab,
-      items,
-      rabbits,
-      assignments,
-      {
-        display_name: profile?.display_name || null,
-        venmo_username: profile?.venmo_username || null,
-        cashapp_cashtag: profile?.cashapp_cashtag || null,
-        paypal_username: profile?.paypal_username || null,
-      }
-    );
-    const url = `https://tabbitrabbit.com/bill/${encoded}`;
-    await Share.share({
-      message: `Check out this bill for ${tab.name}: ${url}`,
-      url,
-    });
+    setSharing(true);
+    try {
+      const token = await shareBill({
+        tab,
+        items,
+        rabbits,
+        assignments,
+        ownerProfile: {
+          display_name: profile?.display_name || null,
+          venmo_username: profile?.venmo_username || null,
+          cashapp_cashtag: profile?.cashapp_cashtag || null,
+          paypal_username: profile?.paypal_username || null,
+        },
+      });
+      const url = `https://tabbitrabbit.com/bill/${token}`;
+      await Share.share({ url });
+    } catch {
+      Alert.alert('Error', 'Failed to share bill. Please try again.');
+    } finally {
+      setSharing(false);
+    }
   };
 
   if (loading || !tab) {
@@ -259,6 +268,7 @@ export default function TabEditorScreen() {
         onShareBill={handleShareBill}
         onSave={saveChanges}
         scanning={scanning}
+        sharing={sharing}
         saving={saving}
         isDirty={isDirty}
       />
@@ -311,6 +321,7 @@ export default function TabEditorScreen() {
         onShareBill={handleShareBill}
         onSave={saveChanges}
         scanning={scanning}
+        sharing={sharing}
         saving={saving}
         isDirty={isDirty}
       />
