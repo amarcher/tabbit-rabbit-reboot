@@ -218,6 +218,7 @@ export default function TotalsView({
 const styles = StyleSheet.create({
   container: {
     marginTop: 24,
+    marginBottom: 24,
     paddingTop: 24,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#dee2e6',

@@ -1,54 +1,45 @@
 import { useCallback, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../supabaseClient';
 import type { Profile } from '../types';
 
+const PROFILE_KEY = 'tabbitrabbit:profile';
+
+export interface LocalProfile extends Profile {
+  email: string | null;
+}
+
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<LocalProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    setProfile(data);
+  useEffect(() => {
+    const stored = localStorage.getItem(PROFILE_KEY);
+    if (stored) {
+      setProfile(JSON.parse(stored));
+    }
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      setLoading(false);
+  const updateProfile = useCallback(async (updates: Partial<LocalProfile>) => {
+    setProfile((prev) => {
+      const base: LocalProfile = prev || {
+        id: Date.now().toString(),
+        username: '',
+        display_name: null,
+        email: null,
+        venmo_username: null,
+        cashapp_cashtag: null,
+        paypal_username: null,
+        created_at: new Date().toISOString(),
+      };
+      const updated = { ...base, ...updates };
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(updated));
+      return updated;
     });
+  }, []);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      else setProfile(null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [fetchProfile]);
-
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    });
-    if (error) throw error;
+  return {
+    profile,
+    loading,
+    updateProfile,
   };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  };
-
-  return { user, profile, session, loading, signInWithGoogle, signOut, fetchProfile };
 }

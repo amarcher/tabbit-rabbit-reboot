@@ -1,15 +1,16 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Alert, Button, Form, Spinner } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import { useTab } from '../hooks/useTab';
 import { useAuth } from '../hooks/useAuth';
-import { useRealtime } from '../hooks/useRealtime';
-import { supabase } from '../supabaseClient';
+import { encodeBill } from '../utils/billEncoder';
+import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '../utils/scanCounter';
+import { scanReceiptDirect, getStoredApiKey } from '../utils/anthropic';
+import type { ReceiptResult } from '../utils/anthropic';
 import ItemList from './ItemList';
 import RabbitBar from './RabbitBar';
 import AddRabbitModal from './AddRabbitModal';
 import TotalsView from './TotalsView';
-import type { ReceiptResult } from './ReceiptUpload';
 import type { RabbitColor } from '../types';
 
 export default function TabEditor() {
@@ -23,7 +24,6 @@ export default function TabEditor() {
     loading,
     saving,
     isDirty,
-    fetchTab,
     updateTab,
     addItem,
     addItems,
@@ -47,7 +47,6 @@ export default function TabEditor() {
   // Share bill state
   const [copied, setCopied] = useState(false);
 
-  useRealtime(tabId, useCallback(() => fetchTab(), [fetchTab]));
 
   const subtotals = useMemo(() => {
     const result: Record<string, number> = {};
@@ -94,30 +93,48 @@ export default function TabEditor() {
     const file = e.target.files?.[0];
     if (!file || !tab) return;
 
+    const byokKey = getStoredApiKey();
+    if (!byokKey && !canScanFree()) {
+      setScanError(`You've used all ${FREE_SCAN_LIMIT} free scans this month. Add your own API key in Profile for unlimited scans.`);
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
+
     setScanError('');
     setScanning(true);
 
     try {
-      const filePath = `receipts/${tab.id}/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('receipts')
-        .upload(filePath, file);
+      const image_base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          resolve(dataUrl.split(',')[1]);
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
 
-      if (uploadError) throw uploadError;
+      const media_type = file.type || 'image/jpeg';
+      let result: ReceiptResult;
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('receipts').getPublicUrl(filePath);
+      if (byokKey) {
+        result = await scanReceiptDirect(byokKey, image_base64, media_type);
+      } else {
+        const res = await fetch('/api/parse-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_base64, media_type }),
+        });
+        if (!res.ok) {
+          const errBody = await res.text();
+          throw new Error(`OCR failed (${res.status}): ${errBody}`);
+        }
+        result = await res.json();
+        incrementScanCount();
+      }
 
-      const { data, error: fnError } = await supabase.functions.invoke(
-        'parse-receipt',
-        { body: { image_url: publicUrl } }
-      );
-
-      if (fnError) throw fnError;
-
-      if (data?.items?.length) {
-        handleReceiptParsed(data as ReceiptResult);
+      if (result?.items?.length) {
+        handleReceiptParsed(result);
       } else {
         setScanError('No items found in receipt. Try a clearer photo.');
       }
@@ -130,8 +147,20 @@ export default function TabEditor() {
   };
 
   const handleShareBill = () => {
-    if (!tab?.share_token) return;
-    const url = `${window.location.origin}/bill/${tab.share_token}`;
+    if (!tab) return;
+    const encoded = encodeBill(
+      tab,
+      items,
+      rabbits,
+      assignments,
+      {
+        display_name: profile?.display_name || null,
+        venmo_username: profile?.venmo_username || null,
+        cashapp_cashtag: profile?.cashapp_cashtag || null,
+        paypal_username: profile?.paypal_username || null,
+      }
+    );
+    const url = `${window.location.origin}/bill/${encoded}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -163,11 +192,9 @@ export default function TabEditor() {
           'Scan Receipt'
         )}
       </Button>
-      {tab.share_token && (
-        <Button variant="outline-success" size="sm" onClick={handleShareBill}>
-          {copied ? 'Copied!' : 'Share Bill'}
-        </Button>
-      )}
+      <Button variant="outline-success" size="sm" onClick={handleShareBill}>
+        {copied ? 'Copied!' : 'Share Bill'}
+      </Button>
       {isDirty && !saving && (
         <Button variant="outline-success" size="sm" onClick={saveChanges}>
           Save

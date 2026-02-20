@@ -8,33 +8,63 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function verifyGoogleIdToken(token: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`
+    );
+    if (!res.ok) return false;
+    const payload = await res.json();
+    // Token is valid if it has a subject (user ID)
+    return !!payload.sub;
+  } catch {
+    return false;
+  }
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { image_url } = await req.json();
-
-    if (!image_url) {
+    // Auth check: require Authorization header (Supabase JWT or Google ID token)
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "image_url is required" }),
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+
+    // Try Google ID token verification (for clients sending Google tokens directly)
+    // Supabase JWTs are also accepted (validated by Supabase infrastructure when --no-verify-jwt is not set,
+    // or accepted as-is when --no-verify-jwt is set for backward compatibility)
+    const hasApiKey = !!req.headers.get("apikey");
+    if (!hasApiKey) {
+      // No apikey = not coming from supabase.functions.invoke, so verify as Google ID token
+      const isValid = await verifyGoogleIdToken(token);
+      if (!isValid) {
+        return new Response(
+          JSON.stringify({ error: "Invalid token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    const { image_base64, media_type } = await req.json();
+
+    if (!image_base64) {
+      return new Response(
+        JSON.stringify({ error: "image_base64 is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Fetch the image and convert to base64
-    const imageResponse = await fetch(image_url);
-    const imageBuffer = await imageResponse.arrayBuffer();
-    const bytes = new Uint8Array(imageBuffer);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    const base64Image = btoa(binary);
-    const rawType = imageResponse.headers.get("content-type") || "image/jpeg";
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    const mediaType = allowedTypes.includes(rawType) ? rawType : "image/jpeg";
+    const mediaType = allowedTypes.includes(media_type) ? media_type : "image/jpeg";
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -55,7 +85,7 @@ serve(async (req: Request) => {
                 source: {
                   type: "base64",
                   media_type: mediaType,
-                  data: base64Image,
+                  data: image_base64,
                 },
               },
               {

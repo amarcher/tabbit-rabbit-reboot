@@ -1,22 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Card, Alert, Container, Spinner } from 'react-bootstrap';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../supabaseClient';
-import type { Profile } from '../types';
+import { Form, Button, Card, Alert, Container } from 'react-bootstrap';
+import type { LocalProfile } from '../hooks/useAuth';
+import { getStoredApiKey, setStoredApiKey, removeStoredApiKey } from '../utils/anthropic';
+import { remainingFreeScans, FREE_SCAN_LIMIT } from '../utils/scanCounter';
 
 interface ProfileSettingsProps {
-  user: User;
-  profile: Profile | null;
-  fetchProfile: (userId: string) => Promise<void>;
+  profile: LocalProfile | null;
+  updateProfile: (updates: Partial<LocalProfile>) => Promise<void>;
 }
 
-export default function ProfileSettings({ user, profile, fetchProfile }: ProfileSettingsProps) {
+export default function ProfileSettings({ profile, updateProfile }: ProfileSettingsProps) {
   const [displayName, setDisplayName] = useState('');
   const [venmoUsername, setVenmoUsername] = useState('');
   const [cashappCashtag, setCashappCashtag] = useState('');
   const [paypalUsername, setPaypalUsername] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
+
+  // BYOK state
+  const [apiKey, setApiKey] = useState('');
+  const [hasStoredKey, setHasStoredKey] = useState(false);
+  const [storedKeyPreview, setStoredKeyPreview] = useState('');
+  const [freeScansLeft, setFreeScansLeft] = useState(FREE_SCAN_LIMIT);
 
   useEffect(() => {
     if (profile) {
@@ -27,37 +32,33 @@ export default function ProfileSettings({ user, profile, fetchProfile }: Profile
     }
   }, [profile]);
 
+  useEffect(() => {
+    const key = getStoredApiKey();
+    if (key) {
+      setHasStoredKey(true);
+      setStoredKeyPreview(`...${key.slice(-4)}`);
+    }
+    setFreeScansLeft(remainingFreeScans());
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setMessage(null);
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
+    try {
+      await updateProfile({
         display_name: displayName.trim() || null,
         venmo_username: venmoUsername.trim().replace(/^@/, '') || null,
         cashapp_cashtag: cashappCashtag.trim().replace(/^\$/, '') || null,
         paypal_username: paypalUsername.trim().replace(/^@/, '') || null,
-      })
-      .eq('id', user.id);
-
-    if (error) {
-      setMessage({ type: 'danger', text: error.message });
-    } else {
-      await fetchProfile(user.id);
+      });
       setMessage({ type: 'success', text: 'Profile saved!' });
+    } catch (err: any) {
+      setMessage({ type: 'danger', text: err.message || 'Failed to save.' });
     }
     setSaving(false);
   };
-
-  if (!profile) {
-    return (
-      <div className="text-center py-5">
-        <Spinner animation="border" />
-      </div>
-    );
-  }
 
   return (
     <Container className="d-flex justify-content-center" style={{ paddingTop: '20px' }}>
@@ -115,6 +116,71 @@ export default function ProfileSettings({ user, profile, fetchProfile }: Profile
               {saving ? 'Saving...' : 'Save Profile'}
             </Button>
           </Form>
+
+          <hr className="mt-4" />
+          <h6>Advanced</h6>
+          <p className="text-muted small">
+            {freeScansLeft} of {FREE_SCAN_LIMIT} free receipt scans remaining this month.
+          </p>
+
+          {hasStoredKey ? (
+            <div>
+              <Form.Label>Anthropic API Key</Form.Label>
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <code>{storedKeyPreview}</code>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={() => {
+                    removeStoredApiKey();
+                    setHasStoredKey(false);
+                    setStoredKeyPreview('');
+                  }}
+                >
+                  Remove
+                </Button>
+              </div>
+              <p className="text-muted small">Using your own key — unlimited scans.</p>
+            </div>
+          ) : (
+            <div>
+              <Form.Group className="mb-2">
+                <Form.Label>Anthropic API Key</Form.Label>
+                <Form.Control
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="sk-ant-..."
+                />
+                <Form.Text className="text-muted">
+                  Use your own API key for unlimited scans. Stored in your browser only.
+                </Form.Text>
+              </Form.Group>
+              <Button
+                variant="outline-primary"
+                size="sm"
+                disabled={!apiKey.trim()}
+                onClick={() => {
+                  const trimmed = apiKey.trim();
+                  setStoredApiKey(trimmed);
+                  setHasStoredKey(true);
+                  setStoredKeyPreview(`...${trimmed.slice(-4)}`);
+                  setApiKey('');
+                }}
+              >
+                Save API Key
+              </Button>
+              <br />
+              <a
+                href="https://console.anthropic.com/settings/keys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="small"
+              >
+                Get a key at console.anthropic.com
+              </a>
+            </div>
+          )}
         </Card.Body>
       </Card>
     </Container>

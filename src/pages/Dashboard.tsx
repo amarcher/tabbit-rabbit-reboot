@@ -2,12 +2,8 @@ import React from 'react';
 import { useTabs } from '../hooks/useTab';
 import TabList from '../components/TabList';
 
-interface DashboardProps {
-  userId: string;
-}
-
-export default function Dashboard({ userId }: DashboardProps) {
-  const { tabs, loading, createTab, deleteTab } = useTabs(userId);
+export default function Dashboard() {
+  const { tabs, loading, createTab, deleteTab } = useTabs();
 
   return (
     <TabList

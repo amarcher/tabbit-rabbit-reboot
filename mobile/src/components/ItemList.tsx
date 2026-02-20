@@ -62,6 +62,7 @@ export default function ItemList({
         <TextInput
           style={[styles.input, styles.descInput]}
           placeholder="Item name"
+          placeholderTextColor="#999"
           value={desc}
           onChangeText={setDesc}
           returnKeyType="next"
@@ -69,6 +70,7 @@ export default function ItemList({
         <TextInput
           style={[styles.input, styles.priceInput]}
           placeholder="$0.00"
+          placeholderTextColor="#999"
           value={price}
           onChangeText={setPrice}
           keyboardType="decimal-pad"

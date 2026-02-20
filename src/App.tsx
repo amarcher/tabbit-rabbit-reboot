@@ -1,8 +1,7 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
-import LoginForm from './components/LoginForm';
 import ProfileSettings from './components/ProfileSettings';
 import Dashboard from './pages/Dashboard';
 import TabPage from './pages/TabPage';
@@ -10,7 +9,7 @@ import SharedBillPage from './pages/SharedBillPage';
 import './App.css';
 
 function App() {
-  const { user, profile, loading, signInWithGoogle, signOut, fetchProfile } = useAuth();
+  const { profile, loading, updateProfile } = useAuth();
 
   if (loading) {
     return (
@@ -24,36 +23,16 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Layout user={user} onSignOut={signOut}>
+      <Layout>
         <Routes>
-          <Route
-            path="/login"
-            element={
-              user ? (
-                <Navigate to="/" />
-              ) : (
-                <LoginForm onSignInWithGoogle={signInWithGoogle} />
-              )
-            }
-          />
           <Route
             path="/profile"
             element={
-              user ? (
-                <ProfileSettings user={user} profile={profile} fetchProfile={fetchProfile} />
-              ) : (
-                <Navigate to="/login" />
-              )
+              <ProfileSettings profile={profile} updateProfile={updateProfile} />
             }
           />
-          <Route
-            path="/"
-            element={user ? <Dashboard userId={user.id} /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/tabs/:tabId"
-            element={user ? <TabPage /> : <Navigate to="/login" />}
-          />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/tabs/:tabId" element={<TabPage />} />
           <Route path="/bill/:shareToken" element={<SharedBillPage />} />
         </Routes>
       </Layout>
