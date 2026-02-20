@@ -1,54 +1,12 @@
-const { decompressFromEncodedURIComponent } = require('lz-string');
-
-const COLOR_ORDER = ['success', 'info', 'warning', 'danger', 'primary', 'secondary'];
+const { getBill } = require('./_lib/getBill');
 
 const CRAWLER_UA = /facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot|Discordbot|TelegramBot/i;
-
-function decodeBill(encoded) {
-  try {
-    const json = decompressFromEncodedURIComponent(encoded);
-    if (!json) return null;
-    const compact = JSON.parse(json);
-
-    const items = compact.i.map(([desc, cents], idx) => ({
-      id: `item-${idx}`,
-      description: desc,
-      price_cents: cents,
-    }));
-
-    const rabbits = compact.r.map(([name, colorIdx], idx) => ({
-      id: `rabbit-${idx}`,
-      name,
-      color: COLOR_ORDER[colorIdx] || 'secondary',
-    }));
-
-    const assignments = compact.a.map(([itemIdx, rabbitIdx]) => ({
-      item_id: `item-${itemIdx}`,
-      rabbit_id: `rabbit-${rabbitIdx}`,
-    }));
-
-    return {
-      tab: { name: compact.n, tax_percent: compact.x, tip_percent: compact.p },
-      items,
-      rabbits,
-      assignments,
-      ownerProfile: {
-        display_name: compact.o.d,
-        venmo_username: compact.o.v,
-        cashapp_cashtag: compact.o.c,
-        paypal_username: compact.o.p,
-      },
-    };
-  } catch {
-    return null;
-  }
-}
 
 function formatCents(cents) {
   return '$' + (Math.round(cents) / 100).toFixed(2);
 }
 
-module.exports = function handler(req, res) {
+module.exports = async function handler(req, res) {
   const ua = req.headers['user-agent'] || '';
 
   // Only intercept crawler requests
@@ -57,14 +15,14 @@ module.exports = function handler(req, res) {
     return res.redirect(307, req.url);
   }
 
-  // Extract encoded bill from URL path
+  // Extract token from URL path
   const pathMatch = req.url.match(/\/bill\/(.+)/);
   if (!pathMatch) {
     return res.status(404).send('Not found');
   }
 
-  const encoded = pathMatch[1];
-  const data = decodeBill(encoded);
+  const token = pathMatch[1];
+  const data = await getBill(token);
 
   if (!data) {
     return res.status(404).send('Invalid bill');
@@ -96,7 +54,7 @@ module.exports = function handler(req, res) {
 
   const title = `${tab.name} - ${formatCents(grandTotal)}`;
   const description = breakdown.join(' | ') || `${items.length} items`;
-  const ogImageUrl = `https://tabbitrabbit.com/api/bill-image?data=${encodeURIComponent(encoded)}`;
+  const ogImageUrl = `https://tabbitrabbit.com/api/bill-image?token=${encodeURIComponent(token)}`;
 
   const html = `<!DOCTYPE html>
 <html>

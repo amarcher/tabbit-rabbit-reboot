@@ -78,6 +78,23 @@ export function encodeBill(
   return compressToEncodedURIComponent(JSON.stringify(compact));
 }
 
+export function isLegacyToken(token: string): boolean {
+  return token.length > 20;
+}
+
+export async function shareBill(data: SharedTabData): Promise<string> {
+  const res = await fetch('https://tabbitrabbit.com/api/share', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to share bill (${res.status})`);
+  }
+  const { token } = await res.json();
+  return token;
+}
+
 export function decodeBill(encoded: string): SharedTabData | null {
   try {
     const json = decompressFromEncodedURIComponent(encoded);
