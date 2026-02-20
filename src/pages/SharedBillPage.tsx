@@ -57,8 +57,8 @@ export default function SharedBillPage() {
           <Card.Body className="text-center">
             <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 150 }} className="mb-3" />
             <Alert variant="warning">{error || 'Bill not found'}</Alert>
-            <Link to="/login" className="btn btn-success">
-              Sign in to Tabbit Rabbit
+            <Link to="/" className="btn btn-success">
+              Go to Tabbit Rabbit
             </Link>
           </Card.Body>
         </Card>
@@ -175,8 +175,8 @@ export default function SharedBillPage() {
       <Card className="text-center mb-4" bg="light">
         <Card.Body>
           <p className="mb-2">Split bills with friends</p>
-          <Link to="/login" className="btn btn-success">
-            Sign in to Tabbit Rabbit
+          <Link to="/" className="btn btn-success">
+            Try Tabbit Rabbit
           </Link>
         </Card.Body>
       </Card>
