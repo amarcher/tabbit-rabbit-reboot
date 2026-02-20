@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { useTab } from '../hooks/useTab';
 import { useAuth } from '../hooks/useAuth';
 import { encodeBill } from '../utils/billEncoder';
-import { canScanFree, incrementScanCount, remainingFreeScans, FREE_SCAN_LIMIT } from '../utils/scanCounter';
+import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '../utils/scanCounter';
 import { scanReceiptDirect, getStoredApiKey } from '../utils/anthropic';
 import type { ReceiptResult } from '../utils/anthropic';
 import ItemList from './ItemList';
