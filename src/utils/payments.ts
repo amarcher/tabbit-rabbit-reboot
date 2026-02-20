@@ -22,7 +22,7 @@ export function venmoLink(
 }
 
 export function venmoChargeLink(amount: number, note: string): string {
-  return `https://venmo.com/?txn=charge&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
+  return `venmo://paycharge?txn=charge&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
 }
 
 export function buildChargeNote(tabName: string, rabbitName: string, items: NoteItem[]): string {
