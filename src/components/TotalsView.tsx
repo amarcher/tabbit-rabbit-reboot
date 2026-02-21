@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, Button, Card, Form, ListGroup, Row, Col } from 'react-bootstrap';
 import type { Item, Rabbit, ItemRabbit, Tab, Profile } from '../types';
 import { formatCents } from '../utils/currency';
@@ -82,15 +82,42 @@ export default function TotalsView({
   const tipAmount = Math.round(itemsSubtotal * (tipPercent / 100));
   const grandTotal = itemsSubtotal + taxAmount + tipAmount;
 
-  const handleTaxChange = (val: number) => {
-    setTaxPercent(val);
-    onUpdateTab({ tax_percent: val });
-  };
+  const handleTaxChange = useCallback(
+    (val: number) => {
+      setTaxPercent(val);
+      onUpdateTab({ tax_percent: val });
+    },
+    [onUpdateTab]
+  );
 
-  const handleTipChange = (val: number) => {
-    setTipPercent(val);
-    onUpdateTab({ tip_percent: val });
-  };
+  const handleTipChange = useCallback(
+    (val: number) => {
+      setTipPercent(val);
+      onUpdateTab({ tip_percent: val });
+    },
+    [onUpdateTab]
+  );
+
+  const handleVenmoCharge = useCallback(
+    (rabbit: Rabbit, total: number) => {
+      const handle = prompt(`Enter ${rabbit.name}'s Venmo username:`);
+      if (!handle) return;
+      const url = venmoChargeLink(
+        handle.replace(/^@/, ''),
+        total / 100,
+        buildChargeNote(tab.name, rabbit.name,
+          assignments
+            .filter((a) => a.rabbit_id === rabbit.id)
+            .map((a) => ({
+              description: items.find((i) => i.id === a.item_id)?.description || '',
+              splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
+            }))
+        )
+      );
+      window.open(url, '_blank', 'noopener');
+    },
+    [tab.name, items, assignments]
+  );
 
   if (items.length === 0) return null;
 
@@ -164,19 +191,7 @@ export default function TotalsView({
                   <Button
                     variant="outline-secondary"
                     size="sm"
-                    onClick={() => {
-                      const handle = prompt(`Enter ${rabbit.name}'s Venmo username:`);
-                      if (!handle) return;
-                      const url = venmoChargeLink(handle.replace(/^@/, ''), total / 100, buildChargeNote(tab.name, rabbit.name,
-                        assignments
-                          .filter((a) => a.rabbit_id === rabbit.id)
-                          .map((a) => ({
-                            description: items.find((i) => i.id === a.item_id)?.description || '',
-                            splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
-                          }))
-                      ));
-                      window.open(url, '_blank', 'noopener');
-                    }}
+                    onClick={() => handleVenmoCharge(rabbit, total)}
                   >
                     Request via Venmo
                   </Button>
