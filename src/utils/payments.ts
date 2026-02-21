@@ -28,8 +28,8 @@ export function venmoLink(
   return `https://venmo.com/${username}?txn=pay&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
 }
 
-export function venmoChargeLink(amount: number, note: string): string {
-  return `venmo://paycharge?txn=charge&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
+export function venmoChargeLink(recipient: string, amount: number, note: string): string {
+  return `https://venmo.com/${recipient}?txn=charge&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
 }
 
 export function buildChargeNote(tabName: string, rabbitName: string, items: NoteItem[]): string {

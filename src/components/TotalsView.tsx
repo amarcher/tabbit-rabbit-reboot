@@ -164,14 +164,19 @@ export default function TotalsView({
                   <Button
                     variant="outline-secondary"
                     size="sm"
-                    href={venmoChargeLink(total / 100, buildChargeNote(tab.name, rabbit.name,
-                      assignments
-                        .filter((a) => a.rabbit_id === rabbit.id)
-                        .map((a) => ({
-                          description: items.find((i) => i.id === a.item_id)?.description || '',
-                          splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
-                        }))
-                    ))}
+                    onClick={() => {
+                      const handle = prompt(`Enter ${rabbit.name}'s Venmo username:`);
+                      if (!handle) return;
+                      const url = venmoChargeLink(handle.replace(/^@/, ''), total / 100, buildChargeNote(tab.name, rabbit.name,
+                        assignments
+                          .filter((a) => a.rabbit_id === rabbit.id)
+                          .map((a) => ({
+                            description: items.find((i) => i.id === a.item_id)?.description || '',
+                            splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
+                          }))
+                      ));
+                      window.open(url, '_blank', 'noopener');
+                    }}
                   >
                     Request via Venmo
                   </Button>
