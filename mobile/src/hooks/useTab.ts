@@ -5,7 +5,6 @@ import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
 
 const TABS_INDEX_KEY = '@tabs';
 const TAB_PREFIX = '@tab:';
-const AUTO_SAVE_DELAY = 2 * 60 * 1000; // 2 minutes of inactivity
 
 interface TabData {
   tab: Tab;
@@ -87,10 +86,15 @@ export function useTab(tabId: string | undefined) {
   const [rabbits, setRabbits] = useState<Rabbit[]>([]);
   const [assignments, setAssignments] = useState<ItemRabbit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isDirty, setIsDirty] = useState(false);
+  const saving = false;
+  const isDirty = false;
+  const loaded = useRef(false);
+
+  // Refs to track latest state for async persistence
+  const dataRef = useRef<{ tab: Tab | null; items: Item[]; rabbits: Rabbit[]; assignments: ItemRabbit[] }>({
+    tab: null, items: [], rabbits: [], assignments: [],
+  });
 
   // --- Load from AsyncStorage ---
 
@@ -106,10 +110,12 @@ export function useTab(tabId: string | undefined) {
         setItems(data.items);
         setRabbits(data.rabbits);
         setAssignments(data.assignments);
+        dataRef.current = data;
       }
     } catch (err) {
       console.error('Failed to load tab:', err);
     }
+    loaded.current = true;
     setLoading(false);
   }, [tabId]);
 
@@ -117,47 +123,26 @@ export function useTab(tabId: string | undefined) {
     fetchTab();
   }, [fetchTab]);
 
-  // --- Dirty tracking & auto-save timer ---
+  // --- Persist to AsyncStorage on every change ---
 
-  const markDirty = useCallback(() => {
-    setIsDirty(true);
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      flushChanges();
-    }, AUTO_SAVE_DELAY);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Cleanup timer on unmount
   useEffect(() => {
-    return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-    };
-  }, []);
+    if (!tabId || !tab || !loaded.current) return;
 
-  // --- Flush to AsyncStorage ---
+    dataRef.current = { tab, items, rabbits, assignments };
 
-  const flushChanges = useCallback(async () => {
-    if (!tabId || !tab) return;
-
-    setSaving(true);
-    try {
-      const data: TabData = { tab, items, rabbits, assignments };
-      await AsyncStorage.setItem(TAB_PREFIX + tabId, JSON.stringify(data));
-
+    const data: TabData = { tab, items, rabbits, assignments };
+    AsyncStorage.setItem(TAB_PREFIX + tabId, JSON.stringify(data)).then(() => {
       // Also update the tab in the index
-      const raw = await AsyncStorage.getItem(TABS_INDEX_KEY);
+      return AsyncStorage.getItem(TABS_INDEX_KEY);
+    }).then((raw) => {
       if (raw) {
         let tabsList: Tab[] = JSON.parse(raw);
         tabsList = tabsList.map((t) => (t.id === tabId ? tab : t));
-        await AsyncStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
+        return AsyncStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
       }
-
-      setIsDirty(false);
-    } catch (err) {
-      console.error('Failed to save changes:', err);
-    } finally {
-      setSaving(false);
-    }
+    }).catch((err) => {
+      console.error('Failed to persist tab:', err);
+    });
   }, [tabId, tab, items, rabbits, assignments]);
 
   // --- Local-first mutations ---
@@ -165,9 +150,8 @@ export function useTab(tabId: string | undefined) {
   const updateTab = useCallback(
     (updates: Partial<Tab>) => {
       setTab((prev) => (prev ? { ...prev, ...updates } : prev));
-      markDirty();
     },
-    [markDirty]
+    []
   );
 
   const addItem = useCallback(
@@ -181,9 +165,8 @@ export function useTab(tabId: string | undefined) {
         created_at: new Date().toISOString(),
       };
       setItems((prev) => [...prev, newItem]);
-      markDirty();
     },
-    [tabId, markDirty]
+    [tabId]
   );
 
   const addItems = useCallback(
@@ -197,18 +180,16 @@ export function useTab(tabId: string | undefined) {
         created_at: new Date().toISOString(),
       }));
       setItems((prev) => [...prev, ...created]);
-      markDirty();
     },
-    [tabId, markDirty]
+    [tabId]
   );
 
   const deleteItem = useCallback(
     (itemId: string) => {
       setItems((prev) => prev.filter((i) => i.id !== itemId));
       setAssignments((prev) => prev.filter((a) => a.item_id !== itemId));
-      markDirty();
     },
-    [markDirty]
+    []
   );
 
   const addRabbit = useCallback(
@@ -223,43 +204,38 @@ export function useTab(tabId: string | undefined) {
         created_at: new Date().toISOString(),
       };
       setRabbits((prev) => [...prev, newRabbit]);
-      markDirty();
     },
-    [tabId, markDirty]
+    [tabId]
   );
 
   const removeRabbit = useCallback(
     (rabbitId: string) => {
       setRabbits((prev) => prev.filter((r) => r.id !== rabbitId));
       setAssignments((prev) => prev.filter((a) => a.rabbit_id !== rabbitId));
-      markDirty();
     },
-    [markDirty]
+    []
   );
 
   const toggleAssignment = useCallback(
     (itemId: string, rabbitId: string) => {
-      const existing = assignments.find(
-        (a) => a.item_id === itemId && a.rabbit_id === rabbitId
-      );
-      if (existing) {
-        setAssignments((prev) =>
-          prev.filter(
-            (a) => !(a.item_id === itemId && a.rabbit_id === rabbitId)
-          )
+      setAssignments((prev) => {
+        const exists = prev.some(
+          (a) => a.item_id === itemId && a.rabbit_id === rabbitId
         );
-      } else {
-        setAssignments((prev) => [...prev, { item_id: itemId, rabbit_id: rabbitId }]);
-      }
-      markDirty();
+        if (exists) {
+          return prev.filter(
+            (a) => !(a.item_id === itemId && a.rabbit_id === rabbitId)
+          );
+        }
+        return [...prev, { item_id: itemId, rabbit_id: rabbitId }];
+      });
     },
-    [assignments, markDirty]
+    []
   );
 
   const saveChanges = useCallback(async () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    await flushChanges();
-  }, [flushChanges]);
+    // No-op: changes are persisted immediately via useEffect
+  }, []);
 
   return {
     tab,
