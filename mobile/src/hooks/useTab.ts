@@ -87,8 +87,6 @@ export function useTab(tabId: string | undefined) {
   const [assignments, setAssignments] = useState<ItemRabbit[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const saving = false;
-  const isDirty = false;
   const loaded = useRef(false);
 
   // Refs to track latest state for async persistence
@@ -233,18 +231,12 @@ export function useTab(tabId: string | undefined) {
     []
   );
 
-  const saveChanges = useCallback(async () => {
-    // No-op: changes are persisted immediately via useEffect
-  }, []);
-
   return {
     tab,
     items,
     rabbits,
     assignments,
     loading,
-    saving,
-    isDirty,
     fetchTab,
     updateTab,
     addItem,
@@ -253,6 +245,5 @@ export function useTab(tabId: string | undefined) {
     addRabbit,
     removeRabbit,
     toggleAssignment,
-    saveChanges,
   };
 }

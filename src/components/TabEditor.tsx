@@ -22,8 +22,6 @@ export default function TabEditor() {
     rabbits,
     assignments,
     loading,
-    saving,
-    isDirty,
     updateTab,
     addItem,
     addItems,
@@ -31,7 +29,6 @@ export default function TabEditor() {
     addRabbit,
     removeRabbit,
     toggleAssignment,
-    saveChanges,
   } = useTab(tabId);
 
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
@@ -202,11 +199,6 @@ export default function TabEditor() {
       <Button variant="outline-success" size="sm" onClick={handleShareBill} disabled={sharing}>
         {sharing ? 'Sharing...' : copied ? 'Copied!' : 'Share Bill'}
       </Button>
-      {isDirty && !saving && (
-        <Button variant="outline-success" size="sm" onClick={saveChanges}>
-          Save
-        </Button>
-      )}
     </div>
   );
 
@@ -249,12 +241,6 @@ export default function TabEditor() {
           >
             {tab.name}
           </h4>
-        )}
-        {saving && (
-          <small className="text-muted">
-            <Spinner animation="border" size="sm" className="me-1" />
-            Saving...
-          </small>
         )}
       </div>
 

@@ -27,19 +27,13 @@ import type { RabbitColor } from '@/src/types';
 function ActionBar({
   onScanReceipt,
   onShareBill,
-  onSave,
   scanning,
   sharing,
-  saving,
-  isDirty,
 }: {
   onScanReceipt: () => void;
   onShareBill: () => void;
-  onSave: () => void;
   scanning: boolean;
   sharing: boolean;
-  saving: boolean;
-  isDirty: boolean;
 }) {
   return (
     <View style={styles.actionBar}>
@@ -57,17 +51,6 @@ function ActionBar({
           {sharing ? 'Sharing...' : 'Share Bill'}
         </Text>
       </TouchableOpacity>
-      {isDirty && (
-        <TouchableOpacity
-          style={[styles.actionButton, styles.saveActionButton]}
-          onPress={onSave}
-          disabled={saving}
-        >
-          <Text style={[styles.actionButtonText, styles.saveActionText]}>
-            {saving ? 'Saving...' : 'Save'}
-          </Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
@@ -82,8 +65,6 @@ export default function TabEditorScreen() {
     rabbits,
     assignments,
     loading,
-    saving,
-    isDirty,
     updateTab,
     addItem,
     addItems,
@@ -91,7 +72,6 @@ export default function TabEditorScreen() {
     addRabbit,
     removeRabbit,
     toggleAssignment,
-    saveChanges,
   } = useTab(tabId);
 
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
@@ -266,11 +246,8 @@ export default function TabEditorScreen() {
       <ActionBar
         onScanReceipt={handleScanReceipt}
         onShareBill={handleShareBill}
-        onSave={saveChanges}
         scanning={scanning}
         sharing={sharing}
-        saving={saving}
-        isDirty={isDirty}
       />
 
       {/* Rabbit Bar */}
@@ -319,11 +296,8 @@ export default function TabEditorScreen() {
       <ActionBar
         onScanReceipt={handleScanReceipt}
         onShareBill={handleShareBill}
-        onSave={saveChanges}
         scanning={scanning}
         sharing={sharing}
-        saving={saving}
-        isDirty={isDirty}
       />
 
       {/* Add Rabbit Modal */}
@@ -369,12 +343,6 @@ const styles = StyleSheet.create({
     color: '#0dcaf0',
     fontWeight: '600',
     fontSize: 14,
-  },
-  saveActionButton: {
-    borderColor: '#198754',
-  },
-  saveActionText: {
-    color: '#198754',
   },
   assignHint: {
     fontSize: 13,
