@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isProUser } from './proStatus';
 
-export const FREE_SCAN_LIMIT = 10;
+export const FREE_SCAN_LIMIT = 5;
 
 const STORAGE_KEY = '@scanCounter';
 
@@ -30,6 +31,7 @@ export async function getScanCount(): Promise<number> {
 }
 
 export async function canScanFree(): Promise<boolean> {
+  if (await isProUser()) return true;
   return (await getScanData()).count < FREE_SCAN_LIMIT;
 }
 

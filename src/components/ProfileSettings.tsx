@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Card, Alert, Container } from 'react-bootstrap';
+import { Form, Button, Card, Alert, Badge, Container } from 'react-bootstrap';
 import type { LocalProfile } from '../hooks/useAuth';
+import { useSavedRabbits } from '../hooks/useSavedRabbits';
 import { getStoredApiKey, setStoredApiKey, removeStoredApiKey } from '../utils/anthropic';
 import { remainingFreeScans, FREE_SCAN_LIMIT } from '../utils/scanCounter';
+import { COLOR_HEX, RABBIT_COLORS } from '../types';
+import type { SavedRabbit, RabbitColor } from '../types';
 
 interface ProfileSettingsProps {
   profile: LocalProfile | null;
@@ -16,6 +19,11 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
   const [paypalUsername, setPaypalUsername] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
+
+  // Saved rabbits
+  const { savedRabbits, removeSaved, updateSaved } = useSavedRabbits();
+  const [editingRabbitId, setEditingRabbitId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<SavedRabbit>>({});
 
   // BYOK state
   const [apiKey, setApiKey] = useState('');
@@ -116,6 +124,138 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
               {saving ? 'Saving...' : 'Save Profile'}
             </Button>
           </Form>
+
+          {/* Saved Rabbits */}
+          <hr className="mt-4" />
+          <h6>Saved Rabbits</h6>
+          {savedRabbits.length === 0 ? (
+            <p className="text-muted small">
+              No saved rabbits yet. Add payment info when adding someone to a tab and they'll appear here.
+            </p>
+          ) : (
+            <div className="mb-2">
+              {savedRabbits.map((saved) => (
+                <div
+                  key={saved.id}
+                  className="d-flex align-items-center gap-2 py-2 border-bottom"
+                >
+                  {editingRabbitId === saved.id ? (
+                    <div className="flex-grow-1">
+                      <Form.Control
+                        type="text"
+                        size="sm"
+                        className="mb-1"
+                        placeholder="Name"
+                        value={editForm.name ?? ''}
+                        onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                      />
+                      <Form.Control
+                        type="text"
+                        size="sm"
+                        className="mb-1"
+                        placeholder="Venmo"
+                        value={editForm.venmo_username ?? ''}
+                        onChange={(e) => setEditForm((f) => ({ ...f, venmo_username: e.target.value }))}
+                      />
+                      <Form.Control
+                        type="text"
+                        size="sm"
+                        className="mb-1"
+                        placeholder="Cash App"
+                        value={editForm.cashapp_cashtag ?? ''}
+                        onChange={(e) => setEditForm((f) => ({ ...f, cashapp_cashtag: e.target.value }))}
+                      />
+                      <Form.Control
+                        type="text"
+                        size="sm"
+                        className="mb-1"
+                        placeholder="PayPal"
+                        value={editForm.paypal_username ?? ''}
+                        onChange={(e) => setEditForm((f) => ({ ...f, paypal_username: e.target.value }))}
+                      />
+                      <div className="d-flex gap-1">
+                        <Button
+                          variant="outline-success"
+                          size="sm"
+                          onClick={() => {
+                            const stripPrefix = (v: string) => v.replace(/^[@$]/, '');
+                            updateSaved(saved.id, {
+                              name: (editForm.name || '').trim() || saved.name,
+                              venmo_username: stripPrefix((editForm.venmo_username || '').trim()) || null,
+                              cashapp_cashtag: stripPrefix((editForm.cashapp_cashtag || '').trim()) || null,
+                              paypal_username: stripPrefix((editForm.paypal_username || '').trim()) || null,
+                            });
+                            setEditingRabbitId(null);
+                          }}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          onClick={() => setEditingRabbitId(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          backgroundColor: COLOR_HEX[saved.color],
+                          border: '1px solid rgba(0,0,0,0.15)',
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span className="fw-semibold flex-grow-1">{saved.name}</span>
+                      <div className="d-flex gap-1">
+                        {saved.venmo_username && (
+                          <Badge bg="info" className="fw-normal" style={{ fontSize: '0.7em' }}>V</Badge>
+                        )}
+                        {saved.cashapp_cashtag && (
+                          <Badge bg="success" className="fw-normal" style={{ fontSize: '0.7em' }}>C</Badge>
+                        )}
+                        {saved.paypal_username && (
+                          <Badge bg="primary" className="fw-normal" style={{ fontSize: '0.7em' }}>P</Badge>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={() => {
+                          setEditingRabbitId(saved.id);
+                          setEditForm({
+                            name: saved.name,
+                            venmo_username: saved.venmo_username || '',
+                            cashapp_cashtag: saved.cashapp_cashtag || '',
+                            paypal_username: saved.paypal_username || '',
+                          });
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm(`Remove ${saved.name} from saved rabbits?`)) {
+                            removeSaved(saved.id);
+                          }
+                        }}
+                      >
+                        &times;
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           <hr className="mt-4" />
           <h6>Advanced</h6>

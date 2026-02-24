@@ -100,7 +100,7 @@ export default function SharedBillPage() {
               className="d-flex justify-content-between"
             >
               <span>{item.description}</span>
-              <strong>{formatCents(item.price_cents)}</strong>
+              <strong className="tr-mono">{formatCents(item.price_cents)}</strong>
             </ListGroup.Item>
           );
         })}
@@ -120,12 +120,12 @@ export default function SharedBillPage() {
                   <div>
                     <strong>{rabbit.name}</strong>
                     <br />
-                    <small className="text-muted">
+                    <small className="text-muted tr-mono">
                       {formatCents(subtotal)} + {formatCents(tax)} tax + {formatCents(tip)} tip
                     </small>
                   </div>
                   <div className="text-end">
-                    <strong className="fs-5">{formatCents(total)}</strong>
+                    <strong className="fs-5 tr-mono">{formatCents(total)}</strong>
                     <div className="mt-1">
                       <OwnerPaymentLinks
                         ownerProfile={ownerProfile}
@@ -153,20 +153,20 @@ export default function SharedBillPage() {
         <Card.Body className="py-2">
           <div className="d-flex justify-content-between small">
             <span>Subtotal</span>
-            <span>{formatCents(itemsSubtotal)}</span>
+            <span className="tr-mono">{formatCents(itemsSubtotal)}</span>
           </div>
           <div className="d-flex justify-content-between small">
             <span>Tax ({tab.tax_percent}%)</span>
-            <span>{formatCents(taxAmount)}</span>
+            <span className="tr-mono">{formatCents(taxAmount)}</span>
           </div>
           <div className="d-flex justify-content-between small mb-1">
             <span>Tip ({tab.tip_percent}%)</span>
-            <span>{formatCents(tipAmount)}</span>
+            <span className="tr-mono">{formatCents(tipAmount)}</span>
           </div>
           <hr className="my-1" />
           <div className="d-flex justify-content-between">
             <strong>Grand Total</strong>
-            <strong>{formatCents(grandTotal)}</strong>
+            <strong className="tr-mono">{formatCents(grandTotal)}</strong>
           </div>
         </Card.Body>
       </Card>

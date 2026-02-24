@@ -63,6 +63,15 @@ export const RABBIT_COLORS: RabbitColor[] = [
   'secondary',
 ];
 
+export interface SavedRabbit {
+  id: string;
+  name: string;
+  color: RabbitColor;
+  venmo_username: string | null;
+  cashapp_cashtag: string | null;
+  paypal_username: string | null;
+}
+
 export const COLOR_HEX: Record<RabbitColor, string> = {
   success: '#d1e7dd',
   info: '#cff4fc',

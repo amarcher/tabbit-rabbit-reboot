@@ -3,6 +3,7 @@ import { Alert, Button, Form, Spinner } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import { useTab } from '../hooks/useTab';
 import { useAuth } from '../hooks/useAuth';
+import { useSavedRabbits } from '../hooks/useSavedRabbits';
 import { shareBill } from '../utils/billEncoder';
 import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '../utils/scanCounter';
 import { scanReceiptDirect, getStoredApiKey } from '../utils/anthropic';
@@ -16,6 +17,7 @@ import type { RabbitColor } from '../types';
 export default function TabEditor() {
   const { tabId } = useParams<{ tabId: string }>();
   const { profile } = useAuth();
+  const { savedRabbits, addSaved, removeSaved } = useSavedRabbits();
   const {
     tab,
     items,
@@ -212,92 +214,99 @@ export default function TabEditor() {
         style={{ display: 'none' }}
       />
 
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        {editingName ? (
-          <Form
-            className="d-flex gap-2 flex-grow-1"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleNameSave();
-            }}
-          >
-            <Form.Control
-              type="text"
-              value={tabName}
-              onChange={(e) => setTabName(e.target.value)}
-              autoFocus
-              onBlur={handleNameSave}
-            />
-          </Form>
-        ) : (
-          <h4
-            className="mb-0"
-            style={{ cursor: 'pointer' }}
-            onClick={() => {
-              setTabName(tab.name);
-              setEditingName(true);
-            }}
-            title="Click to edit"
-          >
-            {tab.name}
-          </h4>
-        )}
+      <div className="tr-editor-layout">
+        <div>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            {editingName ? (
+              <Form
+                className="d-flex gap-2 flex-grow-1"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleNameSave();
+                }}
+              >
+                <Form.Control
+                  type="text"
+                  value={tabName}
+                  onChange={(e) => setTabName(e.target.value)}
+                  autoFocus
+                  onBlur={handleNameSave}
+                />
+              </Form>
+            ) : (
+              <h4
+                className="mb-0"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  setTabName(tab.name);
+                  setEditingName(true);
+                }}
+                title="Click to edit"
+              >
+                {tab.name}
+              </h4>
+            )}
+          </div>
+
+          {actionBar}
+
+          {scanError && (
+            <Alert variant="warning" className="py-2 small" dismissible onClose={() => setScanError('')}>
+              {scanError}
+            </Alert>
+          )}
+
+          <RabbitBar
+            rabbits={rabbits}
+            selectedRabbitId={selectedRabbitId}
+            subtotals={subtotals}
+            onSelect={(id) =>
+              setSelectedRabbitId(id === selectedRabbitId ? null : id)
+            }
+            onRemove={removeRabbit}
+            onAddClick={() => setShowAddRabbit(true)}
+          />
+
+          {selectedRabbitId && (
+            <p className="text-muted small mb-2">
+              Tap items to assign them to{' '}
+              <strong>
+                {rabbits.find((r) => r.id === selectedRabbitId)?.name}
+              </strong>
+            </p>
+          )}
+
+          <ItemList
+            items={items}
+            rabbits={rabbits}
+            assignments={assignments}
+            selectedRabbitId={selectedRabbitId}
+            onToggle={toggleAssignment}
+            onAddItem={addItem}
+            onDeleteItem={deleteItem}
+          />
+        </div>
+
+        <div className="tr-sticky-col">
+          <TotalsView
+            tab={tab}
+            items={items}
+            rabbits={rabbits}
+            assignments={assignments}
+            onUpdateTab={updateTab}
+            currentUserProfile={profile}
+          />
+        </div>
       </div>
-
-      {actionBar}
-
-      {scanError && (
-        <Alert variant="warning" className="py-2 small" dismissible onClose={() => setScanError('')}>
-          {scanError}
-        </Alert>
-      )}
-
-      <RabbitBar
-        rabbits={rabbits}
-        selectedRabbitId={selectedRabbitId}
-        subtotals={subtotals}
-        onSelect={(id) =>
-          setSelectedRabbitId(id === selectedRabbitId ? null : id)
-        }
-        onRemove={removeRabbit}
-        onAddClick={() => setShowAddRabbit(true)}
-      />
-
-      {selectedRabbitId && (
-        <p className="text-muted small mb-2">
-          Tap items to assign them to{' '}
-          <strong>
-            {rabbits.find((r) => r.id === selectedRabbitId)?.name}
-          </strong>
-        </p>
-      )}
-
-      <ItemList
-        items={items}
-        rabbits={rabbits}
-        assignments={assignments}
-        selectedRabbitId={selectedRabbitId}
-        onToggle={toggleAssignment}
-        onAddItem={addItem}
-        onDeleteItem={deleteItem}
-      />
-
-      <TotalsView
-        tab={tab}
-        items={items}
-        rabbits={rabbits}
-        assignments={assignments}
-        onUpdateTab={updateTab}
-        currentUserProfile={profile}
-      />
-
-      {actionBar}
 
       <AddRabbitModal
         show={showAddRabbit}
         onHide={() => setShowAddRabbit(false)}
-        onAdd={(name, color) => addRabbit(name, color)}
+        onAdd={(name, color, profile) => addRabbit(name, color, profile)}
         usedColors={rabbits.map((r) => r.color as RabbitColor)}
+        savedRabbits={savedRabbits}
+        onAddSavedRabbit={addSaved}
+        onRemoveSavedRabbit={removeSaved}
       />
     </div>
   );

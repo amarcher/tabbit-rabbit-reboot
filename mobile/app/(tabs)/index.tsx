@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,32 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
-import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useTabs } from '@/src/hooks/useTab';
-import type { Tab } from '@/src/types';
+import { formatCents } from '@/src/utils/currency';
+import { BUTTON_COLORS } from '@/src/utils/colors';
+import type { Tab, Item, Rabbit } from '@/src/types';
 
 function TabRow({
   tab,
+  items,
+  rabbits,
   onPress,
   onDelete,
 }: {
   tab: Tab;
+  items: Item[];
+  rabbits: Rabbit[];
   onPress: () => void;
   onDelete: () => void;
 }) {
   const swipeableRef = useRef<Swipeable>(null);
+
+  const subtotalCents = items.reduce((sum, i) => sum + i.price_cents, 0);
+  const totalCents = Math.round(
+    subtotalCents * (1 + tab.tax_percent / 100 + tab.tip_percent / 100)
+  );
 
   const renderRightActions = () => (
     <View style={styles.swipeActions}>
@@ -52,10 +64,39 @@ function TabRow({
       rightThreshold={40}
     >
       <TouchableOpacity style={styles.tabRow} onPress={onPress}>
-        <Text style={styles.tabName}>{tab.name}</Text>
-        <Text style={styles.tabDate}>
-          {new Date(tab.created_at).toLocaleDateString()}
-        </Text>
+        {/* Row 1: Name + Total */}
+        <View style={styles.tableRow}>
+          <Text style={styles.tabName} numberOfLines={1}>{tab.name}</Text>
+          {totalCents > 0 && (
+            <Text style={styles.tabTotal}>{formatCents(totalCents)}</Text>
+          )}
+        </View>
+        {/* Row 2: Rabbits + Date */}
+        <View style={styles.tableRow}>
+          <View style={styles.rabbitChips}>
+            {rabbits.map((r) => (
+              <View
+                key={r.id}
+                style={[
+                  styles.rabbitChip,
+                  { backgroundColor: BUTTON_COLORS[r.color].bg },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.rabbitChipText,
+                    { color: BUTTON_COLORS[r.color].text },
+                  ]}
+                >
+                  {r.name}
+                </Text>
+              </View>
+            ))}
+          </View>
+          <Text style={styles.tabDate}>
+            {new Date(tab.created_at).toLocaleDateString()}
+          </Text>
+        </View>
       </TouchableOpacity>
     </Swipeable>
   );
@@ -66,6 +107,30 @@ export default function DashboardScreen() {
   const router = useRouter();
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [tabDataMap, setTabDataMap] = useState<
+    Record<string, { items: Item[]; rabbits: Rabbit[] }>
+  >({});
+
+  const loadTabData = useCallback(async () => {
+    if (tabs.length === 0) return;
+    const keys = tabs.map((t) => `@tab:${t.id}`);
+    const results = await AsyncStorage.multiGet(keys);
+    const map: Record<string, { items: Item[]; rabbits: Rabbit[] }> = {};
+    for (const [key, raw] of results) {
+      if (raw) {
+        const data = JSON.parse(raw);
+        const id = key.replace('@tab:', '');
+        map[id] = { items: data.items || [], rabbits: data.rabbits || [] };
+      }
+    }
+    setTabDataMap(map);
+  }, [tabs]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadTabData();
+    }, [loadTabData])
+  );
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -128,6 +193,8 @@ export default function DashboardScreen() {
           renderItem={({ item }) => (
             <TabRow
               tab={item}
+              items={tabDataMap[item.id]?.items ?? []}
+              rabbits={tabDataMap[item.id]?.rabbits ?? []}
               onPress={() => router.push(`/tab/${item.id}`)}
               onDelete={() => deleteTab(item.id)}
             />
@@ -192,16 +259,44 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#dee2e6',
+    gap: 6,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   tabName: {
     fontSize: 17,
     fontWeight: '600',
     color: '#333',
+    flex: 1,
+    marginRight: 12,
+  },
+  tabTotal: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#333',
+  },
+  rabbitChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    flex: 1,
+    marginRight: 12,
+  },
+  rabbitChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  rabbitChipText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   tabDate: {
     fontSize: 13,
     color: '#999',
-    marginTop: 2,
   },
   swipeActions: {
     flexDirection: 'row',

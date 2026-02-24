@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, Button, Card, Form, ListGroup, Row, Col } from 'react-bootstrap';
+import { Alert, Button, Card, Form, InputGroup, ListGroup, Modal, Row, Col } from 'react-bootstrap';
 import type { Item, Rabbit, ItemRabbit, Tab, Profile } from '../types';
 import { formatCents } from '../utils/currency';
 import { buildPaymentNote, venmoChargeLink, buildChargeNote } from '../utils/payments';
@@ -33,6 +33,8 @@ export default function TotalsView({
 }: TotalsViewProps) {
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 8.75);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
+  const [chargeTarget, setChargeTarget] = useState<{ rabbit: Rabbit; total: number } | null>(null);
+  const [venmoHandle, setVenmoHandle] = useState('');
 
   const itemsSubtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.price_cents, 0),
@@ -98,31 +100,37 @@ export default function TotalsView({
     [onUpdateTab]
   );
 
-  const handleVenmoCharge = useCallback(
+  const openChargeModal = useCallback(
     (rabbit: Rabbit, total: number) => {
-      const handle = prompt(`Enter ${rabbit.name}'s Venmo username:`);
-      if (!handle) return;
-      const url = venmoChargeLink(
-        handle.replace(/^@/, ''),
-        total / 100,
-        buildChargeNote(tab.name, rabbit.name,
-          assignments
-            .filter((a) => a.rabbit_id === rabbit.id)
-            .map((a) => ({
-              description: items.find((i) => i.id === a.item_id)?.description || '',
-              splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
-            }))
-        )
-      );
-      window.open(url, '_blank', 'noopener');
+      setVenmoHandle('');
+      setChargeTarget({ rabbit, total });
     },
-    [tab.name, items, assignments]
+    []
   );
+
+  const submitCharge = useCallback(() => {
+    if (!chargeTarget || !venmoHandle.trim()) return;
+    const { rabbit, total } = chargeTarget;
+    const url = venmoChargeLink(
+      venmoHandle.trim().replace(/^@/, ''),
+      total / 100,
+      buildChargeNote(tab.name, rabbit.name,
+        assignments
+          .filter((a) => a.rabbit_id === rabbit.id)
+          .map((a) => ({
+            description: items.find((i) => i.id === a.item_id)?.description || '',
+            splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
+          }))
+      )
+    );
+    setChargeTarget(null);
+    window.open(url, '_blank', 'noopener');
+  }, [chargeTarget, venmoHandle, tab.name, items, assignments]);
 
   if (items.length === 0) return null;
 
   return (
-    <div className="mt-4 pt-4 border-top">
+    <div>
       <h5 className="mb-3">Totals</h5>
 
       <Row className="mb-3">
@@ -150,7 +158,7 @@ export default function TotalsView({
             />
             <div className="d-flex justify-content-between small">
               <span>{tipPercent}%</span>
-              <span>{formatCents(tipAmount)}</span>
+              <span className="tr-mono">{formatCents(tipAmount)}</span>
             </div>
           </Form.Group>
         </Col>
@@ -168,11 +176,11 @@ export default function TotalsView({
                 <div>
                   <strong>{rabbit.name}</strong>
                   <br />
-                  <small className="text-muted">
+                  <small className="text-muted tr-mono">
                     {formatCents(subtotal)} + {formatCents(tax)} tax + {formatCents(tip)} tip
                   </small>
                 </div>
-                <strong className="fs-5">{formatCents(total)}</strong>
+                <strong className="fs-5 tr-mono">{formatCents(total)}</strong>
               </div>
               <div className="d-flex justify-content-end gap-2 mt-1">
                 <PaymentLinks
@@ -191,7 +199,7 @@ export default function TotalsView({
                   <Button
                     variant="outline-secondary"
                     size="sm"
-                    onClick={() => handleVenmoCharge(rabbit, total)}
+                    onClick={() => openChargeModal(rabbit, total)}
                   >
                     Request via Venmo
                   </Button>
@@ -213,24 +221,54 @@ export default function TotalsView({
         <Card.Body className="py-2">
           <div className="d-flex justify-content-between small">
             <span>Subtotal</span>
-            <span>{formatCents(itemsSubtotal)}</span>
+            <span className="tr-mono">{formatCents(itemsSubtotal)}</span>
           </div>
           <div className="d-flex justify-content-between small">
             <span>Tax ({taxPercent}%)</span>
-            <span>{formatCents(taxAmount)}</span>
+            <span className="tr-mono">{formatCents(taxAmount)}</span>
           </div>
           <div className="d-flex justify-content-between small mb-1">
             <span>Tip ({tipPercent}%)</span>
-            <span>{formatCents(tipAmount)}</span>
+            <span className="tr-mono">{formatCents(tipAmount)}</span>
           </div>
           <hr className="my-1" />
           <div className="d-flex justify-content-between">
             <strong>Grand Total</strong>
-            <strong>{formatCents(grandTotal)}</strong>
+            <strong className="tr-mono">{formatCents(grandTotal)}</strong>
           </div>
         </Card.Body>
       </Card>
 
+      <Modal show={chargeTarget != null} onHide={() => setChargeTarget(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title as="h6">
+            Request from {chargeTarget?.rabbit.name} via Venmo
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={(e) => { e.preventDefault(); submitCharge(); }}>
+            <Form.Label className="small text-muted mb-1">Venmo username</Form.Label>
+            <InputGroup>
+              <InputGroup.Text>@</InputGroup.Text>
+              <Form.Control
+                type="text"
+                placeholder="username"
+                value={venmoHandle}
+                onChange={(e) => setVenmoHandle(e.target.value)}
+                autoFocus
+              />
+            </InputGroup>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="outline-secondary" size="sm" onClick={() => setChargeTarget(null)}>
+            Cancel
+          </Button>
+          <Button variant="warning" size="sm" onClick={submitCharge} disabled={!venmoHandle.trim()}>
+            Send Request
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

@@ -52,7 +52,7 @@ export default function ItemRow({
     >
       <span>{item.description}</span>
       <span className="d-flex align-items-center gap-2">
-        <strong>{formatCents(item.price_cents)}</strong>
+        <strong className="tr-mono">{formatCents(item.price_cents)}</strong>
         <Button
           variant="outline-danger"
           size="sm"

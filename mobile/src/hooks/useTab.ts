@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
+import type { Tab, Item, Rabbit, ItemRabbit, Profile } from '../types';
 
 const TABS_INDEX_KEY = '@tabs';
 const TAB_PREFIX = '@tab:';
@@ -191,7 +191,7 @@ export function useTab(tabId: string | undefined) {
   );
 
   const addRabbit = useCallback(
-    (name: string, color: string) => {
+    (name: string, color: string, profile?: Profile) => {
       if (!tabId) return;
       const newRabbit: Rabbit = {
         id: Crypto.randomUUID(),
@@ -200,6 +200,7 @@ export function useTab(tabId: string | undefined) {
         name,
         color: color as Rabbit['color'],
         created_at: new Date().toISOString(),
+        ...(profile && { profile }),
       };
       setRabbits((prev) => [...prev, newRabbit]);
     },

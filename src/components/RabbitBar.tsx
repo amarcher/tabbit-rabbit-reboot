@@ -33,7 +33,7 @@ export default function RabbitBar({
             onClick={() => onSelect(rabbit.id)}
           >
             {rabbit.name}{' '}
-            <span className="ms-1 badge bg-light text-dark">
+            <span className="ms-1 badge bg-light text-dark tr-mono">
               {formatCents(subtotals[rabbit.id] || 0)}
             </span>
           </Button>

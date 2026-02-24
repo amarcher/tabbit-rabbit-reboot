@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
+import type { Tab, Item, Rabbit, ItemRabbit, Profile } from '../types';
 
 const TABS_INDEX_KEY = 'tabbitrabbit:tabs';
 const TAB_PREFIX = 'tabbitrabbit:tab:';
@@ -169,15 +169,16 @@ export function useTab(tabId: string | undefined) {
   );
 
   const addRabbit = useCallback(
-    (name: string, color: string) => {
+    (name: string, color: string, profile?: Profile) => {
       if (!tabId) return;
       const newRabbit: Rabbit = {
         id: crypto.randomUUID(),
         tab_id: tabId,
-        profile_id: null,
+        profile_id: profile?.id || null,
         name,
         color: color as Rabbit['color'],
         created_at: new Date().toISOString(),
+        profile,
       };
       setRabbits((prev) => [...prev, newRabbit]);
     },

@@ -11,18 +11,19 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useTab } from '@/src/hooks/useTab';
 import { useAuth } from '@/src/hooks/useAuth';
+import { useProStatus } from '@/src/hooks/useProStatus';
+import { useSavedRabbits } from '@/src/hooks/useSavedRabbits';
 import { shareBill } from '@/src/utils/billEncoder';
-import { canScanFree, incrementScanCount, remainingFreeScans, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
-import { scanReceiptDirect, getStoredApiKey } from '@/src/utils/anthropic';
+import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
 import type { ReceiptResult } from '@/src/utils/anthropic';
 import ItemList from '@/src/components/ItemList';
 import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
 import TotalsView from '@/src/components/TotalsView';
-import type { RabbitColor } from '@/src/types';
+import type { RabbitColor, Profile } from '@/src/types';
 
 function ActionBar({
   onScanReceipt,
@@ -58,7 +59,10 @@ function ActionBar({
 export default function TabEditorScreen() {
   const { tabId } = useLocalSearchParams<{ tabId: string }>();
   const navigation = useNavigation();
+  const router = useRouter();
   const { profile } = useAuth();
+  const { isPro } = useProStatus();
+  const { savedRabbits, addSaved, removeSaved } = useSavedRabbits();
   const {
     tab,
     items,
@@ -108,13 +112,16 @@ export default function TabEditorScreen() {
   }, [rabbits, items, assignments]);
 
   const handleScanReceipt = async () => {
-    const byokKey = await getStoredApiKey();
-    if (!byokKey && !(await canScanFree())) {
+    if (!(await canScanFree())) {
       Alert.alert(
         'Out of Free Scans',
-        `You've used all ${FREE_SCAN_LIMIT} free scans this month. Add your own Anthropic API key in Profile for unlimited scans.`,
+        `You've used all ${FREE_SCAN_LIMIT} free scans this month. Upgrade to Tabbit Pro for unlimited scans.`,
         [
-          { text: 'OK', style: 'cancel' },
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Upgrade to Pro',
+            onPress: () => router.push('/(tabs)/profile'),
+          },
         ]
       );
       return;
@@ -161,28 +168,19 @@ export default function TabEditorScreen() {
         encoding: EncodingType.Base64,
       });
 
-      const byokKey = await getStoredApiKey();
-      let result: ReceiptResult;
-
-      if (byokKey) {
-        // BYOK: call Anthropic directly, no scan counter
-        result = await scanReceiptDirect(byokKey, image_base64, 'image/jpeg');
-      } else {
-        // Free scan via Vercel function
-        const res = await fetch('https://tabbitrabbit.com/api/parse-receipt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image_base64, media_type: 'image/jpeg' }),
-        });
-        if (!res.ok) {
-          const errBody = await res.text();
-          throw new Error(`OCR failed (${res.status}): ${errBody}`);
-        }
-        result = await res.json();
-        const remaining = FREE_SCAN_LIMIT - (await incrementScanCount());
-        if (remaining > 0) {
-          Alert.alert('Scan Complete', `${remaining} free scan${remaining === 1 ? '' : 's'} remaining this month.`);
-        }
+      const res = await fetch('https://tabbitrabbit.com/api/parse-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64, media_type: 'image/jpeg' }),
+      });
+      if (!res.ok) {
+        const errBody = await res.text();
+        throw new Error(`OCR failed (${res.status}): ${errBody}`);
+      }
+      const result: ReceiptResult = await res.json();
+      const remaining = FREE_SCAN_LIMIT - (await incrementScanCount());
+      if (remaining > 0) {
+        Alert.alert('Scan Complete', `${remaining} free scan${remaining === 1 ? '' : 's'} remaining this month.`);
       }
 
       if (result?.items?.length) {
@@ -304,8 +302,12 @@ export default function TabEditorScreen() {
       <AddRabbitModal
         visible={showAddRabbit}
         onClose={() => setShowAddRabbit(false)}
-        onAdd={(name, color) => addRabbit(name, color)}
+        onAdd={(name, color, prof) => addRabbit(name, color, prof)}
         usedColors={rabbits.map((r) => r.color as RabbitColor)}
+        isPro={isPro}
+        savedRabbits={savedRabbits}
+        onAddSavedRabbit={addSaved}
+        onRemoveSavedRabbit={removeSaved}
       />
 
       <View style={styles.bottomPadding} />

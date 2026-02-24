@@ -11,7 +11,7 @@ export default function Layout({ children }: LayoutProps) {
     <div className="d-flex flex-column min-vh-100">
       <NavBar />
       <Container className="flex-grow-1 pt-4 pb-5">{children}</Container>
-      <footer className="footer bg-light text-center py-3 mt-auto">
+      <footer className="footer text-center py-3 mt-auto">
         <Container>
           <span className="text-muted">&copy; {new Date().getFullYear()} Tabbit</span>
         </Container>

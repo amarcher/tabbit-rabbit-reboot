@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,24 +7,35 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
-  Linking,
+  ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@/src/hooks/useAuth';
-import { getStoredApiKey, setStoredApiKey, removeStoredApiKey } from '@/src/utils/anthropic';
+import { useProStatus } from '@/src/hooks/useProStatus';
+import { useSavedRabbits } from '@/src/hooks/useSavedRabbits';
 import { remainingFreeScans, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
+import { BUTTON_COLORS } from '@/src/utils/colors';
+import type { SavedRabbit } from '@/src/types';
 
 export default function ProfileScreen() {
   const { profile, updateProfile } = useAuth();
+  const { isPro, product, purchasing, purchasePro, restorePurchases } = useProStatus();
+  const { savedRabbits, refresh: refreshSavedRabbits, removeSaved, updateSaved } = useSavedRabbits();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshSavedRabbits();
+    }, [refreshSavedRabbits])
+  );
   const [displayName, setDisplayName] = useState('');
+  const [editingRabbitId, setEditingRabbitId] = useState<string | null>(null);
+  const [editVenmo, setEditVenmo] = useState('');
+  const [editCashapp, setEditCashapp] = useState('');
+  const [editPaypal, setEditPaypal] = useState('');
   const [venmo, setVenmo] = useState('');
   const [cashapp, setCashapp] = useState('');
   const [paypal, setPaypal] = useState('');
   const [saving, setSaving] = useState(false);
-
-  // BYOK state
-  const [apiKey, setApiKey] = useState('');
-  const [hasStoredKey, setHasStoredKey] = useState(false);
-  const [storedKeyPreview, setStoredKeyPreview] = useState('');
   const [freeScansLeft, setFreeScansLeft] = useState(FREE_SCAN_LIMIT);
 
   useEffect(() => {
@@ -37,16 +48,37 @@ export default function ProfileScreen() {
   }, [profile]);
 
   useEffect(() => {
-    getStoredApiKey().then((key) => {
-      if (key) {
-        setHasStoredKey(true);
-        setStoredKeyPreview(`...${key.slice(-4)}`);
-      }
-    });
     remainingFreeScans().then(setFreeScansLeft);
   }, []);
 
   const stripPrefix = (val: string) => val.replace(/^[@$]/, '');
+
+  const startEditingRabbit = (rabbit: SavedRabbit) => {
+    setEditingRabbitId(rabbit.id);
+    setEditVenmo(rabbit.venmo_username || '');
+    setEditCashapp(rabbit.cashapp_cashtag || '');
+    setEditPaypal(rabbit.paypal_username || '');
+  };
+
+  const saveRabbitEdit = async (id: string) => {
+    await updateSaved(id, {
+      venmo_username: stripPrefix(editVenmo.trim()) || null,
+      cashapp_cashtag: stripPrefix(editCashapp.trim()) || null,
+      paypal_username: stripPrefix(editPaypal.trim()) || null,
+    });
+    setEditingRabbitId(null);
+  };
+
+  const confirmDeleteRabbit = (rabbit: SavedRabbit) => {
+    Alert.alert(
+      'Remove Saved Rabbit',
+      `Remove ${rabbit.name} from your saved rabbits?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: () => removeSaved(rabbit.id) },
+      ]
+    );
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -63,31 +95,6 @@ export default function ProfileScreen() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleSaveApiKey = async () => {
-    const trimmed = apiKey.trim();
-    if (!trimmed) return;
-    await setStoredApiKey(trimmed);
-    setHasStoredKey(true);
-    setStoredKeyPreview(`...${trimmed.slice(-4)}`);
-    setApiKey('');
-    Alert.alert('Saved', 'API key stored securely on device.');
-  };
-
-  const handleRemoveApiKey = () => {
-    Alert.alert('Remove API Key', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: async () => {
-          await removeStoredApiKey();
-          setHasStoredKey(false);
-          setStoredKeyPreview('');
-        },
-      },
-    ]);
   };
 
   return (
@@ -153,58 +160,152 @@ export default function ProfileScreen() {
         </Text>
       </TouchableOpacity>
 
-      {/* Advanced Section */}
-      <View style={styles.advancedSection}>
-        <Text style={styles.advancedTitle}>Advanced</Text>
-        <Text style={styles.advancedHint}>
-          {freeScansLeft} of {FREE_SCAN_LIMIT} free receipt scans remaining this month.
-        </Text>
-
-        {hasStoredKey ? (
-          <View>
-            <Text style={styles.label}>Anthropic API Key</Text>
-            <View style={styles.keyRow}>
-              <Text style={styles.keyPreview}>{storedKeyPreview}</Text>
-              <TouchableOpacity onPress={handleRemoveApiKey}>
-                <Text style={styles.removeKeyText}>Remove</Text>
-              </TouchableOpacity>
+      {/* Tabbit Pro Section */}
+      <View style={styles.proSection}>
+        <Text style={styles.proTitle}>Tabbit Pro</Text>
+        {isPro ? (
+          <View style={styles.proBadgeRow}>
+            <View style={styles.proBadge}>
+              <Text style={styles.proBadgeText}>PRO</Text>
             </View>
-            <Text style={styles.advancedHint}>
-              Using your own key — unlimited scans.
-            </Text>
+            <Text style={styles.proBadgeLabel}>Unlimited receipt scans</Text>
           </View>
         ) : (
           <View>
-            <Text style={styles.label}>Anthropic API Key</Text>
-            <TextInput
-              style={styles.input}
-              value={apiKey}
-              onChangeText={setApiKey}
-              placeholder="sk-ant-..."
-              placeholderTextColor="#999"
-              autoCapitalize="none"
-              autoCorrect={false}
-              secureTextEntry
-            />
-            <Text style={styles.advancedHint}>
-              Use your own API key for unlimited scans. Stored on-device only.
+            <Text style={styles.proDescription}>
+              Unlock unlimited receipt scans with a one-time purchase.
+            </Text>
+            <Text style={styles.scanCountHint}>
+              {freeScansLeft} of {FREE_SCAN_LIMIT} free scans remaining this month.
             </Text>
             <TouchableOpacity
-              style={[styles.saveButton, { marginTop: 8 }, !apiKey.trim() && styles.saveButtonDisabled]}
-              onPress={handleSaveApiKey}
-              disabled={!apiKey.trim()}
+              style={[styles.proButton, purchasing && styles.saveButtonDisabled]}
+              onPress={purchasePro}
+              disabled={purchasing}
             >
-              <Text style={styles.saveButtonText}>Save API Key</Text>
+              {purchasing ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.proButtonText}>
+                  Upgrade — {product?.displayPrice ?? '$4.99'}
+                </Text>
+              )}
             </TouchableOpacity>
             <TouchableOpacity
-              style={{ marginTop: 8 }}
-              onPress={() => Linking.openURL('https://console.anthropic.com/settings/keys')}
+              style={{ marginTop: 10, alignItems: 'center' }}
+              onPress={async () => {
+                const restored = await restorePurchases();
+                Alert.alert(
+                  restored ? 'Restored' : 'Not Found',
+                  restored
+                    ? 'Tabbit Pro has been restored.'
+                    : 'No previous purchase found.',
+                );
+              }}
+              disabled={purchasing}
             >
-              <Text style={styles.linkText}>Get a key at console.anthropic.com</Text>
+              <Text style={styles.linkText}>Restore Purchases</Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
+
+      {/* Saved Rabbits Section (Pro only) */}
+      {isPro && (
+        <View style={styles.proSection}>
+          <Text style={styles.proTitle}>Saved Rabbits</Text>
+          {savedRabbits.length === 0 ? (
+            <Text style={styles.proDescription}>
+              Rabbits you add with payment info will appear here.
+            </Text>
+          ) : (
+            <View style={styles.savedRabbitsList}>
+              {savedRabbits.map((rabbit) => (
+                <View key={rabbit.id} style={styles.savedRabbitCard}>
+                  <View style={styles.savedRabbitHeader}>
+                    <View style={styles.savedRabbitInfo}>
+                      <View
+                        style={[
+                          styles.rabbitDot,
+                          { backgroundColor: BUTTON_COLORS[rabbit.color].bg },
+                        ]}
+                      />
+                      <Text style={styles.savedRabbitName}>{rabbit.name}</Text>
+                      {rabbit.venmo_username && (
+                        <View style={styles.handleBadge}>
+                          <Text style={styles.handleBadgeText}>Venmo</Text>
+                        </View>
+                      )}
+                      {rabbit.cashapp_cashtag && (
+                        <View style={[styles.handleBadge, styles.cashappBadge]}>
+                          <Text style={[styles.handleBadgeText, styles.cashappBadgeText]}>Cash</Text>
+                        </View>
+                      )}
+                      {rabbit.paypal_username && (
+                        <View style={[styles.handleBadge, styles.paypalBadge]}>
+                          <Text style={[styles.handleBadgeText, styles.paypalBadgeText]}>PayPal</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.savedRabbitActions}>
+                      <TouchableOpacity onPress={() =>
+                        editingRabbitId === rabbit.id
+                          ? setEditingRabbitId(null)
+                          : startEditingRabbit(rabbit)
+                      }>
+                        <Text style={styles.linkText}>
+                          {editingRabbitId === rabbit.id ? 'Cancel' : 'Edit'}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => confirmDeleteRabbit(rabbit)}>
+                        <Text style={styles.deleteText}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {editingRabbitId === rabbit.id && (
+                    <View style={styles.editFields}>
+                      <TextInput
+                        style={styles.input}
+                        value={editVenmo}
+                        onChangeText={setEditVenmo}
+                        placeholder="Venmo username"
+                        placeholderTextColor="#999"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                      <TextInput
+                        style={styles.input}
+                        value={editCashapp}
+                        onChangeText={setEditCashapp}
+                        placeholder="Cash App $cashtag"
+                        placeholderTextColor="#999"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                      <TextInput
+                        style={styles.input}
+                        value={editPaypal}
+                        onChangeText={setEditPaypal}
+                        placeholder="PayPal username"
+                        placeholderTextColor="#999"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                      <TouchableOpacity
+                        style={styles.saveEditButton}
+                        onPress={() => saveRabbitEdit(rabbit.id)}
+                      >
+                        <Text style={styles.saveEditButtonText}>Save</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -250,47 +351,141 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  advancedSection: {
+  proSection: {
     marginTop: 32,
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#dee2e6',
   },
-  advancedTitle: {
+  proTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#333',
     marginBottom: 8,
   },
-  advancedHint: {
-    fontSize: 13,
-    color: '#999',
-    marginBottom: 8,
-  },
-  keyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+  proDescription: {
+    fontSize: 14,
+    color: '#666',
     marginBottom: 4,
   },
-  keyPreview: {
-    fontSize: 16,
-    color: '#333',
-    fontFamily: 'SpaceMono',
+  scanCountHint: {
+    fontSize: 13,
+    color: '#999',
+    marginBottom: 12,
   },
-  removeKeyText: {
-    color: '#dc3545',
+  proButton: {
+    backgroundColor: '#f97316',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  proButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  proBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  proBadge: {
+    backgroundColor: '#f97316',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  proBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  proBadgeLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    color: '#666',
   },
   linkText: {
     color: '#0d6efd',
+    fontSize: 14,
+  },
+  savedRabbitsList: {
+    gap: 10,
+  },
+  savedRabbitCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  savedRabbitHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  savedRabbitInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    flexWrap: 'wrap',
+  },
+  rabbitDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  savedRabbitName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  handleBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#0d6efd',
+  },
+  handleBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#0d6efd',
+  },
+  cashappBadge: {
+    borderColor: '#198754',
+  },
+  cashappBadgeText: {
+    color: '#198754',
+  },
+  paypalBadge: {
+    borderColor: '#0dcaf0',
+  },
+  paypalBadgeText: {
+    color: '#0dcaf0',
+  },
+  savedRabbitActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  deleteText: {
+    color: '#dc3545',
+    fontSize: 14,
+  },
+  editFields: {
+    marginTop: 12,
+    gap: 8,
+  },
+  saveEditButton: {
+    backgroundColor: '#0d6efd',
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  saveEditButtonText: {
+    color: '#fff',
+    fontWeight: '600',
     fontSize: 14,
   },
 });

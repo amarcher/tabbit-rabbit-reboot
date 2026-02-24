@@ -3,23 +3,120 @@ body {
   padding-top: 56px;
 }
 
-/* Sticky footer */
-.footer {
-  border-top: 1px solid #dee2e6;
+/* ── Navbar ─────────────────────────────────────── */
+.navbar {
+  background-color: var(--tr-nav-bg) !important;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
 }
 
-/* Item row hover when a rabbit is selected */
+/* ── Container width at xl ──────────────────────── */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1100px;
+  }
+}
+
+/* ── Cards ──────────────────────────────────────── */
+.card {
+  border: 1px solid var(--tr-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  background-color: var(--tr-surface);
+}
+
+/* ── List groups ────────────────────────────────── */
+.list-group {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.list-group-item {
+  border-color: var(--tr-border);
+}
+.list-group-item:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+.list-group-item:last-child {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* ── Form inputs ────────────────────────────────── */
+.form-control,
+.form-select {
+  border-color: var(--tr-border);
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--tr-accent);
+  box-shadow: 0 0 0 0.2rem rgba(232, 168, 56, 0.25);
+}
+
+/* ── Footer ─────────────────────────────────────── */
+.footer {
+  background-color: var(--tr-surface);
+  border-top: 1px solid var(--tr-border);
+}
+
+/* ── Item row hover when a rabbit is selected ──── */
 .list-group-item[role='button']:hover,
 .list-group-item.action:hover {
   outline: none;
-  border-color: #edd29e;
-  box-shadow: 0 0 10px #edd29e;
+  border-color: var(--tr-accent);
+  box-shadow: 0 0 10px rgba(232, 168, 56, 0.5);
 }
 
-/* Tab name editable cursor */
+/* ── Tab name editable cursor ───────────────────── */
 h4[title='Click to edit'] {
-  border-bottom: 1px dashed #ccc;
+  border-bottom: 1px dashed var(--tr-border);
 }
 h4[title='Click to edit']:hover {
-  border-bottom-color: #333;
+  border-bottom-color: var(--tr-text);
+}
+
+/* ── Layout: Home (sidebar + tabs) ──────────────── */
+.tr-home-layout {
+  display: grid;
+  gap: 2rem;
+}
+@media (min-width: 768px) {
+  .tr-home-layout {
+    grid-template-columns: 280px 1fr;
+  }
+}
+
+/* ── Layout: Editor (items + sticky totals) ─────── */
+.tr-editor-layout {
+  display: grid;
+  gap: 2rem;
+}
+@media (min-width: 768px) {
+  .tr-editor-layout {
+    grid-template-columns: 1fr 360px;
+  }
+}
+
+/* ── Sticky column (totals panel) ───────────────── */
+.tr-sticky-col {
+  position: static;
+}
+@media (min-width: 768px) {
+  .tr-sticky-col {
+    position: sticky;
+    top: 72px;
+    align-self: start;
+  }
+}
+
+/* ── Monospace numbers (receipt aesthetic) ───────── */
+.tr-mono {
+  font-family: var(--tr-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ── Muted text override ────────────────────────── */
+.text-muted {
+  color: var(--tr-muted) !important;
 }

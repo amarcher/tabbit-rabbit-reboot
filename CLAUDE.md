@@ -31,39 +31,39 @@ npx eas submit --platform ios                       # Submit to App Store
 npx eas build:list --platform ios --limit 1 --json --non-interactive  # Check build status
 ```
 
-### Supabase
-```bash
-# CLI lives at ~/bin/supabase (direct binary, not brew)
-~/bin/supabase link --project-ref rqleufnowvqifigcbmwn
-~/bin/supabase db push                    # Apply migrations
-~/bin/supabase functions deploy parse-receipt --no-verify-jwt
-~/bin/supabase secrets set KEY=value      # Set edge function secrets
-```
-
-Supabase project ref: `rqleufnowvqifigcbmwn`
-
 ## Tech Stack
 
 - **Web**: React 19, TypeScript, CRA, Bootstrap 5, react-bootstrap, react-router-dom v7
 - **Mobile**: Expo SDK 54, React Native, expo-router (file-based routing), TypeScript
-- **Backend**: Supabase (Postgres, Auth, Storage, Edge Functions, Realtime)
-- **Auth**: Google OAuth (web uses `signInWithOAuth`, mobile uses `expo-auth-session` + `signInWithIdToken`)
-- **Receipt OCR**: Supabase Edge Function calling Claude Haiku 4.5 vision API
+- **Backend**: Vercel serverless functions + Vercel KV (Upstash Redis)
+- **Auth**: None — local profiles stored in localStorage (web) / AsyncStorage (mobile)
+- **Receipt OCR**: Claude Haiku 4.5 vision API (BYOK direct or free via Vercel serverless)
 - **Deployment**: Web on Vercel, mobile via EAS Build → TestFlight
 
 ## Architecture
 
-### Database Schema (Supabase Postgres)
+### Fully Local-First
 
-```
-profiles        — extends auth.users (display_name, venmo/cashapp/paypal usernames)
-tabs            — bill to split (name, owner_id, tax_percent, tip_percent, share_token)
-rabbits         — people on a tab (name, color, optional profile_id)
-items           — line items (description, price_cents)
-item_rabbits    — many-to-many assignments (item_id, rabbit_id)
-```
+All tab data lives on-device. There is **no backend database** for user tabs — no Supabase, no server sync. Web uses `localStorage`, mobile uses `AsyncStorage`. Profiles are also local-only (no sign-in required).
 
-RLS on all tables. Cross-table policies use `security definer` helper functions (`is_tab_owner`, `is_tab_rabbit`, `get_tab_id_for_item`) to avoid infinite recursion (migration 004). Shared bill access uses `get_shared_tab()` RPC (migration 005).
+The only server-side components are:
+- **Vercel KV** — stores shared bills (90-day TTL) when users share a tab
+- **Vercel serverless functions** — bill sharing API, receipt OCR proxy, OG image generation
+
+### Vercel API Routes (`api/`)
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/share` | POST | Store bill in Vercel KV, return 6-char token |
+| `/api/bill/[token]` | GET | Fetch shared bill from KV (1hr cache header) |
+| `/api/parse-receipt` | POST | Server-side receipt OCR (Claude Haiku 4.5) |
+| `/api/bill-og` | GET | OG meta tags for social media crawlers |
+| `/api/bill-image` | GET | Dynamic OG image (React → PNG via `@vercel/og`) |
+| `/api/aasa` | GET | Apple App Site Association for deep links |
+
+Shared helper: `api/_lib/getBill.js` — reads bill from KV by token, used by `bill/[token]`, `bill-og`, and `bill-image`.
+
+Social crawlers (Facebook, Twitter, WhatsApp, Slack, Discord, Telegram) hitting `/bill/*` are routed to `/api/bill-og` via user-agent matching in `vercel.json`.
 
 ### Two-Project Structure
 
@@ -71,54 +71,62 @@ Web (`src/`) and mobile (`mobile/src/`) share the same architecture but are inde
 - **types, currency** — nearly identical
 - **payments** — same helpers (`venmoLink`, `cashAppLink`, `paypalLink`, `venmoChargeLink`, `buildPaymentNote`, `buildChargeNote`) but web uses `isMobile()` UA detection to choose `venmo://` vs `https://venmo.com`; mobile always uses `venmo://paycharge`
 - **useTab.ts** — same local-first pattern; web uses `crypto.randomUUID()`, mobile uses `expo-crypto`
-- **useAuth.ts** — web uses Supabase OAuth redirect, mobile uses expo-auth-session ID token flow
+- **useAuth.ts** — both use local storage only (localStorage / AsyncStorage), no OAuth
+- **anthropic.ts** — BYOK API key storage differs: web uses `localStorage`, mobile uses `expo-secure-store`
+- **billEncoder.ts** — LZ-string compression for legacy bill URLs + `shareBill()` POST to `/api/share`
+- **scanCounter.ts** — monthly free scan tracking (10/month)
 - **colors** — web has `gradients.ts` (CSS linear-gradient strings), mobile has `colors.ts` (hex arrays for `expo-linear-gradient`)
 - **useBillCache.ts** — mobile-only, caches shared bills in AsyncStorage for offline access
 
 ### Key Patterns
 
-**Local-first editing** (`useTab.ts`): All mutations apply instantly to local state. Changes queue in a `PendingChanges` ref and flush to Supabase after 2 min inactivity or manual save. Client-side UUID generation for new entities.
+**Local-first editing** (`useTab.ts`): All mutations apply instantly to local state and persist to storage (localStorage / AsyncStorage) on every change via `useEffect`. Client-side UUID generation for new entities. No backend sync — tabs exist only on the device that created them.
+
+**Receipt OCR** (dual-path):
+1. **BYOK**: User provides their own Anthropic API key → direct client-side call to Claude Haiku 4.5 (no scan limit). Web uses `anthropic-dangerous-direct-browser-access` header; mobile stores key in `expo-secure-store`.
+2. **Free**: POST to `https://tabbitrabbit.com/api/parse-receipt` → Vercel serverless → Anthropic API (10 free scans/month, tracked locally by `scanCounter.ts`).
+
+Receipt scanning logic lives inline in `mobile/app/tab/[tabId].tsx` (mobile) and `src/components/TabEditor.tsx` (web).
+
+**Bill sharing**: `shareBill()` POSTs full bill data to `/api/share` → stored in Vercel KV with 90-day TTL → returns 6-char base64 token. `useSharedTab()` fetches by token from `/api/bill/{token}`. Legacy LZ-string compressed tokens still supported via client-side decode.
 
 **Multi-rabbit gradients**: Items assigned to multiple rabbits show a gradient using each rabbit's color. This is the app's signature visual feature.
-
-**Receipt OCR flow**: Upload image → Supabase Storage → Edge Function sends base64 to Claude Haiku 4.5 → structured JSON (items, subtotal, tax, total) → batch-inserted locally, tax auto-inferred. On mobile, the upload uses `FormData` + direct `fetch` to the Supabase REST API (not the JS client — see Gotchas). Receipt scanning logic lives inline in `mobile/app/tab/[tabId].tsx`.
 
 **Venmo charge requests**: Tab owners can send Venmo charge requests to rabbits. Uses `venmoChargeLink()` which builds a `venmo://paycharge?txn=charge` URL (mobile) or `https://venmo.com/?txn=charge` URL (web desktop). `buildChargeNote()` produces a multiline note with item breakdown.
 
 **Swipe-to-delete** (mobile): Items and tabs use `react-native-gesture-handler` `Swipeable` with Delete/Cancel actions instead of delete buttons.
 
-**Deep linking**: iOS Universal Links intercept `tabbitrabbit.com/bill/*` via AASA file (`public/.well-known/apple-app-site-association`). expo-router maps these to `app/bill/[shareToken].tsx`.
+**Deep linking**: iOS Universal Links intercept `tabbitrabbit.com/bill/*` via AASA file (served by `/api/aasa`). expo-router maps these to `app/bill/[shareToken].tsx`.
 
 ## Environment Variables
 
 **Web** (`.env.local`, not committed):
 ```
-REACT_APP_SUPABASE_URL=https://rqleufnowvqifigcbmwn.supabase.co
-REACT_APP_SUPABASE_ANON_KEY=<anon key>
+ANTHROPIC_API_KEY=<key>           # Server-side receipt OCR
+KV_REST_API_URL=<url>             # Vercel KV (Upstash Redis)
+KV_REST_API_TOKEN=<token>         # Vercel KV write token
+KV_REST_API_READ_ONLY_TOKEN=<token>
 ```
 
-**Mobile** (`mobile/.env`, not committed):
-```
-EXPO_PUBLIC_SUPABASE_URL=https://rqleufnowvqifigcbmwn.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key>
-EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=<iOS OAuth client ID>
-```
+**Vercel deployment**: Same vars set in Vercel dashboard (auto-injected for serverless functions).
 
-**Supabase secrets** (set via CLI): `ANTHROPIC_API_KEY`
+**Mobile** (`mobile/.env`, not committed): No env vars are actively used in app code. The Supabase vars in `.env` are vestigial.
 
 ## Gotchas
 
 - **Hermes + crypto**: React Native's Hermes engine lacks `crypto.getRandomValues()`. Use `expo-crypto` (`Crypto.randomUUID()`) instead of the `uuid` package.
-- **Base64 in Deno edge functions**: Never use `String.fromCharCode(...new Uint8Array(buf))` — the spread overflows the call stack on large files. Use a loop instead.
-- **Supabase queries in `Promise.all`**: Query builders aren't `PromiseLike` — append `.then()` to make them work with `Promise.all`.
 - **expo-linear-gradient colors**: Requires tuple type `[string, string, ...string[]]`, not `string[]`.
-- **Google OAuth (mobile)**: Requires the reversed client ID as a URL scheme in `app.json` `CFBundleURLTypes`. Supabase dashboard must have the iOS client ID in the authorized client IDs list with "Skip nonce checks" enabled.
-- **AASA file**: Vercel's SPA rewrite can swallow `/.well-known/*` paths — needs an explicit passthrough rewrite in `vercel.json`.
+- **AASA file**: Vercel's SPA rewrite can swallow `/.well-known/*` paths — needs an explicit route in `vercel.json` pointing to `/api/aasa`.
 - **EAS build env vars**: Set via `eas secret:create` or Expo dashboard, not via `.env` file (which is local-only).
-- **Supabase Storage on React Native**: `supabase.storage.upload()` produces 0-byte files — both `blob` and `ArrayBuffer` approaches fail silently. Use `FormData` + direct `fetch` to `/storage/v1/object/{bucket}/{path}` with the file URI and `Authorization: Bearer` header.
 - **Venmo deep link encoding**: Venmo's web URL handler decodes query params as form-urlencoded, rendering spaces as "+" in notes. Use `venmo://paycharge` deep links on mobile to encode notes correctly. Web uses `isMobile()` UA detection to choose the right scheme.
 - **React Native decimal inputs**: `parseFloat("10.")` strips the trailing dot, so `value={String(num)}` round-trips lose it. Use separate string state for raw input while editing; parse to number only on blur.
 - **Keyboard occlusion**: Add `automaticallyAdjustKeyboardInsets` to `ScrollView` components containing `TextInput` fields so they scroll above the virtual keyboard when focused.
+- **Anthropic vision API**: Only accepts image/jpeg, image/png, image/gif, image/webp — normalize other content types to jpeg.
+- **Browser CORS for Anthropic**: Web BYOK requires `anthropic-dangerous-direct-browser-access: true` header.
+
+## Legacy: Supabase
+
+The `supabase/` directory contains migrations and an edge function (`parse-receipt`) from a previous architecture that used Supabase for auth, storage, and database. **Supabase is no longer used by app code** — no imports of `@supabase/supabase-js` exist in `src/` or `mobile/`. The Supabase project ref is `rqleufnowvqifigcbmwn` and the CLI lives at `~/bin/supabase` if migrations ever need to be managed.
 
 ## iOS App Details
 
