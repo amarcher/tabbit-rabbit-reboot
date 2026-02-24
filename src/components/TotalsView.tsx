@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, Button, Card, Form, InputGroup, ListGroup, Modal, Row, Col } from 'react-bootstrap';
 import type { Item, Rabbit, ItemRabbit, Tab, Profile } from '../types';
 import { formatCents } from '../utils/currency';
-import { buildPaymentNote, venmoChargeLink, buildChargeNote } from '../utils/payments';
+import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
 import PaymentLinks from './PaymentLinks';
 
@@ -31,7 +31,7 @@ export default function TotalsView({
   onUpdateTab,
   currentUserProfile,
 }: TotalsViewProps) {
-  const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 8.75);
+  const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 7);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
   const [chargeTarget, setChargeTarget] = useState<{ rabbit: Rabbit; total: number } | null>(null);
   const [venmoHandle, setVenmoHandle] = useState('');
@@ -186,7 +186,7 @@ export default function TotalsView({
                 <PaymentLinks
                   rabbit={rabbit}
                   amount={total / 100}
-                  note={buildPaymentNote(tab.name, rabbit.name,
+                  note={buildChargeNote(tab.name, rabbit.name,
                     assignments
                       .filter((a) => a.rabbit_id === rabbit.id)
                       .map((a) => ({

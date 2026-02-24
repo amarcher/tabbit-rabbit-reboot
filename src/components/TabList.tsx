@@ -1,5 +1,5 @@
 import React, { forwardRef, useMemo, useState } from 'react';
-import { Badge, Button, Dropdown, ListGroup, Form, InputGroup, Modal, Spinner } from 'react-bootstrap';
+import { Badge, Button, Dropdown, ListGroup, Form, InputGroup, Modal, Spinner, Toast, ToastContainer } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
 import { COLOR_HEX } from '../types';
@@ -81,8 +81,8 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [sharingId, setSharingId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Tab | null>(null);
+  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'danger' } | null>(null);
   const { profile } = useAuth();
 
   const summaries = useMemo(() => {
@@ -123,11 +123,16 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
         },
       });
       const url = `${window.location.origin}/bill/${token}`;
-      await navigator.clipboard.writeText(url);
-      setCopiedId(tabId);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      // silently fail
+      if (navigator.share) {
+        await navigator.share({ title: data.tab.name, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setToast({ message: 'Share link copied to clipboard!', variant: 'success' });
+      }
+    } catch (err) {
+      // User dismissing the share sheet throws AbortError — not a real failure
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      setToast({ message: 'Failed to share bill. Please try again.', variant: 'danger' });
     } finally {
       setSharingId(null);
     }
@@ -224,11 +229,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
                         onClick={() => handleShare(tab.id)}
                         disabled={sharingId === tab.id}
                       >
-                        {copiedId === tab.id
-                          ? 'Link Copied!'
-                          : sharingId === tab.id
-                          ? 'Sharing...'
-                          : 'Share Bill'}
+                        {sharingId === tab.id ? 'Sharing...' : 'Share Bill'}
                       </Dropdown.Item>
                       <Dropdown.Divider />
                       <Dropdown.Item
@@ -261,6 +262,20 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <ToastContainer position="bottom-center" className="mb-3">
+        <Toast
+          show={!!toast}
+          onClose={() => setToast(null)}
+          autohide
+          delay={3000}
+          bg={toast?.variant}
+        >
+          <Toast.Body className="text-white">
+            {toast?.message}
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
     </div>
   );
 }

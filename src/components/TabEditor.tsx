@@ -163,11 +163,15 @@ export default function TabEditor() {
         },
       });
       const url = `${window.location.origin}/bill/${token}`;
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Silently fail — user can retry
+      if (navigator.share) {
+        await navigator.share({ title: tab.name, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
     } finally {
       setSharing(false);
     }

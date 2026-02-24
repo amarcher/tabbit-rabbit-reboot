@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, ButtonGroup } from 'react-bootstrap';
 import type { Rabbit } from '../types';
-import { venmoLink, cashAppLink, paypalLink } from '../utils/payments';
+import { venmoChargeLink, cashAppLink, paypalLink } from '../utils/payments';
 
 interface PaymentLinksProps {
   rabbit: Rabbit;
@@ -23,7 +23,7 @@ export default function PaymentLinks({ rabbit, amount, note }: PaymentLinksProps
       {profile.venmo_username && (
         <Button
           variant="outline-primary"
-          href={venmoLink(profile.venmo_username, amount, note)}
+          href={venmoChargeLink(profile.venmo_username, amount, note)}
           target="_blank"
           rel="noopener"
         >

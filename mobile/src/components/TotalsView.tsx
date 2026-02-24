@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { formatCents } from '../utils/currency';
-import { buildPaymentNote, venmoChargeLink, buildChargeNote } from '../utils/payments';
+import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
 import PaymentLinks from './PaymentLinks';
 
@@ -149,7 +149,7 @@ export default function TotalsView({
                 <PaymentLinks
                   rabbit={rabbit}
                   amount={total / 100}
-                  note={buildPaymentNote(tab.name, rabbit.name,
+                  note={buildChargeNote(tab.name, rabbit.name,
                     assignments
                       .filter((a) => a.rabbit_id === rabbit.id)
                       .map((a) => ({

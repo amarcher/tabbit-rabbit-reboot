@@ -1,5 +1,5 @@
 import React from 'react';
-import { ListGroup, Button } from 'react-bootstrap';
+import { ListGroup } from 'react-bootstrap';
 import type { Item, Rabbit, ItemRabbit } from '../types';
 import { formatCents } from '../utils/currency';
 import { getGradientStyle } from '../utils/gradients';
@@ -53,16 +53,17 @@ export default function ItemRow({
       <span>{item.description}</span>
       <span className="d-flex align-items-center gap-2">
         <strong className="tr-mono">{formatCents(item.price_cents)}</strong>
-        <Button
-          variant="outline-danger"
-          size="sm"
+        <button
+          type="button"
+          className="tr-delete-btn"
           onClick={(e) => {
             e.stopPropagation();
             onDelete(item.id);
           }}
+          aria-label="Delete item"
         >
           &times;
-        </Button>
+        </button>
       </span>
     </ListGroup.Item>
   );

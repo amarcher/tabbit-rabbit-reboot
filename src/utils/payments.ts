@@ -29,6 +29,9 @@ export function venmoLink(
 }
 
 export function venmoChargeLink(recipient: string, amount: number, note: string): string {
+  if (isMobile()) {
+    return `venmo://paycharge?txn=charge&recipients=${recipient}&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
+  }
   return `https://venmo.com/${recipient}?txn=charge&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
 }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import type { Rabbit } from '../types';
-import { venmoLink, cashAppLink, paypalLink } from '../utils/payments';
+import { venmoChargeLink, cashAppLink, paypalLink } from '../utils/payments';
 
 interface PaymentLinksProps {
   rabbit: Rabbit;
@@ -27,7 +27,7 @@ export default function PaymentLinks({ rabbit, amount, note }: PaymentLinksProps
       {profile.venmo_username && (
         <TouchableOpacity
           style={[styles.button, styles.venmo]}
-          onPress={() => openLink(venmoLink(profile.venmo_username!, amount, note))}
+          onPress={() => openLink(venmoChargeLink(profile.venmo_username!, amount, note))}
         >
           <Text style={[styles.buttonText, styles.venmoText]}>Venmo</Text>
         </TouchableOpacity>

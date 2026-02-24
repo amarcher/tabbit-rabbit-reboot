@@ -120,3 +120,25 @@ h4[title='Click to edit']:hover {
 .text-muted {
   color: var(--tr-muted) !important;
 }
+
+/* ── Subtle delete button ─────────────────────────── */
+.tr-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tr-muted, #999);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.tr-delete-btn:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
