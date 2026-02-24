@@ -14,5 +14,14 @@
     "production": {
       "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "andrew.m.archer@gmail.com",
+        "ascAppId": "6759112958",
+        "appleTeamId": "J39B2498YF"
+      }
+    }
   }
 }
