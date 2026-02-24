@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Button, Card, Alert, Badge, Container } from 'react-bootstrap';
+import React, { forwardRef, useState, useEffect } from 'react';
+import { Form, Button, Card, Alert, Container, Dropdown, InputGroup } from 'react-bootstrap';
 import type { LocalProfile } from '../hooks/useAuth';
 import { useSavedRabbits } from '../hooks/useSavedRabbits';
 import { getStoredApiKey, setStoredApiKey, removeStoredApiKey } from '../utils/anthropic';
@@ -11,6 +11,26 @@ interface ProfileSettingsProps {
   profile: LocalProfile | null;
   updateProfile: (updates: Partial<LocalProfile>) => Promise<void>;
 }
+
+const MoreToggle = forwardRef<HTMLButtonElement, { onClick: (e: React.MouseEvent) => void }>(
+  ({ onClick }, ref) => (
+    <button
+      ref={ref}
+      type="button"
+      onClick={(e) => { e.preventDefault(); onClick(e); }}
+      style={{
+        width: 28, height: 28, borderRadius: '50%',
+        backgroundColor: '#e9ecef', border: 'none', color: '#6c757d',
+        fontSize: '1.1rem', lineHeight: 1,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', padding: 0,
+      }}
+      aria-label="More options"
+    >
+      &#8942;
+    </button>
+  )
+);
 
 export default function ProfileSettings({ profile, updateProfile }: ProfileSettingsProps) {
   const [displayName, setDisplayName] = useState('');
@@ -134,13 +154,20 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
             </p>
           ) : (
             <div className="mb-2">
-              {savedRabbits.map((saved) => (
+              {savedRabbits.map((saved, idx) => (
                 <div
                   key={saved.id}
-                  className="d-flex align-items-center gap-2 py-2 border-bottom"
+                  className={`d-flex align-items-center gap-2 py-2${editingRabbitId === saved.id || idx === savedRabbits.length - 1 ? '' : ' border-bottom'}`}
                 >
                   {editingRabbitId === saved.id ? (
-                    <div className="flex-grow-1">
+                    <div
+                      className="flex-grow-1"
+                      style={{
+                        backgroundColor: 'rgba(0,0,0,0.03)',
+                        borderRadius: 10,
+                        padding: '10px 12px',
+                      }}
+                    >
                       <Form.Control
                         type="text"
                         size="sm"
@@ -149,30 +176,33 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                         value={editForm.name ?? ''}
                         onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
                       />
-                      <Form.Control
-                        type="text"
-                        size="sm"
-                        className="mb-1"
-                        placeholder="Venmo"
-                        value={editForm.venmo_username ?? ''}
-                        onChange={(e) => setEditForm((f) => ({ ...f, venmo_username: e.target.value }))}
-                      />
-                      <Form.Control
-                        type="text"
-                        size="sm"
-                        className="mb-1"
-                        placeholder="Cash App"
-                        value={editForm.cashapp_cashtag ?? ''}
-                        onChange={(e) => setEditForm((f) => ({ ...f, cashapp_cashtag: e.target.value }))}
-                      />
-                      <Form.Control
-                        type="text"
-                        size="sm"
-                        className="mb-1"
-                        placeholder="PayPal"
-                        value={editForm.paypal_username ?? ''}
-                        onChange={(e) => setEditForm((f) => ({ ...f, paypal_username: e.target.value }))}
-                      />
+                      <InputGroup size="sm" className="mb-1">
+                        <InputGroup.Text style={{ fontSize: '0.8em', width: 76, justifyContent: 'center' }}>Venmo</InputGroup.Text>
+                        <Form.Control
+                          type="text"
+                          placeholder="@username"
+                          value={editForm.venmo_username ?? ''}
+                          onChange={(e) => setEditForm((f) => ({ ...f, venmo_username: e.target.value }))}
+                        />
+                      </InputGroup>
+                      <InputGroup size="sm" className="mb-1">
+                        <InputGroup.Text style={{ fontSize: '0.8em', width: 76, justifyContent: 'center' }}>Cash App</InputGroup.Text>
+                        <Form.Control
+                          type="text"
+                          placeholder="$cashtag"
+                          value={editForm.cashapp_cashtag ?? ''}
+                          onChange={(e) => setEditForm((f) => ({ ...f, cashapp_cashtag: e.target.value }))}
+                        />
+                      </InputGroup>
+                      <InputGroup size="sm" className="mb-1">
+                        <InputGroup.Text style={{ fontSize: '0.8em', width: 76, justifyContent: 'center' }}>PayPal</InputGroup.Text>
+                        <Form.Control
+                          type="text"
+                          placeholder="username"
+                          value={editForm.paypal_username ?? ''}
+                          onChange={(e) => setEditForm((f) => ({ ...f, paypal_username: e.target.value }))}
+                        />
+                      </InputGroup>
                       <div className="d-flex gap-1">
                         <Button
                           variant="outline-success"
@@ -212,44 +242,47 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                           flexShrink: 0,
                         }}
                       />
-                      <span className="fw-semibold flex-grow-1">{saved.name}</span>
-                      <div className="d-flex gap-1">
-                        {saved.venmo_username && (
-                          <Badge bg="info" className="fw-normal" style={{ fontSize: '0.7em' }}>V</Badge>
-                        )}
-                        {saved.cashapp_cashtag && (
-                          <Badge bg="success" className="fw-normal" style={{ fontSize: '0.7em' }}>C</Badge>
-                        )}
-                        {saved.paypal_username && (
-                          <Badge bg="primary" className="fw-normal" style={{ fontSize: '0.7em' }}>P</Badge>
+                      <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                        <span className="fw-semibold">{saved.name}</span>
+                        {(saved.venmo_username || saved.cashapp_cashtag || saved.paypal_username) && (
+                          <div className="text-muted" style={{ fontSize: '0.75em' }}>
+                            {[
+                              saved.venmo_username && `Venmo`,
+                              saved.cashapp_cashtag && `Cash App`,
+                              saved.paypal_username && `PayPal`,
+                            ].filter(Boolean).join(' · ')}
+                          </div>
                         )}
                       </div>
-                      <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        onClick={() => {
-                          setEditingRabbitId(saved.id);
-                          setEditForm({
-                            name: saved.name,
-                            venmo_username: saved.venmo_username || '',
-                            cashapp_cashtag: saved.cashapp_cashtag || '',
-                            paypal_username: saved.paypal_username || '',
-                          });
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => {
-                          if (window.confirm(`Remove ${saved.name} from saved rabbits?`)) {
-                            removeSaved(saved.id);
-                          }
-                        }}
-                      >
-                        &times;
-                      </Button>
+                      <Dropdown align="end">
+                        <Dropdown.Toggle as={MoreToggle} />
+                        <Dropdown.Menu>
+                          <Dropdown.Item
+                            onClick={() => {
+                              setEditingRabbitId(saved.id);
+                              setEditForm({
+                                name: saved.name,
+                                venmo_username: saved.venmo_username || '',
+                                cashapp_cashtag: saved.cashapp_cashtag || '',
+                                paypal_username: saved.paypal_username || '',
+                              });
+                            }}
+                          >
+                            Edit
+                          </Dropdown.Item>
+                          <Dropdown.Divider />
+                          <Dropdown.Item
+                            className="text-danger"
+                            onClick={() => {
+                              if (window.confirm(`Remove ${saved.name} from saved rabbits?`)) {
+                                removeSaved(saved.id);
+                              }
+                            }}
+                          >
+                            Remove
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
                     </>
                   )}
                 </div>

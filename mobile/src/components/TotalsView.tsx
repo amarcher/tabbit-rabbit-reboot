@@ -36,7 +36,7 @@ export default function TotalsView({
   assignments,
   onUpdateTab,
 }: TotalsViewProps) {
-  const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 8.75);
+  const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 7);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
 
   const itemsSubtotal = useMemo(

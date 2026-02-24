@@ -137,13 +137,17 @@ export default function TotalsView({
         <Col xs={6}>
           <Form.Group>
             <Form.Label className="small text-muted mb-1">Tax %</Form.Label>
-            <Form.Control
-              type="number"
-              size="sm"
-              step="0.01"
+            <Form.Range
+              min={0}
+              max={15}
+              step={0.05}
               value={taxPercent}
-              onChange={(e) => handleTaxChange(parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleTaxChange(parseFloat(e.target.value))}
             />
+            <div className="d-flex justify-content-between small">
+              <span>{taxPercent}%</span>
+              <span className="tr-mono">{formatCents(taxAmount)}</span>
+            </div>
           </Form.Group>
         </Col>
         <Col xs={6}>
@@ -152,7 +156,7 @@ export default function TotalsView({
             <Form.Range
               min={0}
               max={30}
-              step={1}
+              step={0.05}
               value={tipPercent}
               onChange={(e) => handleTipChange(parseFloat(e.target.value))}
             />
