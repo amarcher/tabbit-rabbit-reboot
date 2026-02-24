@@ -4,8 +4,8 @@ import type { LocalProfile } from '../hooks/useAuth';
 import { useSavedRabbits } from '../hooks/useSavedRabbits';
 import { getStoredApiKey, setStoredApiKey, removeStoredApiKey } from '../utils/anthropic';
 import { remainingFreeScans, FREE_SCAN_LIMIT } from '../utils/scanCounter';
-import { COLOR_HEX, RABBIT_COLORS } from '../types';
-import type { SavedRabbit, RabbitColor } from '../types';
+import { COLOR_HEX } from '../types';
+import type { SavedRabbit } from '../types';
 
 interface ProfileSettingsProps {
   profile: LocalProfile | null;
