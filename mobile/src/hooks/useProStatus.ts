@@ -77,7 +77,10 @@ export function useProStatus() {
     setPurchasing(true);
     try {
       await requestPurchase({
-        request: { apple: { sku: PRODUCT_ID } },
+        request: {
+          apple: { sku: PRODUCT_ID },
+          android: { skus: [PRODUCT_ID] },
+        },
         type: 'in-app',
       });
     } catch {
