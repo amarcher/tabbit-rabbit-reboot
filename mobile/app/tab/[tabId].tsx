@@ -287,7 +287,6 @@ export default function TabEditorScreen() {
         rabbits={rabbits}
         assignments={assignments}
         onUpdateTab={updateTab}
-        currentUserProfile={profile}
       />
 
       {/* Action Bar (bottom) */}

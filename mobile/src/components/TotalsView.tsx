@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Linking,
 } from 'react-native';
-import type { Item, Rabbit, ItemRabbit, Tab, Profile } from '../types';
+import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { formatCents } from '../utils/currency';
 import { buildPaymentNote, venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
@@ -19,7 +19,6 @@ interface TotalsViewProps {
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
   onUpdateTab: (updates: Partial<Tab>) => void;
-  currentUserProfile?: Profile | null;
 }
 
 interface RabbitTotal {
@@ -36,7 +35,6 @@ export default function TotalsView({
   rabbits,
   assignments,
   onUpdateTab,
-  currentUserProfile,
 }: TotalsViewProps) {
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 8.75);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
@@ -160,10 +158,10 @@ export default function TotalsView({
                       }))
                   )}
                 />
-                {currentUserProfile?.venmo_username && total > 0 && (
+                {rabbit.profile?.venmo_username && total > 0 && (
                   <TouchableOpacity
                     style={styles.chargeButton}
-                    onPress={() => Linking.openURL(venmoChargeLink(total / 100, buildChargeNote(tab.name, rabbit.name,
+                    onPress={() => Linking.openURL(venmoChargeLink(rabbit.profile!.venmo_username!, total / 100, buildChargeNote(tab.name, rabbit.name,
                       assignments
                         .filter((a) => a.rabbit_id === rabbit.id)
                         .map((a) => ({

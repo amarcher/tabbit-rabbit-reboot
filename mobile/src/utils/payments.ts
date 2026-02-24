@@ -21,8 +21,8 @@ export function venmoLink(
   return `venmo://paycharge?txn=pay&recipients=${username}&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
 }
 
-export function venmoChargeLink(amount: number, note: string): string {
-  return `venmo://paycharge?txn=charge&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
+export function venmoChargeLink(username: string, amount: number, note: string): string {
+  return `venmo://paycharge?txn=charge&recipients=${username}&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
 }
 
 export function buildChargeNote(tabName: string, rabbitName: string, items: NoteItem[]): string {
