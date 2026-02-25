@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Form, Button, Badge } from 'react-bootstrap';
+import { motion, AnimatePresence } from 'framer-motion';
 import { RABBIT_COLORS, RabbitColor, COLOR_HEX } from '../types';
 import type { SavedRabbit, Profile } from '../types';
 
@@ -12,6 +13,28 @@ interface AddRabbitModalProps {
   onAddSavedRabbit?: (saved: SavedRabbit) => void;
   onRemoveSavedRabbit?: (id: string) => void;
 }
+
+const fieldVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.22, ease: 'easeOut' as const },
+  }),
+};
+
+const badgeVariants = {
+  hidden: { opacity: 0, scale: 0.7 },
+  visible: (i: number) => ({
+    opacity: 1,
+    scale: 1,
+    transition: {
+      delay: i * 0.045,
+      duration: 0.25,
+      ease: [0.34, 1.56, 0.64, 1] as const,
+    },
+  }),
+};
 
 export default function AddRabbitModal({
   show,
@@ -27,9 +50,21 @@ export default function AddRabbitModal({
   const [cashapp, setCashapp] = useState('');
   const [paypal, setPaypal] = useState('');
   const [showPaymentFields, setShowPaymentFields] = useState(false);
+  const [swatchSpin, setSwatchSpin] = useState(false);
+  const prevColorRef = useRef<RabbitColor | null>(null);
 
   const nextColor =
     RABBIT_COLORS.find((c) => !usedColors.includes(c)) || RABBIT_COLORS[0];
+
+  // Spin swatch whenever color changes
+  useEffect(() => {
+    if (prevColorRef.current !== null && prevColorRef.current !== nextColor) {
+      setSwatchSpin(true);
+      const t = setTimeout(() => setSwatchSpin(false), 380);
+      return () => clearTimeout(t);
+    }
+    prevColorRef.current = nextColor;
+  }, [nextColor]);
 
   const stripPrefix = (val: string) => val.replace(/^[@$]/, '');
 
@@ -62,7 +97,6 @@ export default function AddRabbitModal({
         created_at: new Date().toISOString(),
       };
 
-      // Auto-save to library
       onAddSavedRabbit?.({
         id: crypto.randomUUID(),
         name: name.trim(),
@@ -102,129 +136,173 @@ export default function AddRabbitModal({
 
   return (
     <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Add Someone</Modal.Title>
-      </Modal.Header>
-      <Form onSubmit={handleSubmit}>
-        <Modal.Body>
-          {/* Saved Rabbits */}
-          {savedRabbits.length > 0 && (
-            <>
-              <div className="mb-2">
-                <small className="text-muted fw-semibold">Saved Rabbits</small>
-              </div>
-              <div className="d-flex flex-wrap gap-2 mb-3">
-                {savedRabbits.map((saved) => (
-                  <Badge
-                    key={saved.id}
-                    pill
-                    role="button"
-                    style={{
-                      backgroundColor: COLOR_HEX[saved.color],
-                      color: '#333',
-                      fontWeight: 600,
-                      fontSize: '0.85em',
-                      cursor: 'pointer',
-                      border: '1.5px solid rgba(0,0,0,0.1)',
-                    }}
-                    onClick={() => handleQuickAdd(saved)}
-                    title={`Click to add ${saved.name}`}
-                  >
-                    {saved.name}
-                    {(saved.venmo_username || saved.cashapp_cashtag || saved.paypal_username) && (
-                      <span className="ms-1 text-success fw-bold">$</span>
-                    )}
-                  </Badge>
-                ))}
-              </div>
-              <div className="d-flex align-items-center gap-2 mb-3">
-                <hr className="flex-grow-1 m-0" />
-                <small className="text-muted">or add new</small>
-                <hr className="flex-grow-1 m-0" />
-              </div>
-            </>
-          )}
+      {/* Inner motion wrapper for spring entrance — wraps actual modal content */}
+      <motion.div
+        key={show ? 'open' : 'closed'}
+        initial={{ scale: 0.88, opacity: 0, y: 16 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.88, opacity: 0, y: 16 }}
+        transition={{ type: 'spring', stiffness: 340, damping: 26 }}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Add Someone</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleSubmit}>
+          <Modal.Body>
+            {/* Saved Rabbits — stagger-in badges */}
+            {savedRabbits.length > 0 && (
+              <>
+                <motion.div
+                  className="mb-2"
+                  custom={0}
+                  variants={fieldVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <small className="text-muted fw-semibold">Saved Rabbits</small>
+                </motion.div>
+                <div className="d-flex flex-wrap gap-2 mb-3">
+                  {savedRabbits.map((saved, i) => (
+                    <motion.div
+                      key={saved.id}
+                      custom={i}
+                      variants={badgeVariants}
+                      initial="hidden"
+                      animate="visible"
+                    >
+                      <Badge
+                        pill
+                        role="button"
+                        style={{
+                          backgroundColor: COLOR_HEX[saved.color],
+                          color: '#333',
+                          fontWeight: 600,
+                          fontSize: '0.85em',
+                          cursor: 'pointer',
+                          border: '1.5px solid rgba(0,0,0,0.1)',
+                        }}
+                        onClick={() => handleQuickAdd(saved)}
+                        title={`Click to add ${saved.name}`}
+                      >
+                        {saved.name}
+                        {(saved.venmo_username || saved.cashapp_cashtag || saved.paypal_username) && (
+                          <span className="ms-1 text-success fw-bold">$</span>
+                        )}
+                      </Badge>
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="d-flex align-items-center gap-2 mb-3">
+                  <hr className="flex-grow-1 m-0" />
+                  <small className="text-muted">or add new</small>
+                  <hr className="flex-grow-1 m-0" />
+                </div>
+              </>
+            )}
 
-          <Form.Group className="mb-3">
-            <Form.Label>Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="e.g. Alex"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-              required
-            />
-          </Form.Group>
-          <div className="d-flex align-items-center gap-2 mb-3">
-            <span>Color:</span>
-            <span
-              style={{
-                display: 'inline-block',
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                backgroundColor: COLOR_HEX[nextColor],
-                border: '1px solid rgba(0,0,0,0.15)',
-              }}
-            />
-          </div>
-
-          {/* Payment Fields */}
-          {!showPaymentFields ? (
-            <Button
-              variant="link"
-              size="sm"
-              className="p-0 mb-2"
-              onClick={() => setShowPaymentFields(true)}
+            <motion.div
+              className="mb-3"
+              custom={savedRabbits.length > 0 ? 2 : 0}
+              variants={fieldVariants}
+              initial="hidden"
+              animate="visible"
             >
-              + Add payment info
+              <Form.Group>
+                <Form.Label>Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="e.g. Alex"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </Form.Group>
+            </motion.div>
+
+            <motion.div
+              className="d-flex align-items-center gap-2 mb-3"
+              custom={savedRabbits.length > 0 ? 3 : 1}
+              variants={fieldVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <span>Color:</span>
+              <span
+                className={`tr-color-swatch${swatchSpin ? ' tr-swatch-spin' : ''}`}
+                style={{
+                  display: 'inline-block',
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  backgroundColor: COLOR_HEX[nextColor],
+                  border: '1px solid rgba(0,0,0,0.15)',
+                }}
+              />
+            </motion.div>
+
+            {/* Payment Fields */}
+            <motion.div
+              custom={savedRabbits.length > 0 ? 4 : 2}
+              variants={fieldVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {!showPaymentFields ? (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0 mb-2"
+                  onClick={() => setShowPaymentFields(true)}
+                >
+                  + Add payment info
+                </Button>
+              ) : (
+                <div>
+                  <small className="text-muted fw-semibold d-block mb-2">Payment Info (optional)</small>
+                  <AnimatePresence>
+                    {[
+                      { placeholder: 'Venmo username', value: venmo, onChange: setVenmo },
+                      { placeholder: 'Cash App $cashtag', value: cashapp, onChange: setCashapp },
+                      { placeholder: 'PayPal username', value: paypal, onChange: setPaypal },
+                    ].map((field, idx) => (
+                      <motion.div
+                        key={field.placeholder}
+                        className="mb-2"
+                        custom={idx}
+                        variants={fieldVariants}
+                        initial="hidden"
+                        animate="visible"
+                      >
+                        <Form.Group>
+                          <Form.Control
+                            type="text"
+                            placeholder={field.placeholder}
+                            value={field.value}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            autoComplete="off"
+                          />
+                        </Form.Group>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  <small className="text-muted">
+                    Adding payment info saves this rabbit for future tabs.
+                  </small>
+                </div>
+              )}
+            </motion.div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleClose}>
+              Cancel
             </Button>
-          ) : (
-            <div>
-              <small className="text-muted fw-semibold d-block mb-2">Payment Info (optional)</small>
-              <Form.Group className="mb-2">
-                <Form.Control
-                  type="text"
-                  placeholder="Venmo username"
-                  value={venmo}
-                  onChange={(e) => setVenmo(e.target.value)}
-                  autoComplete="off"
-                />
-              </Form.Group>
-              <Form.Group className="mb-2">
-                <Form.Control
-                  type="text"
-                  placeholder="Cash App $cashtag"
-                  value={cashapp}
-                  onChange={(e) => setCashapp(e.target.value)}
-                  autoComplete="off"
-                />
-              </Form.Group>
-              <Form.Group className="mb-2">
-                <Form.Control
-                  type="text"
-                  placeholder="PayPal username"
-                  value={paypal}
-                  onChange={(e) => setPaypal(e.target.value)}
-                  autoComplete="off"
-                />
-              </Form.Group>
-              <small className="text-muted">
-                Adding payment info saves this rabbit for future tabs.
-              </small>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="submit" disabled={!name.trim()}>
-            Add
-          </Button>
-        </Modal.Footer>
-      </Form>
+            <Button variant="primary" type="submit" disabled={!name.trim()}>
+              Add
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </motion.div>
     </Modal>
   );
 }

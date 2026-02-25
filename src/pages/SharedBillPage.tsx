@@ -1,16 +1,24 @@
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, ListGroup, Container, Spinner, Alert } from 'react-bootstrap';
+import { Card, ListGroup, Container, Alert } from 'react-bootstrap';
+import { motion } from 'framer-motion';
 import { useSharedTab } from '../hooks/useSharedTab';
 import { formatCents } from '../utils/currency';
 import { buildPaymentNote } from '../utils/payments';
 import { getGradientStyle } from '../utils/gradients';
 import { COLOR_HEX, RabbitColor } from '../types';
 import OwnerPaymentLinks from '../components/OwnerPaymentLinks';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function SharedBillPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const { data, loading, error } = useSharedTab(shareToken);
+
+  // Hooks must be called unconditionally before any early returns
+  const breakdownReveal = useScrollReveal();
+  const grandTotalReveal = useScrollReveal();
+  const ctaReveal = useScrollReveal();
 
   const totals = useMemo(() => {
     if (!data) return [];
@@ -44,8 +52,8 @@ export default function SharedBillPage() {
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <Spinner animation="border" />
+      <div className="d-flex justify-content-center align-items-center py-5">
+        <LoadingSpinner size="md" message="Loading bill..." />
       </div>
     );
   }
@@ -108,7 +116,12 @@ export default function SharedBillPage() {
 
       {/* Per-rabbit breakdown */}
       {totals.length > 0 && (
-        <>
+        <motion.div
+          ref={breakdownReveal.ref}
+          initial={{ opacity: 0, y: 16 }}
+          animate={breakdownReveal.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        >
           <h5 className="mb-2">What each person owes</h5>
           <ListGroup className="mb-3">
             {totals.map(({ rabbit, subtotal, tax, tip, total }) => (
@@ -145,41 +158,55 @@ export default function SharedBillPage() {
               </ListGroup.Item>
             ))}
           </ListGroup>
-        </>
+        </motion.div>
       )}
 
       {/* Grand total */}
-      <Card className="mb-4">
-        <Card.Body className="py-2">
-          <div className="d-flex justify-content-between small">
-            <span>Subtotal</span>
-            <span className="tr-mono">{formatCents(itemsSubtotal)}</span>
-          </div>
-          <div className="d-flex justify-content-between small">
-            <span>Tax ({tab.tax_percent}%)</span>
-            <span className="tr-mono">{formatCents(taxAmount)}</span>
-          </div>
-          <div className="d-flex justify-content-between small mb-1">
-            <span>Tip ({tab.tip_percent}%)</span>
-            <span className="tr-mono">{formatCents(tipAmount)}</span>
-          </div>
-          <hr className="my-1" />
-          <div className="d-flex justify-content-between">
-            <strong>Grand Total</strong>
-            <strong className="tr-mono">{formatCents(grandTotal)}</strong>
-          </div>
-        </Card.Body>
-      </Card>
+      <motion.div
+        ref={grandTotalReveal.ref}
+        initial={{ opacity: 0, y: 16 }}
+        animate={grandTotalReveal.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+        transition={{ duration: 0.3, delay: 0.05, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+        <Card className="mb-4">
+          <Card.Body className="py-2">
+            <div className="d-flex justify-content-between small">
+              <span>Subtotal</span>
+              <span className="tr-mono">{formatCents(itemsSubtotal)}</span>
+            </div>
+            <div className="d-flex justify-content-between small">
+              <span>Tax ({tab.tax_percent}%)</span>
+              <span className="tr-mono">{formatCents(taxAmount)}</span>
+            </div>
+            <div className="d-flex justify-content-between small mb-1">
+              <span>Tip ({tab.tip_percent}%)</span>
+              <span className="tr-mono">{formatCents(tipAmount)}</span>
+            </div>
+            <hr className="my-1" />
+            <div className="d-flex justify-content-between">
+              <strong>Grand Total</strong>
+              <strong className="tr-mono">{formatCents(grandTotal)}</strong>
+            </div>
+          </Card.Body>
+        </Card>
+      </motion.div>
 
       {/* CTA */}
-      <Card className="text-center mb-4" bg="light">
-        <Card.Body>
-          <p className="mb-2">Split bills with friends</p>
-          <Link to="/" className="btn btn-success">
-            Try Tabbit Rabbit
-          </Link>
-        </Card.Body>
-      </Card>
+      <motion.div
+        ref={ctaReveal.ref}
+        initial={{ opacity: 0, y: 16 }}
+        animate={ctaReveal.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+        transition={{ duration: 0.3, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+        <Card className="text-center mb-4" bg="light">
+          <Card.Body>
+            <p className="mb-2">Split bills with friends</p>
+            <Link to="/" className="btn btn-success">
+              Try Tabbit Rabbit
+            </Link>
+          </Card.Body>
+        </Card>
+      </motion.div>
     </div>
   );
 }

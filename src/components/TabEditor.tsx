@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Alert, Button, Form, Spinner } from 'react-bootstrap';
+import { Alert, Button, Form } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import { useTab } from '../hooks/useTab';
 import { useAuth } from '../hooks/useAuth';
@@ -13,6 +13,8 @@ import ItemList from './ItemList';
 import RabbitBar from './RabbitBar';
 import AddRabbitModal from './AddRabbitModal';
 import TotalsView from './TotalsView';
+import LoadingSpinner from './LoadingSpinner';
+import Confetti from './Confetti';
 import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
@@ -48,6 +50,10 @@ export default function TabEditor() {
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
 
+  // Confetti state
+  const [confettiActive, setConfettiActive] = useState(false);
+  const [confettiOrigin, setConfettiOrigin] = useState({ x: 0, y: 0 });
+  const shareBtnRef = useRef<HTMLButtonElement>(null);
 
   const subtotals = useMemo(() => {
     const result: Record<string, number> = {};
@@ -152,6 +158,16 @@ export default function TabEditor() {
   const handleShareBill = async () => {
     if (!tab) return;
     setSharing(true);
+
+    // Capture button position for confetti origin
+    if (shareBtnRef.current) {
+      const rect = shareBtnRef.current.getBoundingClientRect();
+      setConfettiOrigin({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
+    }
+
     try {
       const token = await shareBill({
         tab,
@@ -168,9 +184,11 @@ export default function TabEditor() {
       const url = `${window.location.origin}/bill/${token}`;
       if (navigator.share) {
         await navigator.share({ title: tab.name, url });
+        setConfettiActive(true);
       } else {
         await navigator.clipboard.writeText(url);
         setCopied(true);
+        setConfettiActive(true);
         setTimeout(() => setCopied(false), 2000);
       }
     } catch (err) {
@@ -182,8 +200,8 @@ export default function TabEditor() {
 
   if (loading || !tab) {
     return (
-      <div className="text-center py-5">
-        <Spinner animation="border" />
+      <div className="d-flex justify-content-center align-items-center py-5">
+        <LoadingSpinner size="md" message="Loading tab..." />
       </div>
     );
   }
@@ -198,14 +216,20 @@ export default function TabEditor() {
       >
         {scanning ? (
           <>
-            <Spinner animation="border" size="sm" className="me-1" />
-            Scanning...
+            <LoadingSpinner size="sm" />
+            <span className="ms-1">Scanning...</span>
           </>
         ) : (
           'Scan Receipt'
         )}
       </Button>
-      <Button variant="outline-success" size="sm" onClick={handleShareBill} disabled={sharing}>
+      <Button
+        ref={shareBtnRef}
+        variant="outline-success"
+        size="sm"
+        onClick={handleShareBill}
+        disabled={sharing}
+      >
         {sharing ? 'Sharing...' : copied ? 'Copied!' : 'Share Bill'}
       </Button>
     </div>
@@ -219,6 +243,14 @@ export default function TabEditor() {
         accept="image/*"
         onChange={handleFileUpload}
         style={{ display: 'none' }}
+      />
+
+      {/* Confetti burst on share */}
+      <Confetti
+        active={confettiActive}
+        originX={confettiOrigin.x}
+        originY={confettiOrigin.y}
+        onDone={() => setConfettiActive(false)}
       />
 
       <div className="tr-editor-layout">

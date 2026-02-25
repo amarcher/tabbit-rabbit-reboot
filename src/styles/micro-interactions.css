@@ -1,0 +1,152 @@
+/* =============================================
+   Tabbit Rabbit — Micro-interactions & Polish
+   ============================================= */
+
+/* --- Input focus glow (no scale to avoid displacement) --- */
+
+/* --- Floating scroll-to-top button --- */
+.tr-scroll-top-btn {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--tr-accent);
+  color: #2d2a26;
+  border: none;
+  box-shadow: 0 4px 16px rgba(232, 168, 56, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  z-index: 1040;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tr-scroll-top-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(232, 168, 56, 0.55);
+}
+
+.tr-scroll-top-btn:active {
+  transform: translateY(0);
+}
+
+/* --- Tab list item hover warm left-border --- */
+.tr-tab-list-item {
+  position: relative;
+  transition:
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.tr-tab-list-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--tr-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0 2px 2px 0;
+}
+
+.tr-tab-list-item:hover::before {
+  transform: scaleX(1);
+}
+
+.tr-tab-list-item:hover {
+  background-color: #fdf8ee !important;
+}
+
+/* --- Empty state floating bounce --- */
+@keyframes floatBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.tr-empty-bounce {
+  animation: floatBounce 2.4s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* --- Tip label fade --- */
+.tr-tip-label {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tr-accent);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* --- Modal backdrop blur override --- */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  transition: backdrop-filter 0.25s ease;
+}
+
+/* --- Toast progress bar --- */
+.tr-toast-progress {
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: rgba(255, 255, 255, 0.6);
+  width: 100%;
+  transform-origin: left;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+/* --- Button active press feedback --- */
+.btn {
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+/* --- Form.Range (slider) thumb glow --- */
+input[type='range'] {
+  transition: box-shadow 0.15s ease;
+}
+
+input[type='range']:active::-webkit-slider-thumb {
+  box-shadow: 0 0 0 6px rgba(232, 168, 56, 0.3);
+}
+
+input[type='range']:active::-moz-range-thumb {
+  box-shadow: 0 0 0 6px rgba(232, 168, 56, 0.3);
+}
+
+/* --- Color swatch spin on change --- */
+.tr-color-swatch {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease;
+}
+
+.tr-color-swatch.tr-swatch-spin {
+  animation: swatchSpin 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes swatchSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.25); }
+  100% { transform: rotate(360deg) scale(1); }
+}
