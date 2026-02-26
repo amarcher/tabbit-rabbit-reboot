@@ -378,3 +378,10 @@ h4[title='Click to edit']:hover {
 .btn {
   border-radius: 8px;
 }
+
+/* Visually muted disabled state for the New Tab button */
+.btn.tr-btn-disabled-muted {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: auto;
+}

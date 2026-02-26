@@ -15,6 +15,7 @@ import AddRabbitModal from './AddRabbitModal';
 import TotalsView from './TotalsView';
 import LoadingSpinner from './LoadingSpinner';
 import Confetti from './Confetti';
+import HintArrow from './HintArrow';
 import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
@@ -206,32 +207,51 @@ export default function TabEditor() {
     );
   }
 
+  const hasItems = items.length > 0;
+  const hasRabbits = rabbits.length > 0;
+  const isFirstTab = (() => {
+    try {
+      const raw = localStorage.getItem('tabbitrabbit:tabs');
+      const list = raw ? JSON.parse(raw) : [];
+      return list.length <= 1;
+    } catch { return true; }
+  })();
+
   const actionBar = (
-    <div className="d-flex gap-2 my-3">
-      <Button
-        variant="outline-info"
-        size="sm"
-        onClick={() => fileRef.current?.click()}
-        disabled={scanning}
-      >
-        {scanning ? (
-          <>
-            <LoadingSpinner size="sm" />
-            <span className="ms-1">Scanning...</span>
-          </>
-        ) : (
-          'Scan Receipt'
+    <div className="my-3">
+      {!hasItems && isFirstTab && (
+        <div className="mb-2">
+          <HintArrow>Scan a receipt to get started</HintArrow>
+        </div>
+      )}
+      <div className="d-flex gap-2">
+        <Button
+          variant={hasItems ? 'outline-info' : 'info'}
+          size="sm"
+          onClick={() => fileRef.current?.click()}
+          disabled={scanning}
+        >
+          {scanning ? (
+            <>
+              <LoadingSpinner size="sm" />
+              <span className="ms-1">Scanning...</span>
+            </>
+          ) : (
+            'Scan Receipt'
+          )}
+        </Button>
+        {hasItems && hasRabbits && (
+          <Button
+            ref={shareBtnRef}
+            variant="outline-success"
+            size="sm"
+            onClick={handleShareBill}
+            disabled={sharing}
+          >
+            {sharing ? 'Sharing...' : copied ? 'Copied!' : 'Share Bill'}
+          </Button>
         )}
-      </Button>
-      <Button
-        ref={shareBtnRef}
-        variant="outline-success"
-        size="sm"
-        onClick={handleShareBill}
-        disabled={sharing}
-      >
-        {sharing ? 'Sharing...' : copied ? 'Copied!' : 'Share Bill'}
-      </Button>
+      </div>
     </div>
   );
 
@@ -315,6 +335,11 @@ export default function TabEditor() {
             </p>
           )}
 
+          {!hasItems && isFirstTab && (
+            <div style={{ marginBottom: 4 }}>
+              <HintArrow>Or enter items manually</HintArrow>
+            </div>
+          )}
           <ItemList
             items={items}
             rabbits={rabbits}
