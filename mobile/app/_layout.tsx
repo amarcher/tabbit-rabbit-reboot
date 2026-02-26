@@ -82,6 +82,10 @@ function RootLayoutNav() {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : ParchmentTheme}>
         <Stack
           screenOptions={{
+            animation: 'slide_from_right',
+            gestureEnabled: true,
+            gestureDirection: 'horizontal',
+            animationDuration: 300,
             headerStyle: { backgroundColor: colors.navBg },
             headerTintColor: colors.navText,
             headerTitleStyle: { color: colors.navText, fontFamily: fonts.heading },
@@ -93,6 +97,7 @@ function RootLayoutNav() {
             options={{
               title: 'Tab',
               headerBackTitle: 'Back',
+              animation: 'slide_from_right',
             }}
           />
           <Stack.Screen
@@ -100,6 +105,8 @@ function RootLayoutNav() {
             options={{
               title: 'Shared Bill',
               headerBackTitle: 'Back',
+              animation: 'fade_from_bottom',
+              presentation: 'modal',
             }}
           />
           <Stack.Screen name="+not-found" />
