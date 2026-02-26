@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Container } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
 import NavBar from './NavBar';
-import RainOverlay from './RainOverlay';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -25,7 +24,6 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <RainOverlay />
       <NavBar />
       <Container className="flex-grow-1 pt-4 pb-5">{children}</Container>
       <footer className="footer text-center py-3 mt-auto">
