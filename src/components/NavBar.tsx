@@ -48,7 +48,7 @@ export default function NavBar() {
             {NAV_LINKS.map(({ to, label }) => {
               const active = location.pathname === to;
               return (
-                <div key={to} style={{ position: 'relative' }}>
+                <div key={to} style={{ position: 'relative' }} {...(to === '/profile' ? { 'data-nux': 'nav-profile-link' } : {})}>
                   <Nav.Link
                     as={Link}
                     to={to}

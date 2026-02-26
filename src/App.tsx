@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
 import { useAuth } from './hooks/useAuth';
+import { NuxProvider } from './contexts/NuxContext';
 import Layout from './components/Layout';
 import ProfileSettings from './components/ProfileSettings';
 import Dashboard from './pages/Dashboard';
@@ -98,9 +99,11 @@ function App() {
   return (
     <MotionConfig reducedMotion="user">
       <BrowserRouter>
-        <Layout>
-          <AnimatedRoutes profile={profile} updateProfile={updateProfile} />
-        </Layout>
+        <NuxProvider>
+          <Layout>
+            <AnimatedRoutes profile={profile} updateProfile={updateProfile} />
+          </Layout>
+        </NuxProvider>
       </BrowserRouter>
     </MotionConfig>
   );

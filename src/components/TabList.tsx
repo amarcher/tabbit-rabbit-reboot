@@ -9,6 +9,7 @@ import { shareBill } from '../utils/billEncoder';
 import { useAuth } from '../hooks/useAuth';
 import { TabListSkeleton } from './Skeleton';
 import HintArrow from './HintArrow';
+import { useNux } from '../contexts/NuxContext';
 import './TabList.css';
 
 interface TabListProps {
@@ -124,6 +125,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
   const [deleteTarget, setDeleteTarget] = useState<Tab | null>(null);
   const [toast, setToast] = useState<ToastData | null>(null);
   const { profile } = useAuth();
+  const { active: nuxActive, completeAction } = useNux();
   const navigate = useNavigate();
 
   const summaries = useMemo(() => {
@@ -142,6 +144,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
       const tab = await onCreate(newName.trim());
       setNewName('');
       if (tab) {
+        completeAction('create-tab');
         navigate(`/tabs/${tab.id}`);
       }
     } finally {
@@ -214,13 +217,13 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
       <div>
         <div className="d-flex align-items-baseline gap-3 mb-3">
           <h5 className="mb-0">My Tabs</h5>
-          {tabs.length === 0 && (
+          {tabs.length === 0 && !nuxActive && (
             <HintArrow>Create a tab to start splitting a bill.</HintArrow>
           )}
         </div>
 
         <Form onSubmit={handleCreate} className="mb-4">
-          <InputGroup>
+          <InputGroup data-nux="create-tab-input">
             <Form.Control
               type="text"
               placeholder={tabs.length === 0 ? 'Type a tab name to create one' : 'New tab name (e.g. Friday Dinner)'}

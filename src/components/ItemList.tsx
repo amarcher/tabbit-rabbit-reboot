@@ -50,7 +50,7 @@ export default function ItemList({
         ))}
       </ListGroup>
 
-      <Form onSubmit={handleAdd}>
+      <Form onSubmit={handleAdd} data-nux="add-item-form">
         <InputGroup>
           <Form.Control
             type="text"

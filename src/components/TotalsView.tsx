@@ -158,7 +158,7 @@ export default function TotalsView({
     <div>
       <h5 className="mb-3">Totals</h5>
 
-      <Row className="mb-3">
+      <Row className="mb-3" data-nux="tax-tip-sliders">
         <Col xs={6}>
           <Form.Group>
             <Form.Label className="small text-muted mb-1">Tax %</Form.Label>
