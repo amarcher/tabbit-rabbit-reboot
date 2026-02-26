@@ -8,11 +8,12 @@ import { shareBill } from '../utils/billEncoder';
 import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '../utils/scanCounter';
 import { scanReceiptDirect, getStoredApiKey } from '../utils/anthropic';
 import type { ReceiptResult } from '../utils/anthropic';
+import { receiptValueToPercent } from '../utils/anthropic';
 import ItemList from './ItemList';
 import RabbitBar from './RabbitBar';
 import AddRabbitModal from './AddRabbitModal';
 import TotalsView from './TotalsView';
-import type { RabbitColor } from '../types';
+import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
   const { tabId } = useParams<{ tabId: string }>();
@@ -83,10 +84,12 @@ export default function TabEditor() {
     }));
     addItems(batchItems);
 
-    if (result.tax && result.subtotal && result.subtotal > 0) {
-      const taxPercent = Math.round((result.tax / result.subtotal) * 10000) / 100;
-      updateTab({ tax_percent: taxPercent });
-    }
+    const taxPercent = receiptValueToPercent(result.tax, result.tax_unit, result.subtotal);
+    const tipPercent = receiptValueToPercent(result.tip, result.tip_unit, result.subtotal);
+    const updates: Partial<Tab> = {};
+    if (taxPercent !== null) updates.tax_percent = taxPercent;
+    if (tipPercent !== null) updates.tip_percent = tipPercent;
+    if (Object.keys(updates).length) updateTab(updates);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

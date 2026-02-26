@@ -18,12 +18,13 @@ import { useProStatus } from '@/src/hooks/useProStatus';
 import { useSavedRabbits } from '@/src/hooks/useSavedRabbits';
 import { shareBill } from '@/src/utils/billEncoder';
 import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
+import { receiptValueToPercent } from '@/src/utils/anthropic';
 import type { ReceiptResult } from '@/src/utils/anthropic';
 import ItemList from '@/src/components/ItemList';
 import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
 import TotalsView from '@/src/components/TotalsView';
-import type { RabbitColor, Profile } from '@/src/types';
+import type { RabbitColor, Profile, Tab } from '@/src/types';
 
 function ActionBar({
   onScanReceipt,
@@ -190,11 +191,12 @@ export default function TabEditorScreen() {
             price_cents: Math.round(item.price * 100),
           }))
         );
-        if (result.tax && result.subtotal && result.subtotal > 0) {
-          const taxPercent =
-            Math.round((result.tax / result.subtotal) * 10000) / 100;
-          updateTab({ tax_percent: taxPercent });
-        }
+        const taxPercent = receiptValueToPercent(result.tax, result.tax_unit, result.subtotal);
+        const tipPercent = receiptValueToPercent(result.tip, result.tip_unit, result.subtotal);
+        const updates: Partial<Tab> = {};
+        if (taxPercent !== null) updates.tax_percent = taxPercent;
+        if (tipPercent !== null) updates.tip_percent = tipPercent;
+        if (Object.keys(updates).length) updateTab(updates);
       } else {
         Alert.alert('No items found', 'Try a clearer photo.');
       }

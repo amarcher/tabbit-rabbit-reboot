@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,10 @@ export default function TotalsView({
 }: TotalsViewProps) {
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 7);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
+
+  // Sync local input state when tab values change externally (e.g. receipt scan)
+  useEffect(() => { setTaxPercent(tab.tax_percent || 7); }, [tab.tax_percent]);
+  useEffect(() => { setTipPercent(tab.tip_percent || 18); }, [tab.tip_percent]);
 
   const itemsSubtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.price_cents, 0),
