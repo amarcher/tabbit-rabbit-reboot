@@ -1,8 +1,7 @@
 /* =============================================
    Tabbit Rabbit — Micro-interactions & Polish
+   Lo-fi chill edition: slowed 40-60%, warm ease
    ============================================= */
-
-/* --- Input focus glow (no scale to avoid displacement) --- */
 
 /* --- Floating scroll-to-top button --- */
 .tr-scroll-top-btn {
@@ -13,22 +12,22 @@
   height: 44px;
   border-radius: 50%;
   background: var(--tr-accent);
-  color: #2d2a26;
+  color: #3a3632;
   border: none;
-  box-shadow: 0 4px 16px rgba(232, 168, 56, 0.45);
+  box-shadow: 0 4px 16px rgba(232, 168, 56, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 1.2rem;
   z-index: 1040;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.3s var(--tr-ease), box-shadow 0.3s var(--tr-ease);
 }
 
 @media (hover: hover) {
   .tr-scroll-top-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 22px rgba(232, 168, 56, 0.55);
+    box-shadow: 0 8px 22px rgba(232, 168, 56, 0.45);
   }
 }
 
@@ -37,7 +36,7 @@
 }
 
 .tr-scroll-top-btn:focus-visible {
-  outline: 2px solid #2d2a26;
+  outline: 2px solid #3a3632;
   outline-offset: 2px;
 }
 
@@ -45,8 +44,8 @@
 .tr-tab-list-item {
   position: relative;
   transition:
-    background-color 0.15s ease,
-    box-shadow 0.15s ease;
+    background-color 0.3s var(--tr-ease),
+    box-shadow 0.3s var(--tr-ease);
 }
 
 .tr-tab-list-item::before {
@@ -59,7 +58,7 @@
   background: var(--tr-accent);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.35s var(--tr-ease);
   border-radius: 0 2px 2px 0;
 }
 
@@ -69,22 +68,22 @@
   }
 
   .tr-tab-list-item:hover {
-    background-color: #fdf8ee !important;
+    background-color: rgba(255, 252, 245, 0.9) !important;
   }
 }
 
-/* --- Empty state floating bounce --- */
+/* --- Empty state floating bounce — slow, gentle --- */
 @keyframes floatBounce {
   0%, 100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-6px);
   }
 }
 
 .tr-empty-bounce {
-  animation: floatBounce 2.4s ease-in-out infinite;
+  animation: floatBounce 3.5s ease-in-out infinite;
   display: inline-block;
 }
 
@@ -113,42 +112,58 @@
 /* --- Button active press feedback --- */
 .btn {
   transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease,
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+    transform 0.2s var(--tr-ease),
+    box-shadow 0.2s var(--tr-ease),
+    background-color 0.3s var(--tr-ease),
+    border-color 0.3s var(--tr-ease),
+    color 0.3s var(--tr-ease);
 }
 
 .btn:active {
   transform: scale(0.96);
 }
 
+/* --- Gentle inner glow on primary/warning buttons on hover --- */
+@media (hover: hover) {
+  .btn-warning:hover,
+  .btn-primary:hover {
+    box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.15), var(--tr-shadow-1);
+  }
+
+  .btn-outline-warning:hover,
+  .btn-outline-primary:hover,
+  .btn-outline-secondary:hover,
+  .btn-outline-info:hover,
+  .btn-outline-success:hover {
+    box-shadow: var(--tr-shadow-1);
+  }
+}
+
 /* --- Form.Range (slider) thumb glow --- */
 input[type='range'] {
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow 0.3s var(--tr-ease);
 }
 
 input[type='range']:active::-webkit-slider-thumb {
-  box-shadow: 0 0 0 6px rgba(232, 168, 56, 0.3);
+  box-shadow: 0 0 0 6px rgba(232, 168, 56, 0.25);
 }
 
 input[type='range']:active::-moz-range-thumb {
-  box-shadow: 0 0 0 6px rgba(232, 168, 56, 0.3);
+  box-shadow: 0 0 0 6px rgba(232, 168, 56, 0.25);
 }
 
 /* --- Color swatch spin on change --- */
 .tr-color-swatch {
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease;
+  transition: transform 0.45s var(--tr-ease), background-color 0.35s var(--tr-ease);
 }
 
 .tr-color-swatch.tr-swatch-spin {
-  animation: swatchSpin 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: swatchSpin 0.5s var(--tr-ease) forwards;
 }
 
 @keyframes swatchSpin {
   0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.25); }
+  50% { transform: rotate(180deg) scale(1.2); }
   100% { transform: rotate(360deg) scale(1); }
 }
 
@@ -161,5 +176,17 @@ input[type='range']:active::-moz-range-thumb {
 
   .btn {
     transition: none !important;
+  }
+
+  .tr-tab-list-item::before {
+    transition: none !important;
+  }
+
+  .tr-scroll-top-btn {
+    transition: none !important;
+  }
+
+  .tr-scroll-top-btn:hover {
+    transform: none !important;
   }
 }

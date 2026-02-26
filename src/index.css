@@ -1,56 +1,113 @@
 :root {
-  --tr-bg:      #f8f6f1;
-  --tr-surface: #ffffff;
-  --tr-border:  #e8e4de;
-  --tr-text:    #2d2a26;
-  --tr-muted:   #6b655d;
+  --tr-bg:      #ece8e0;
+  --tr-surface: rgba(255, 255, 255, 0.7);
+  --tr-border:  rgba(0, 0, 0, 0.06);
+  --tr-text:    #3a3632;
+  --tr-muted:   #8a847a;
   --tr-accent:  #e8a838;
-  --tr-accent-glow: rgba(232, 168, 56, 0.25);
+  --tr-accent-glow: rgba(232, 168, 56, 0.2);
+  --tr-sky:     #8a9bab;
   --tr-nav-bg:  #2d2a26;
   --tr-mono:    'SF Mono', 'Cascadia Mono', 'Consolas', 'Liberation Mono', monospace;
 
-  /* Elevation shadow system */
-  --tr-shadow-1:
-    0 1px 2px rgba(45, 42, 38, 0.04),
-    0 4px 8px rgba(45, 42, 38, 0.04),
-    0 8px 24px rgba(45, 42, 38, 0.06);
-  --tr-shadow-2:
-    0 2px 4px rgba(45, 42, 38, 0.06),
-    0 8px 16px rgba(45, 42, 38, 0.08),
-    0 20px 48px rgba(45, 42, 38, 0.12);
-  --tr-shadow-3:
-    0 4px 8px rgba(45, 42, 38, 0.08),
-    0 16px 32px rgba(45, 42, 38, 0.14),
-    0 32px 72px rgba(45, 42, 38, 0.18);
+  /* "Warm ease" timing function — settles gently */
+  --tr-ease: cubic-bezier(0.23, 1, 0.32, 1);
 
-  /* Transition timing scale */
-  --tr-duration-fast: 0.15s;
-  --tr-duration-normal: 0.25s;
-  --tr-duration-slow: 0.35s;
+  /* Elevation shadow system — warm-tinted, soft, diffused */
+  --tr-shadow-1:
+    0 1px 3px rgba(160, 140, 100, 0.06),
+    0 4px 12px rgba(160, 140, 100, 0.06),
+    0 8px 28px rgba(160, 140, 100, 0.08);
+  --tr-shadow-2:
+    0 2px 6px rgba(160, 140, 100, 0.07),
+    0 8px 20px rgba(160, 140, 100, 0.09),
+    0 20px 52px rgba(160, 140, 100, 0.12);
+  --tr-shadow-3:
+    0 4px 10px rgba(160, 140, 100, 0.08),
+    0 16px 36px rgba(160, 140, 100, 0.13),
+    0 32px 76px rgba(160, 140, 100, 0.16);
+
+  /* Transition timing scale — slowed down for lo-fi feel */
+  --tr-duration-fast: 0.22s;
+  --tr-duration-normal: 0.35s;
+  --tr-duration-slow: 0.5s;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--tr-bg);
   color: var(--tr-text);
 
-  /* Subtle radial spotlight from top center */
+  /* Layered warm/cool gradients — lamplight from bottom-left, window light from top-right */
   background-image:
+    /* Warm amber lamplight glow */
+    radial-gradient(
+      ellipse 60% 50% at 15% 90%,
+      rgba(232, 168, 56, 0.05) 0%,
+      rgba(232, 168, 56, 0.02) 50%,
+      transparent 80%
+    ),
+    /* Cool overcast daylight from window */
+    radial-gradient(
+      ellipse 70% 45% at 85% 10%,
+      rgba(138, 155, 171, 0.04) 0%,
+      rgba(138, 155, 171, 0.02) 45%,
+      transparent 75%
+    ),
+    /* Subtle center warm spotlight */
     radial-gradient(
       ellipse 80% 40% at 50% -8%,
-      rgba(232, 168, 56, 0.08) 0%,
-      rgba(232, 168, 56, 0.03) 40%,
+      rgba(232, 168, 56, 0.04) 0%,
+      rgba(232, 168, 56, 0.015) 40%,
       transparent 70%
     );
   background-attachment: fixed;
 }
 
+/* Film grain overlay — very subtle paper texture */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Headers use DM Sans */
+h1, h2, h3, h4, h5, h6,
+.modal-title {
+  font-family: 'DM Sans', 'Nunito', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* ── Reduced motion ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01s !important;
+    animation-duration: 0.01s !important;
+  }
+
+  body::after {
+    display: none;
+  }
 }

@@ -63,7 +63,7 @@ function AnimatedRoutes({ profile, updateProfile }: AnimatedRoutesProps) {
         initial="enter"
         animate="center"
         exit="exit"
-        transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
       >
         <div ref={focusRef} tabIndex={-1} style={{ outline: 'none' }} />
         <Routes location={location}>

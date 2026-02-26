@@ -1,0 +1,147 @@
+/* ── Rain Overlay ──────────────────────────────────
+   Gentle afternoon rain for the light lo-fi theme.
+   Two layers of straight-down rain streaks + bokeh dots.
+   ──────────────────────────────────────────────── */
+
+.tr-rain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* ── Rain layer base ──────────────────────────────
+   Each rain layer uses a 200%-tall pseudo-element
+   that translates downward by 50% for seamless loop.
+   Rain falls STRAIGHT DOWN (to bottom). */
+
+.tr-rain-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Sparse / slow rain */
+.tr-rain-layer--slow::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 200%;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 28px,
+      rgba(0, 0, 0, 0.03) 28px,
+      rgba(0, 0, 0, 0.03) 30px
+    );
+  background-size: 80px 30px;
+  animation: tr-rain-fall 2s linear infinite;
+}
+
+/* Dense / faster rain */
+.tr-rain-layer--fast::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 30px;
+  width: 100%;
+  height: 200%;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 18px,
+      rgba(0, 0, 0, 0.04) 18px,
+      rgba(0, 0, 0, 0.04) 20px
+    );
+  background-size: 120px 20px;
+  animation: tr-rain-fall 1.4s linear infinite;
+}
+
+@keyframes tr-rain-fall {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(50%);
+  }
+}
+
+/* ── Bokeh dots ───────────────────────────────────
+   Soft out-of-focus light spots using radial-gradient.
+   No filter: blur — purely gradient-based. */
+
+.tr-rain-bokeh {
+  position: absolute;
+  border-radius: 50%;
+  animation: tr-bokeh-drift 12s ease-in-out infinite alternate;
+}
+
+.tr-rain-bokeh--1 {
+  width: 180px;
+  height: 180px;
+  top: 15%;
+  left: 10%;
+  background: radial-gradient(circle, rgba(232, 168, 56, 0.04) 0%, transparent 70%);
+  animation-duration: 14s;
+}
+
+.tr-rain-bokeh--2 {
+  width: 220px;
+  height: 220px;
+  top: 60%;
+  right: 8%;
+  background: radial-gradient(circle, rgba(138, 155, 171, 0.04) 0%, transparent 70%);
+  animation-duration: 16s;
+  animation-delay: -4s;
+}
+
+.tr-rain-bokeh--3 {
+  width: 140px;
+  height: 140px;
+  top: 35%;
+  right: 25%;
+  background: radial-gradient(circle, rgba(232, 168, 56, 0.03) 0%, transparent 70%);
+  animation-duration: 11s;
+  animation-delay: -2s;
+}
+
+.tr-rain-bokeh--4 {
+  width: 200px;
+  height: 200px;
+  bottom: 20%;
+  left: 20%;
+  background: radial-gradient(circle, rgba(138, 155, 171, 0.035) 0%, transparent 70%);
+  animation-duration: 13s;
+  animation-delay: -6s;
+}
+
+.tr-rain-bokeh--5 {
+  width: 160px;
+  height: 160px;
+  top: 75%;
+  left: 55%;
+  background: radial-gradient(circle, rgba(232, 168, 56, 0.03) 0%, transparent 70%);
+  animation-duration: 15s;
+  animation-delay: -8s;
+}
+
+@keyframes tr-bokeh-drift {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(12px, -8px) scale(1.08);
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .tr-rain-overlay {
+    display: none;
+  }
+}

@@ -4,12 +4,12 @@
   display: block;
   background: linear-gradient(
     90deg,
-    #e8e4de 25%,
-    #f0ece6 50%,
-    #e8e4de 75%
+    rgba(200, 192, 178, 0.35) 25%,
+    rgba(220, 214, 204, 0.4) 50%,
+    rgba(200, 192, 178, 0.35) 75%
   );
   background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  animation: skeleton-shimmer 2s ease-in-out infinite;
   border-radius: 4px;
 }
 
@@ -27,9 +27,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border: 1px solid #e8e4de;
-  border-radius: 12px;
-  background-color: #fff;
+  border: 1px solid var(--tr-border);
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
   gap: 12px;
 }
 
@@ -62,9 +62,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border: 1px solid #e8e4de;
-  border-radius: 12px;
-  background-color: #fff;
+  border: 1px solid var(--tr-border);
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
   gap: 12px;
 }
 

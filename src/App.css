@@ -7,18 +7,18 @@ body {
 .navbar {
   background: linear-gradient(
     180deg,
-    rgba(45, 42, 38, 1) 0%,
-    rgba(38, 35, 31, 1) 100%
+    rgba(45, 42, 38, 0.92) 0%,
+    rgba(38, 35, 31, 0.95) 100%
   ) !important;
   padding-top: 0.4rem;
   padding-bottom: 0.4rem;
   box-shadow:
-    0 1px 0 rgba(232, 168, 56, 0.15),
-    0 2px 8px rgba(0, 0, 0, 0.15),
-    0 8px 24px rgba(0, 0, 0, 0.10);
-  border-bottom: 1px solid rgba(232, 168, 56, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+    0 1px 0 rgba(232, 168, 56, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(232, 168, 56, 0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 /* ── Container width at xl ──────────────────────── */
@@ -30,17 +30,13 @@ body {
 
 /* ── Cards ──────────────────────────────────────── */
 .card {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 255, 255, 0.88) 100%
-  );
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(232, 228, 222, 0.6);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--tr-border);
+  border-radius: 10px;
   box-shadow: var(--tr-shadow-1);
-  transition: box-shadow var(--tr-duration-normal) ease, transform var(--tr-duration-normal) ease;
+  transition: box-shadow var(--tr-duration-normal) var(--tr-ease), transform var(--tr-duration-normal) var(--tr-ease);
 }
 
 /* Interactive (clickable) cards get a hover lift */
@@ -53,34 +49,34 @@ body {
   .card.tr-interactive:hover {
     box-shadow: var(--tr-shadow-2);
     transform: translateY(-2px);
-    border-color: rgba(232, 228, 222, 0.85);
+    border-color: rgba(0, 0, 0, 0.09);
   }
 }
 
 /* ── List groups ────────────────────────────────── */
 .list-group {
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: var(--tr-shadow-1);
 }
 .list-group-item {
-  border-color: rgba(232, 228, 222, 0.5);
-  background-color: rgba(255, 255, 255, 0.92);
-  transition: background-color var(--tr-duration-fast) ease, border-color var(--tr-duration-fast) ease;
+  border-color: var(--tr-border);
+  background-color: rgba(255, 255, 255, 0.7);
+  transition: background-color var(--tr-duration-fast) var(--tr-ease), border-color var(--tr-duration-fast) var(--tr-ease);
   position: relative;
 }
 .list-group-item:first-child {
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
 }
 .list-group-item:last-child {
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 /* Subtle hover on all items that don't have an inline background */
 @media (hover: hover) {
   .list-group-item:not([style]):hover {
-    background-color: rgba(255, 255, 255, 1);
+    background-color: rgba(255, 255, 255, 0.85);
   }
 }
 
@@ -88,19 +84,19 @@ body {
 .form-control,
 .form-select {
   border-color: var(--tr-border);
-  background-color: rgba(255, 255, 255, 0.85);
-  box-shadow: inset 0 1px 3px rgba(45, 42, 38, 0.06);
-  transition: border-color var(--tr-duration-fast) ease, box-shadow var(--tr-duration-fast) ease, background-color var(--tr-duration-fast) ease;
-  border-radius: 12px;
+  background-color: rgba(255, 252, 248, 0.8);
+  box-shadow: inset 0 1px 3px rgba(160, 140, 100, 0.06);
+  transition: border-color var(--tr-duration-fast) var(--tr-ease), box-shadow var(--tr-duration-fast) var(--tr-ease), background-color var(--tr-duration-fast) var(--tr-ease);
+  border-radius: 8px;
 }
 .form-control:focus,
 .form-select:focus {
-  border-color: var(--tr-accent);
-  background-color: rgba(255, 255, 255, 1);
+  border-color: rgba(232, 168, 56, 0.5);
+  background-color: rgba(255, 253, 250, 1);
   box-shadow:
-    inset 0 1px 3px rgba(45, 42, 38, 0.04),
+    inset 0 1px 3px rgba(160, 140, 100, 0.04),
     0 0 0 3px var(--tr-accent-glow),
-    0 0 12px rgba(232, 168, 56, 0.12);
+    0 0 16px rgba(232, 168, 56, 0.08);
   outline: none;
 }
 
@@ -111,9 +107,9 @@ body {
 }
 .input-group-text {
   border-color: var(--tr-border);
-  background-color: rgba(248, 246, 241, 0.8);
+  background-color: rgba(236, 232, 224, 0.6);
   color: var(--tr-muted);
-  box-shadow: inset 0 1px 3px rgba(45, 42, 38, 0.04);
+  box-shadow: inset 0 1px 3px rgba(160, 140, 100, 0.04);
 }
 
 /* InputGroup: rounded ends, flat seams between siblings */
@@ -123,12 +119,12 @@ body {
   border-radius: 0;
 }
 .input-group > :first-child {
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
 }
 .input-group > :last-child {
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 /* Focus ring follows the rounded corners */
 .input-group > .form-control:focus {
@@ -136,12 +132,12 @@ body {
   z-index: 3;
 }
 .input-group > :first-child:focus {
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
 }
 .input-group > :last-child:focus {
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 /* ── Footer ─────────────────────────────────────── */
@@ -149,10 +145,10 @@ body {
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(248, 246, 241, 0.7) 20%,
+    rgba(236, 232, 224, 0.5) 20%,
     var(--tr-bg) 100%
   );
-  border-top: 1px solid rgba(232, 228, 222, 0.4);
+  border-top: 1px solid var(--tr-border);
   font-size: 0.85rem;
   letter-spacing: 0.01em;
   color: var(--tr-muted);
@@ -162,19 +158,19 @@ body {
 .list-group-item[role='button']:hover,
 .list-group-item.list-group-item-action:hover {
   outline: none;
-  border-color: var(--tr-accent);
+  border-color: rgba(232, 168, 56, 0.35);
   box-shadow:
     0 0 0 2px var(--tr-accent-glow),
-    inset 0 0 0 1px rgba(232, 168, 56, 0.15);
+    inset 0 0 0 1px rgba(232, 168, 56, 0.1);
 }
 
 /* ── Tab name editable cursor ───────────────────── */
 h4[title='Click to edit'] {
   border-bottom: 1px dashed var(--tr-border);
-  transition: border-color 0.15s ease;
+  transition: border-color var(--tr-duration-fast) var(--tr-ease);
 }
 h4[title='Click to edit']:hover {
-  border-bottom-color: var(--tr-text);
+  border-bottom-color: var(--tr-muted);
 }
 
 /* ── Layout: Home (sidebar + tabs) ──────────────── */
@@ -238,7 +234,7 @@ h4[title='Click to edit']:hover {
   line-height: 1;
   padding: 0;
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition: background-color var(--tr-duration-fast) var(--tr-ease), color var(--tr-duration-fast) var(--tr-ease);
 }
 .tr-delete-btn:hover {
   background-color: rgba(220, 53, 69, 0.1);
@@ -251,59 +247,49 @@ h4[title='Click to edit']:hover {
 }
 
 .tr-elevated-2 {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.96) 0%,
-    rgba(255, 255, 255, 0.90) 100%
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow: var(--tr-shadow-2);
-  border: 1px solid rgba(232, 228, 222, 0.5);
-  border-radius: 16px;
+  border: 1px solid var(--tr-border);
+  border-radius: 10px;
 }
 
 .tr-elevated-3 {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(255, 255, 255, 0.94) 100%
-  );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--tr-shadow-3);
-  border: 1px solid rgba(232, 228, 222, 0.45);
-  border-radius: 20px;
+  border: 1px solid var(--tr-border);
+  border-radius: 12px;
 }
 
 /* ── Modal glass morphism ───────────────────────── */
 .modal-content {
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.97) 0%,
-    rgba(255, 255, 255, 0.92) 100%
-  );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(232, 228, 222, 0.5);
-  border-radius: 20px;
-  box-shadow: var(--tr-shadow-3);
+  background: rgba(255, 253, 250, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--tr-border);
+  border-radius: 12px;
+  box-shadow:
+    var(--tr-shadow-3),
+    0 0 60px rgba(160, 140, 100, 0.06);
 }
 
 .modal-header {
-  border-bottom: 1px solid rgba(232, 228, 222, 0.5);
+  border-bottom: 1px solid var(--tr-border);
   padding: 1rem 1.25rem;
 }
 
 .modal-footer {
-  border-top: 1px solid rgba(232, 228, 222, 0.5);
+  border-top: 1px solid var(--tr-border);
   padding: 1rem 1.25rem;
 }
 
 .modal-backdrop {
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  background-color: rgba(45, 42, 38, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(240, 236, 228, 0.6) !important;
 }
 .modal-backdrop.show {
   opacity: 1 !important;
@@ -312,16 +298,12 @@ h4[title='Click to edit']:hover {
 /* ── Receipt total card ─────────────────────────── */
 /* Applied via className="tr-receipt-card" in TotalsView */
 .tr-receipt-card.card {
-  background: linear-gradient(
-    160deg,
-    rgba(255, 254, 250, 0.98) 0%,
-    rgba(252, 249, 243, 0.95) 100%
-  );
-  border: 1px solid rgba(220, 214, 200, 0.7);
-  border-radius: 12px;
+  background: rgba(255, 254, 250, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
   box-shadow:
     var(--tr-shadow-1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .tr-receipt-card .card-body {
@@ -331,7 +313,7 @@ h4[title='Click to edit']:hover {
 /* Dashed separator above grand total — applied on the <hr> */
 .tr-receipt-divider {
   border: none;
-  border-top: 1.5px dashed rgba(180, 168, 148, 0.6);
+  border-top: 1.5px dashed rgba(160, 140, 100, 0.35);
   margin: 0.5rem 0;
 }
 
@@ -342,41 +324,37 @@ h4[title='Click to edit']:hover {
 
 /* ── Dropdown menu glass ────────────────────────── */
 .dropdown-menu {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.97) 0%,
-    rgba(255, 255, 255, 0.92) 100%
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(232, 228, 222, 0.55);
-  border-radius: 12px;
+  background: rgba(255, 253, 250, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--tr-border);
+  border-radius: 10px;
   box-shadow: var(--tr-shadow-2);
   padding: 0.25rem;
 }
 
 .dropdown-item {
-  border-radius: 8px;
-  transition: background-color var(--tr-duration-fast) ease, color var(--tr-duration-fast) ease;
+  border-radius: 6px;
+  transition: background-color var(--tr-duration-fast) var(--tr-ease), color var(--tr-duration-fast) var(--tr-ease);
   padding: 0.5rem 0.75rem;
 }
 
 .dropdown-item:hover,
 .dropdown-item:focus {
-  background-color: rgba(232, 168, 56, 0.1);
+  background-color: rgba(232, 168, 56, 0.08);
   color: var(--tr-text);
 }
 
 .dropdown-divider {
-  border-color: rgba(232, 228, 222, 0.5);
+  border-color: var(--tr-border);
   margin: 0.25rem 0;
 }
 
 /* ── Toast notifications ────────────────────────── */
 .toast {
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 12px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: var(--tr-shadow-3);
 }
@@ -396,6 +374,11 @@ h4[title='Click to edit']:hover {
 
 /* ── Alert refinements ──────────────────────────── */
 .alert {
-  border-radius: 12px;
+  border-radius: 8px;
   border-width: 1px;
+}
+
+/* ── Button refinements ─────────────────────────── */
+.btn {
+  border-radius: 8px;
 }
