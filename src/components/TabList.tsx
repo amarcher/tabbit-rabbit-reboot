@@ -1,12 +1,13 @@
-import React, { forwardRef, useEffect, useMemo, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Badge, Button, Dropdown, ListGroup, Form, InputGroup, Modal, Spinner } from 'react-bootstrap';
+import { Badge, Button, Dropdown, ListGroup, Form, InputGroup, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
 import { COLOR_HEX } from '../types';
 import { formatCents } from '../utils/currency';
 import { shareBill } from '../utils/billEncoder';
 import { useAuth } from '../hooks/useAuth';
+import { TabListSkeleton } from './Skeleton';
 import './TabList.css';
 
 interface TabListProps {
@@ -78,6 +79,8 @@ interface AnimatedToastProps {
 
 function AnimatedToast({ toast, onClose, duration = 3000 }: AnimatedToastProps) {
   const [progress, setProgress] = useState(100);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     const start = Date.now();
@@ -87,11 +90,11 @@ function AnimatedToast({ toast, onClose, duration = 3000 }: AnimatedToastProps) 
       setProgress(remaining);
       if (remaining === 0) {
         clearInterval(interval);
-        onClose();
+        onCloseRef.current();
       }
     }, 50);
     return () => clearInterval(interval);
-  }, [duration, onClose]);
+  }, [duration]);
 
   return (
     <motion.div
@@ -182,8 +185,17 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <Spinner animation="border" />
+      <div className="tr-home-layout">
+        <div className="text-center text-md-start">
+          <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 220 }} className="mb-3" />
+          <p className="text-muted small">
+            Split bills with friends. Add items, assign people, and send payment requests.
+          </p>
+        </div>
+        <div>
+          <h5 className="mb-3">My Tabs</h5>
+          <TabListSkeleton />
+        </div>
       </div>
     );
   }

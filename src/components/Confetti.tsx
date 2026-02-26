@@ -71,7 +71,6 @@ export default function Confetti({ active, originX, originY, onDone }: ConfettiP
             width: 0,
             height: 0,
             pointerEvents: 'none',
-<<<<<<< HEAD
             zIndex: 1070,
             overflow: 'visible',
           }}
