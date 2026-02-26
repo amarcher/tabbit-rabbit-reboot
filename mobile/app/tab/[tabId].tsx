@@ -28,6 +28,7 @@ import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
 import TotalsView from '@/src/components/TotalsView';
 import HintArrow from '@/src/components/HintArrow';
+import Confetti from '@/src/components/Confetti';
 import { editorTour } from '@/src/utils/onboardingTour';
 import type { RabbitColor, Profile, Tab } from '@/src/types';
 
@@ -112,6 +113,7 @@ export default function TabEditorScreen() {
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Auto-start editor tour once the screen loads
   useEffect(() => {
@@ -260,6 +262,7 @@ export default function TabEditorScreen() {
         },
       });
       const url = `https://tabbitrabbit.com/bill/${token}`;
+      setShowConfetti(true);
       await Share.share({ url });
     } catch {
       Alert.alert('Error', 'Failed to share bill. Please try again.');
@@ -281,6 +284,7 @@ export default function TabEditorScreen() {
   const showFirstTabHints = !hasItems && !hasRabbits;
 
   return (
+    <View style={{ flex: 1 }}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Hint: scan a receipt */}
       {showFirstTabHints && (
@@ -386,6 +390,8 @@ export default function TabEditorScreen() {
 
       <View style={styles.bottomPadding} />
     </ScrollView>
+    {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}
+    </View>
   );
 }
 

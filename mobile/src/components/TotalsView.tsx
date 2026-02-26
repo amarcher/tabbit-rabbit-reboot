@@ -476,11 +476,16 @@ const styles = StyleSheet.create({
     color: colors.warningText,
   },
   totalCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 8,
+    backgroundColor: '#fffefa',
+    borderRadius: 10,
     padding: 16,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderColor: colors.border,
+    shadowColor: '#a08c64',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   totalRow: {
     flexDirection: 'row',
@@ -496,8 +501,10 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
+    height: 1,
+    borderTopWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(160,140,100,0.35)',
     marginVertical: 8,
   },
   grandLabel: {
