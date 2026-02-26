@@ -52,7 +52,8 @@ module.exports = async function handler(req, res) {
               },
               {
                 type: 'text',
-                text: 'Extract all line items with prices from this receipt image. Return ONLY valid JSON with this exact structure: { "items": [{ "description": "Item name", "price": 12.99 }], "subtotal": 25.98, "tax": 2.27, "total": 28.25 }. Prices should be numbers (dollars, not cents). If you cannot read an item, skip it. Do not include tax or tip as line items.',
+                // KEEP IN SYNC with src/utils/anthropic.ts
+                text: 'Extract all line items with prices from this receipt image. Return ONLY valid JSON with this exact structure: { "items": [{ "description": "Item name", "price": 12.99 }], "subtotal": 25.98, "tax": 8.25, "tax_unit": "percent", "tip": 5.00, "tip_unit": "currency", "total": 33.25 }. Prices should be numbers (dollars, not cents). tax and tip can be either dollar amounts (unit: "currency") or percentages (unit: "percent") — set the unit to match what the receipt shows. If both a dollar amount and a percentage are shown, prefer the percentage. If tax or tip is not on the receipt, omit them. Do not include tax or tip as line items. If you cannot read an item, skip it.',
               },
             ],
           },

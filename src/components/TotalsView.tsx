@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Card, Form, InputGroup, ListGroup, Modal, Row, Col } from 'react-bootstrap';
 import type { Item, Rabbit, ItemRabbit, Tab, Profile } from '../types';
 import { formatCents } from '../utils/currency';
@@ -33,6 +33,11 @@ export default function TotalsView({
 }: TotalsViewProps) {
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 7);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
+
+  // Sync local slider state when tab values change externally (e.g. receipt scan)
+  useEffect(() => { setTaxPercent(tab.tax_percent || 7); }, [tab.tax_percent]);
+  useEffect(() => { setTipPercent(tab.tip_percent || 18); }, [tab.tip_percent]);
+
   const [chargeTarget, setChargeTarget] = useState<{ rabbit: Rabbit; total: number } | null>(null);
   const [venmoHandle, setVenmoHandle] = useState('');
 
