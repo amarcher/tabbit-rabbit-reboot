@@ -15,6 +15,7 @@ import { useProStatus } from '@/src/hooks/useProStatus';
 import { useSavedRabbits } from '@/src/hooks/useSavedRabbits';
 import { remainingFreeScans, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
 import { BUTTON_COLORS } from '@/src/utils/colors';
+import { colors } from '@/src/utils/theme';
 import type { SavedRabbit } from '@/src/types';
 
 export default function ProfileScreen() {
@@ -106,7 +107,7 @@ export default function ProfileScreen() {
           value={displayName}
           onChangeText={setDisplayName}
           placeholder="Your name"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.placeholder}
           autoCapitalize="words"
         />
       </View>
@@ -118,7 +119,7 @@ export default function ProfileScreen() {
           value={venmo}
           onChangeText={setVenmo}
           placeholder="username"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.placeholder}
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -131,7 +132,7 @@ export default function ProfileScreen() {
           value={cashapp}
           onChangeText={setCashapp}
           placeholder="cashtag"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.placeholder}
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -144,7 +145,7 @@ export default function ProfileScreen() {
           value={paypal}
           onChangeText={setPaypal}
           placeholder="username"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.placeholder}
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -270,7 +271,7 @@ export default function ProfileScreen() {
                         value={editVenmo}
                         onChangeText={setEditVenmo}
                         placeholder="Venmo username"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={colors.placeholder}
                         autoCapitalize="none"
                         autoCorrect={false}
                       />
@@ -279,7 +280,7 @@ export default function ProfileScreen() {
                         value={editCashapp}
                         onChangeText={setEditCashapp}
                         placeholder="Cash App $cashtag"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={colors.placeholder}
                         autoCapitalize="none"
                         autoCorrect={false}
                       />
@@ -288,7 +289,7 @@ export default function ProfileScreen() {
                         value={editPaypal}
                         onChangeText={setEditPaypal}
                         placeholder="PayPal username"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={colors.placeholder}
                         autoCapitalize="none"
                         autoCorrect={false}
                       />
@@ -313,7 +314,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.bg,
   },
   content: {
     padding: 16,
@@ -324,20 +325,21 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: colors.muted,
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.inputBg,
+    color: colors.text,
   },
   saveButton: {
-    backgroundColor: '#0d6efd',
+    backgroundColor: colors.accent,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -355,22 +357,22 @@ const styles = StyleSheet.create({
     marginTop: 32,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#dee2e6',
+    borderTopColor: colors.border,
   },
   proTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
     marginBottom: 8,
   },
   proDescription: {
     fontSize: 14,
-    color: '#666',
+    color: colors.muted,
     marginBottom: 4,
   },
   scanCountHint: {
     fontSize: 13,
-    color: '#999',
+    color: colors.muted,
     marginBottom: 12,
   },
   proButton: {
@@ -402,21 +404,21 @@ const styles = StyleSheet.create({
   },
   proBadgeLabel: {
     fontSize: 14,
-    color: '#666',
+    color: colors.muted,
   },
   linkText: {
-    color: '#0d6efd',
+    color: colors.link,
     fontSize: 14,
   },
   savedRabbitsList: {
     gap: 10,
   },
   savedRabbitCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
   },
   savedRabbitHeader: {
     flexDirection: 'row',
@@ -438,19 +440,19 @@ const styles = StyleSheet.create({
   savedRabbitName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text,
   },
   handleBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#0d6efd',
+    borderColor: colors.accent,
   },
   handleBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#0d6efd',
+    color: colors.accent,
   },
   cashappBadge: {
     borderColor: '#198754',
@@ -469,7 +471,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   deleteText: {
-    color: '#dc3545',
+    color: colors.danger,
     fontSize: 14,
   },
   editFields: {
@@ -477,7 +479,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   saveEditButton: {
-    backgroundColor: '#0d6efd',
+    backgroundColor: colors.accent,
     paddingVertical: 8,
     borderRadius: 6,
     alignItems: 'center',

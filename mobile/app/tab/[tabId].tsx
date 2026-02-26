@@ -20,6 +20,7 @@ import { shareBill } from '@/src/utils/billEncoder';
 import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
 import { receiptValueToPercent } from '@/src/utils/anthropic';
 import type { ReceiptResult } from '@/src/utils/anthropic';
+import { colors } from '@/src/utils/theme';
 import ItemList from '@/src/components/ItemList';
 import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
@@ -319,7 +320,7 @@ export default function TabEditorScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.bg,
   },
   content: {
     padding: 16,
@@ -337,24 +338,24 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: '#0dcaf0',
+    borderColor: colors.accent,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   actionButtonText: {
-    color: '#0dcaf0',
+    color: colors.accent,
     fontWeight: '600',
     fontSize: 14,
   },
   assignHint: {
     fontSize: 13,
-    color: '#999',
+    color: colors.muted,
     marginBottom: 8,
   },
   assignHintName: {
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
   bottomPadding: {
     height: 40,

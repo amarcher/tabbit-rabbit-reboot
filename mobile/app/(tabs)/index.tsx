@@ -14,6 +14,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useTabs } from '@/src/hooks/useTab';
 import { formatCents } from '@/src/utils/currency';
 import { BUTTON_COLORS } from '@/src/utils/colors';
+import { colors } from '@/src/utils/theme';
 import type { Tab, Item, Rabbit } from '@/src/types';
 
 function TabRow({
@@ -160,7 +161,7 @@ export default function DashboardScreen() {
         <TextInput
           style={styles.createInput}
           placeholder="New tab name (e.g. Friday Dinner)"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.placeholder}
           value={newName}
           onChangeText={setNewName}
           returnKeyType="done"
@@ -209,7 +210,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.bg,
   },
   centered: {
     flex: 1,
@@ -220,22 +221,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     gap: 8,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#dee2e6',
+    borderBottomColor: colors.border,
   },
   createInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.inputBg,
+    color: colors.text,
   },
   createButton: {
-    backgroundColor: '#ffc107',
+    backgroundColor: colors.accent,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -247,18 +249,18 @@ const styles = StyleSheet.create({
   createButtonText: {
     fontWeight: '700',
     fontSize: 15,
-    color: '#333',
+    color: colors.text,
   },
   list: {
     padding: 16,
   },
   tabRow: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     padding: 16,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     gap: 6,
   },
   tableRow: {
@@ -269,14 +271,14 @@ const styles = StyleSheet.create({
   tabName: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text,
     flex: 1,
     marginRight: 12,
   },
   tabTotal: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
   rabbitChips: {
     flexDirection: 'row',
@@ -296,7 +298,7 @@ const styles = StyleSheet.create({
   },
   tabDate: {
     fontSize: 13,
-    color: '#999',
+    color: colors.muted,
   },
   swipeActions: {
     flexDirection: 'row',
@@ -305,13 +307,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   deleteAction: {
-    backgroundColor: '#dc3545',
+    backgroundColor: colors.danger,
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
   },
   cancelAction: {
-    backgroundColor: '#6c757d',
+    backgroundColor: colors.muted,
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
+    color: colors.muted,
     textAlign: 'center',
   },
 });

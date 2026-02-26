@@ -15,6 +15,7 @@ import { useBillCache } from '@/src/hooks/useBillCache';
 import { formatCents } from '@/src/utils/currency';
 import { getGradientColors } from '@/src/utils/colors';
 import { venmoLink, cashAppLink, paypalLink, buildPaymentNote } from '@/src/utils/payments';
+import { colors } from '@/src/utils/theme';
 import { COLOR_HEX, RabbitColor } from '@/src/types';
 
 export default function SharedBillScreen() {
@@ -124,7 +125,7 @@ export default function SharedBillScreen() {
               key={rabbit.id}
               style={[
                 styles.breakdownItem,
-                { backgroundColor: COLOR_HEX[rabbit.color as RabbitColor] || '#f8f9fa' },
+                { backgroundColor: COLOR_HEX[rabbit.color as RabbitColor] || colors.bg },
               ]}
             >
               <View style={styles.breakdownLeft}>
@@ -216,7 +217,7 @@ export default function SharedBillScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.bg,
   },
   content: {
     padding: 16,
@@ -228,24 +229,24 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#dc3545',
+    color: colors.danger,
   },
   tabName: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
     marginBottom: 4,
   },
   ownerName: {
     fontSize: 15,
-    color: '#666',
+    color: colors.muted,
     marginBottom: 20,
   },
   itemsList: {
     borderRadius: 8,
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     marginBottom: 20,
   },
   itemRow: {
@@ -255,18 +256,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#dee2e6',
+    borderBottomColor: colors.border,
   },
   itemDesc: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: colors.text,
     marginRight: 8,
   },
   itemPrice: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text,
   },
   breakdownList: {
     borderRadius: 8,
@@ -287,11 +288,11 @@ const styles = StyleSheet.create({
   rabbitName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
   breakdownDetail: {
     fontSize: 12,
-    color: '#666',
+    color: colors.muted,
     marginTop: 2,
   },
   breakdownRight: {
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
   rabbitTotal: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
   paymentButtons: {
     flexDirection: 'row',
@@ -313,18 +314,18 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1,
   },
-  venmoBtn: { borderColor: '#0d6efd' },
-  venmoText: { color: '#0d6efd', fontSize: 12, fontWeight: '600' },
+  venmoBtn: { borderColor: '#3d95ce' },
+  venmoText: { color: '#3d95ce', fontSize: 12, fontWeight: '600' },
   cashappBtn: { borderColor: '#198754' },
   cashappText: { color: '#198754', fontSize: 12, fontWeight: '600' },
-  paypalBtn: { borderColor: '#0dcaf0' },
-  paypalText: { color: '#0dcaf0', fontSize: 12, fontWeight: '600' },
+  paypalBtn: { borderColor: '#0070ba' },
+  paypalText: { color: '#0070ba', fontSize: 12, fontWeight: '600' },
   totalCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 8,
     padding: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
   },
   totalRow: {
     flexDirection: 'row',
@@ -333,25 +334,25 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
-    color: '#666',
+    color: colors.muted,
   },
   totalValue: {
     fontSize: 14,
-    color: '#333',
+    color: colors.text,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#dee2e6',
+    backgroundColor: colors.border,
     marginVertical: 8,
   },
   grandLabel: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
   grandValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
 });

@@ -11,6 +11,7 @@ import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { formatCents } from '../utils/currency';
 import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
+import { colors } from '../utils/theme';
 import PaymentLinks from './PaymentLinks';
 
 interface TotalsViewProps {
@@ -223,11 +224,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingTop: 24,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#dee2e6',
+    borderTopColor: colors.border,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
+    color: colors.text,
     marginBottom: 16,
   },
   controlsRow: {
@@ -240,17 +242,18 @@ const styles = StyleSheet.create({
   },
   controlLabel: {
     fontSize: 13,
-    color: '#666',
+    color: colors.muted,
     marginBottom: 4,
   },
   controlInput: {
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 8,
     fontSize: 15,
-    backgroundColor: '#fff',
+    backgroundColor: colors.inputBg,
+    color: colors.text,
   },
   breakdownList: {
     borderRadius: 8,
@@ -271,11 +274,11 @@ const styles = StyleSheet.create({
   rabbitName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
   breakdownDetail: {
     fontSize: 12,
-    color: '#666',
+    color: colors.muted,
     marginTop: 2,
   },
   breakdownRight: {
@@ -285,24 +288,24 @@ const styles = StyleSheet.create({
   rabbitTotal: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
   warningBox: {
-    backgroundColor: '#fff3cd',
+    backgroundColor: colors.warningBg,
     padding: 10,
     borderRadius: 6,
     marginBottom: 16,
   },
   warningText: {
     fontSize: 13,
-    color: '#856404',
+    color: colors.warningText,
   },
   totalCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 8,
     padding: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
   },
   totalRow: {
     flexDirection: 'row',
@@ -311,30 +314,30 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
-    color: '#666',
+    color: colors.muted,
   },
   totalValue: {
     fontSize: 14,
-    color: '#333',
+    color: colors.text,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#dee2e6',
+    backgroundColor: colors.border,
     marginVertical: 8,
   },
   grandLabel: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
   grandValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
   },
   chargeButton: {
     borderWidth: 1,
-    borderColor: '#6c757d',
+    borderColor: colors.muted,
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -343,6 +346,6 @@ const styles = StyleSheet.create({
   chargeButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6c757d',
+    color: colors.muted,
   },
 });

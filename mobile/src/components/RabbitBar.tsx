@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'rea
 import type { Rabbit } from '../types';
 import { formatCents } from '../utils/currency';
 import { BUTTON_COLORS, BUTTON_OUTLINE_COLORS } from '../utils/colors';
+import { colors } from '../utils/theme';
 
 interface RabbitBarProps {
   rabbits: Rabbit[];
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   badge: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.bg,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
@@ -104,18 +105,18 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text,
   },
   addChip: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#6c757d',
+    borderColor: colors.muted,
     borderStyle: 'dashed',
   },
   addChipText: {
     fontSize: 15,
-    color: '#6c757d',
+    color: colors.muted,
   },
 });

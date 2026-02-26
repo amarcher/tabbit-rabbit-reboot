@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useBillCache } from '@/src/hooks/useBillCache';
 import { formatCents } from '@/src/utils/currency';
+import { colors } from '@/src/utils/theme';
 
 export default function BillHistoryScreen() {
   const { cachedBills, loading, refresh } = useBillCache();
@@ -70,7 +71,7 @@ export default function BillHistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.bg,
   },
   centered: {
     flex: 1,
@@ -82,17 +83,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.bg,
   },
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 15,
-    color: '#999',
+    color: colors.muted,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -103,12 +104,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     padding: 16,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
   },
   rowInfo: {
     flex: 1,
@@ -116,22 +117,22 @@ const styles = StyleSheet.create({
   tabName: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text,
   },
   ownerName: {
     fontSize: 13,
-    color: '#666',
+    color: colors.muted,
     marginTop: 2,
   },
   viewedDate: {
     fontSize: 12,
-    color: '#999',
+    color: colors.muted,
     marginTop: 4,
   },
   total: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: colors.text,
     marginLeft: 12,
   },
 });
