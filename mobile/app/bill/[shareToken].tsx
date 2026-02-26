@@ -17,6 +17,7 @@ import { getGradientColors } from '@/src/utils/colors';
 import { venmoLink, cashAppLink, paypalLink, buildPaymentNote } from '@/src/utils/payments';
 import { colors, fonts } from '@/src/utils/theme';
 import { COLOR_HEX, RabbitColor } from '@/src/types';
+import AnimatedNumber from '@/src/components/AnimatedNumber';
 
 export default function SharedBillScreen() {
   const { shareToken } = useLocalSearchParams<{ shareToken: string }>();
@@ -131,11 +132,11 @@ export default function SharedBillScreen() {
               <View style={styles.breakdownLeft}>
                 <Text style={styles.rabbitName}>{rabbit.name}</Text>
                 <Text style={styles.breakdownDetail}>
-                  {formatCents(subtotal)} + {formatCents(tax)} tax + {formatCents(tip)} tip
+                  <AnimatedNumber value={subtotal} style={styles.breakdownDetail} /> + <AnimatedNumber value={tax} style={styles.breakdownDetail} /> tax + <AnimatedNumber value={tip} style={styles.breakdownDetail} /> tip
                 </Text>
               </View>
               <View style={styles.breakdownRight}>
-                <Text style={styles.rabbitTotal}>{formatCents(total)}</Text>
+                <AnimatedNumber value={total} style={styles.rabbitTotal} />
                 {/* Payment buttons using owner's profile */}
                 <View style={styles.paymentButtons}>
                   {ownerProfile.venmo_username && (
@@ -192,20 +193,20 @@ export default function SharedBillScreen() {
       <View style={styles.totalCard}>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Subtotal</Text>
-          <Text style={styles.totalValue}>{formatCents(subtotalCents)}</Text>
+          <AnimatedNumber value={subtotalCents} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Tax ({tab.tax_percent}%)</Text>
-          <Text style={styles.totalValue}>{formatCents(taxAmount)}</Text>
+          <AnimatedNumber value={taxAmount} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Tip ({tab.tip_percent}%)</Text>
-          <Text style={styles.totalValue}>{formatCents(tipAmount)}</Text>
+          <AnimatedNumber value={tipAmount} style={styles.totalValue} />
         </View>
         <View style={styles.divider} />
         <View style={styles.totalRow}>
           <Text style={styles.grandLabel}>Grand Total</Text>
-          <Text style={styles.grandValue}>{formatCents(grandTotal)}</Text>
+          <AnimatedNumber value={grandTotal} style={styles.grandValue} />
         </View>
       </View>
 

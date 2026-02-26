@@ -15,6 +15,7 @@ import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
 import { colors, fonts, timing } from '../utils/theme';
 import PaymentLinks from './PaymentLinks';
+import AnimatedNumber from './AnimatedNumber';
 
 function getTipLabel(tip: number): string | null {
   if (tip >= 25) return 'Wow!';
@@ -246,7 +247,7 @@ export default function TotalsView({
             accessibilityLabel="Tax percentage input"
           />
         </View>
-        <Text style={styles.sliderAmount}>{formatCents(taxAmount)}</Text>
+        <AnimatedNumber value={taxAmount} style={styles.sliderAmount} />
       </View>
 
       {/* Tip Slider */}
@@ -278,7 +279,7 @@ export default function TotalsView({
         </View>
         <View style={styles.tipAmountRow}>
           <TipFeedback tipPercent={tipPercent} />
-          <Text style={styles.sliderAmount}>{formatCents(tipAmount)}</Text>
+          <AnimatedNumber value={tipAmount} style={styles.sliderAmount} />
         </View>
       </View>
 
@@ -296,11 +297,11 @@ export default function TotalsView({
               <View style={styles.breakdownLeft}>
                 <Text style={styles.rabbitName}>{rabbit.name}</Text>
                 <Text style={styles.breakdownDetail}>
-                  {formatCents(subtotal)} + {formatCents(tax)} tax + {formatCents(tip)} tip
+                  <AnimatedNumber value={subtotal} style={styles.breakdownDetail} /> + <AnimatedNumber value={tax} style={styles.breakdownDetail} /> tax + <AnimatedNumber value={tip} style={styles.breakdownDetail} /> tip
                 </Text>
               </View>
               <View style={styles.breakdownRight}>
-                <Text style={styles.rabbitTotal}>{formatCents(total)}</Text>
+                <AnimatedNumber value={total} style={styles.rabbitTotal} />
                 <PaymentLinks
                   rabbit={rabbit}
                   amount={total / 100}
@@ -347,20 +348,20 @@ export default function TotalsView({
       <View style={styles.totalCard}>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Subtotal</Text>
-          <Text style={styles.totalValue}>{formatCents(itemsSubtotal)}</Text>
+          <AnimatedNumber value={itemsSubtotal} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Tax ({taxPercent}%)</Text>
-          <Text style={styles.totalValue}>{formatCents(taxAmount)}</Text>
+          <AnimatedNumber value={taxAmount} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Tip ({tipPercent}%)</Text>
-          <Text style={styles.totalValue}>{formatCents(tipAmount)}</Text>
+          <AnimatedNumber value={tipAmount} style={styles.totalValue} />
         </View>
         <View style={styles.divider} />
         <View style={styles.totalRow}>
           <Text style={styles.grandLabel}>Grand Total</Text>
-          <Text style={styles.grandValue}>{formatCents(grandTotal)}</Text>
+          <AnimatedNumber value={grandTotal} style={styles.grandValue} />
         </View>
       </View>
 
