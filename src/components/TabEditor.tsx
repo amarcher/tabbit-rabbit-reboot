@@ -16,11 +16,13 @@ import TotalsView from './TotalsView';
 import LoadingSpinner from './LoadingSpinner';
 import Confetti from './Confetti';
 import HintArrow from './HintArrow';
+import { useNux } from '../contexts/NuxContext';
 import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
   const { tabId } = useParams<{ tabId: string }>();
   const { profile } = useAuth();
+  const { active: nuxActive, completeAction } = useNux();
   const { savedRabbits, addSaved, removeSaved } = useSavedRabbits();
   const {
     tab,
@@ -90,6 +92,7 @@ export default function TabEditor() {
       price_cents: Math.round(item.price * 100),
     }));
     addItems(batchItems);
+    completeAction('add-items');
 
     const taxPercent = receiptValueToPercent(result.tax, result.tax_unit, result.subtotal);
     const tipPercent = receiptValueToPercent(result.tip, result.tip_unit, result.subtotal);
@@ -219,13 +222,14 @@ export default function TabEditor() {
 
   const actionBar = (
     <div className="my-3">
-      {!hasItems && isFirstTab && (
+      {!hasItems && isFirstTab && !nuxActive && (
         <div className="mb-2">
           <HintArrow>Scan a receipt to get started</HintArrow>
         </div>
       )}
       <div className="d-flex gap-2">
         <Button
+          data-nux="scan-receipt-btn"
           variant={hasItems ? 'outline-info' : 'info'}
           size="sm"
           onClick={() => fileRef.current?.click()}
@@ -335,7 +339,7 @@ export default function TabEditor() {
             </p>
           )}
 
-          {!hasItems && isFirstTab && (
+          {!hasItems && isFirstTab && !nuxActive && (
             <div style={{ marginBottom: 4 }}>
               <HintArrow>Or enter items manually</HintArrow>
             </div>
@@ -346,7 +350,7 @@ export default function TabEditor() {
             assignments={assignments}
             selectedRabbitId={selectedRabbitId}
             onToggle={toggleAssignment}
-            onAddItem={addItem}
+            onAddItem={(desc, cents) => { addItem(desc, cents); completeAction('add-items'); }}
             onDeleteItem={deleteItem}
           />
         </div>
@@ -366,7 +370,7 @@ export default function TabEditor() {
       <AddRabbitModal
         show={showAddRabbit}
         onHide={() => setShowAddRabbit(false)}
-        onAdd={(name, color, profile) => addRabbit(name, color, profile)}
+        onAdd={(name, color, profile) => { addRabbit(name, color, profile); completeAction('add-rabbit'); }}
         usedColors={rabbits.map((r) => r.color as RabbitColor)}
         savedRabbits={savedRabbits}
         onAddSavedRabbit={addSaved}

@@ -43,7 +43,7 @@ export default function RabbitBar({
   );
 
   return (
-    <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <div className="d-flex flex-wrap gap-2 mb-3 align-items-center" data-nux="rabbit-bar">
       {rabbits.map((rabbit) => {
         const isSelected = selectedRabbitId === rabbit.id;
         const hex = COLOR_HEX[rabbit.color];
@@ -109,7 +109,7 @@ export default function RabbitBar({
           </Dropdown>
         );
       })}
-      <Button variant="outline-secondary" onClick={onAddClick}>
+      <Button data-nux="add-rabbit-btn" variant="outline-secondary" onClick={onAddClick}>
         + Add Someone
       </Button>
     </div>

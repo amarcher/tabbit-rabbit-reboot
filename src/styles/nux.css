@@ -1,0 +1,158 @@
+/* NUX Onboarding Bubble */
+
+.nux-bubble {
+  position: absolute;
+  z-index: 1060;
+  max-width: 300px;
+  background: rgba(255, 253, 250, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--tr-border);
+  border-top: 2.5px solid var(--tr-accent);
+  border-radius: 12px;
+  box-shadow: var(--tr-shadow-3);
+  padding: 14px 16px;
+  color: var(--tr-text);
+  pointer-events: auto;
+}
+
+.nux-bubble__message {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.nux-bubble__message strong {
+  font-weight: 600;
+}
+
+.nux-bubble__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nux-bubble__step-counter {
+  font-size: 0.72rem;
+  color: var(--tr-muted);
+}
+
+.nux-bubble__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nux-bubble__dismiss-btn {
+  background: var(--tr-accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tr-duration-fast) var(--tr-ease);
+}
+
+.nux-bubble__dismiss-btn:hover {
+  background: #d49730;
+}
+
+.nux-bubble__skip-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.72rem;
+  color: var(--tr-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--tr-duration-fast) var(--tr-ease);
+}
+
+.nux-bubble__skip-link:hover {
+  text-decoration-color: var(--tr-muted);
+}
+
+/* Popper arrow */
+.nux-bubble__arrow,
+.nux-bubble__arrow::before {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  z-index: -1;
+}
+
+.nux-bubble__arrow::before {
+  content: '';
+  transform: rotate(45deg);
+  background: rgba(255, 253, 250, 0.95);
+  border: 1px solid var(--tr-border);
+}
+
+/* Arrow on bottom (bubble above target) */
+.nux-bubble[data-popper-placement^='top'] > .nux-bubble__arrow {
+  bottom: -6px;
+}
+
+.nux-bubble[data-popper-placement^='top'] > .nux-bubble__arrow::before {
+  border-top: none;
+  border-left: none;
+}
+
+/* Arrow on top (bubble below target) */
+.nux-bubble[data-popper-placement^='bottom'] > .nux-bubble__arrow {
+  top: -6px;
+}
+
+.nux-bubble[data-popper-placement^='bottom'] > .nux-bubble__arrow::before {
+  border-bottom: none;
+  border-right: none;
+}
+
+/* Arrow on right (bubble to the left) */
+.nux-bubble[data-popper-placement^='left'] > .nux-bubble__arrow {
+  right: -6px;
+}
+
+.nux-bubble[data-popper-placement^='left'] > .nux-bubble__arrow::before {
+  border-bottom: none;
+  border-left: none;
+}
+
+/* Arrow on left (bubble to the right) */
+.nux-bubble[data-popper-placement^='right'] > .nux-bubble__arrow {
+  left: -6px;
+}
+
+.nux-bubble[data-popper-placement^='right'] > .nux-bubble__arrow::before {
+  border-top: none;
+  border-right: none;
+}
+
+/* Spotlight glow on target elements */
+.nux-spotlight {
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 0 3px var(--tr-accent-glow), 0 0 12px var(--tr-accent-glow);
+  border-radius: 8px;
+  animation: nux-pulse 2s ease-in-out infinite;
+}
+
+@keyframes nux-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px var(--tr-accent-glow), 0 0 12px var(--tr-accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--tr-accent-glow), 0 0 20px var(--tr-accent-glow);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .nux-spotlight {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--tr-accent-glow);
+  }
+}
