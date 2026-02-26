@@ -5,9 +5,20 @@ body {
 
 /* ── Navbar ─────────────────────────────────────── */
 .navbar {
-  background-color: var(--tr-nav-bg) !important;
+  background: linear-gradient(
+    180deg,
+    rgba(45, 42, 38, 1) 0%,
+    rgba(38, 35, 31, 1) 100%
+  ) !important;
   padding-top: 0.4rem;
   padding-bottom: 0.4rem;
+  box-shadow:
+    0 1px 0 rgba(232, 168, 56, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.10);
+  border-bottom: 1px solid rgba(232, 168, 56, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* ── Container width at xl ──────────────────────── */
@@ -19,57 +30,120 @@ body {
 
 /* ── Cards ──────────────────────────────────────── */
 .card {
-  border: 1px solid var(--tr-border);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  background-color: var(--tr-surface);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.88) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(232, 228, 222, 0.6);
+  border-radius: 16px;
+  box-shadow: var(--tr-shadow-1);
+  transition: box-shadow var(--tr-duration-normal) ease, transform var(--tr-duration-normal) ease;
+}
+
+/* Interactive (clickable) cards get a hover lift */
+.card[role='button'],
+.card.tr-interactive {
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .card[role='button']:hover,
+  .card.tr-interactive:hover {
+    box-shadow: var(--tr-shadow-2);
+    transform: translateY(-2px);
+    border-color: rgba(232, 228, 222, 0.85);
+  }
 }
 
 /* ── List groups ────────────────────────────────── */
 .list-group {
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  box-shadow: var(--tr-shadow-1);
 }
 .list-group-item {
-  border-color: var(--tr-border);
+  border-color: rgba(232, 228, 222, 0.5);
+  background-color: rgba(255, 255, 255, 0.92);
+  transition: background-color var(--tr-duration-fast) ease, border-color var(--tr-duration-fast) ease;
+  position: relative;
 }
 .list-group-item:first-child {
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 }
 .list-group-item:last-child {
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Subtle hover on all items that don't have an inline background */
+@media (hover: hover) {
+  .list-group-item:not([style]):hover {
+    background-color: rgba(255, 255, 255, 1);
+  }
 }
 
 /* ── Form inputs ────────────────────────────────── */
 .form-control,
 .form-select {
   border-color: var(--tr-border);
+  background-color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 3px rgba(45, 42, 38, 0.06);
+  transition: border-color var(--tr-duration-fast) ease, box-shadow var(--tr-duration-fast) ease, background-color var(--tr-duration-fast) ease;
+  border-radius: 12px;
 }
 .form-control:focus,
 .form-select:focus {
   border-color: var(--tr-accent);
-  box-shadow: 0 0 0 0.2rem rgba(232, 168, 56, 0.25);
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow:
+    inset 0 1px 3px rgba(45, 42, 38, 0.04),
+    0 0 0 3px var(--tr-accent-glow),
+    0 0 12px rgba(232, 168, 56, 0.12);
+  outline: none;
+}
+
+/* InputGroup text and buttons adopt the rounded feel */
+.input-group > .form-control:not(:last-child),
+.input-group > .form-control:not(:first-child) {
+  border-radius: 0;
+}
+.input-group-text {
+  border-color: var(--tr-border);
+  background-color: rgba(248, 246, 241, 0.8);
+  color: var(--tr-muted);
+  box-shadow: inset 0 1px 3px rgba(45, 42, 38, 0.04);
 }
 
 /* ── Footer ─────────────────────────────────────── */
 .footer {
-  background-color: var(--tr-surface);
-  border-top: 1px solid var(--tr-border);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(248, 246, 241, 0.7) 20%,
+    var(--tr-bg) 100%
+  );
+  border-top: 1px solid rgba(232, 228, 222, 0.4);
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  color: var(--tr-muted);
 }
 
 /* ── Item row hover when a rabbit is selected ──── */
 .list-group-item[role='button']:hover,
-.list-group-item.action:hover {
+.list-group-item.list-group-item-action:hover {
   outline: none;
   border-color: var(--tr-accent);
-  box-shadow: 0 0 10px rgba(232, 168, 56, 0.5);
+  box-shadow:
+    0 0 0 2px var(--tr-accent-glow),
+    inset 0 0 0 1px rgba(232, 168, 56, 0.15);
 }
 
 /* ── Tab name editable cursor ───────────────────── */
 h4[title='Click to edit'] {
   border-bottom: 1px dashed var(--tr-border);
+  transition: border-color 0.15s ease;
 }
 h4[title='Click to edit']:hover {
   border-bottom-color: var(--tr-text);
@@ -141,4 +215,159 @@ h4[title='Click to edit']:hover {
 .tr-delete-btn:hover {
   background-color: rgba(220, 53, 69, 0.1);
   color: #dc3545;
+}
+
+/* ── Elevation utility classes ──────────────────── */
+.tr-elevated-1 {
+  box-shadow: var(--tr-shadow-1);
+}
+
+.tr-elevated-2 {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.90) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--tr-shadow-2);
+  border: 1px solid rgba(232, 228, 222, 0.5);
+  border-radius: 16px;
+}
+
+.tr-elevated-3 {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.94) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--tr-shadow-3);
+  border: 1px solid rgba(232, 228, 222, 0.45);
+  border-radius: 20px;
+}
+
+/* ── Modal glass morphism ───────────────────────── */
+.modal-content {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 255, 255, 0.92) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(232, 228, 222, 0.5);
+  border-radius: 20px;
+  box-shadow: var(--tr-shadow-3);
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(232, 228, 222, 0.5);
+  padding: 1rem 1.25rem;
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(232, 228, 222, 0.5);
+  padding: 1rem 1.25rem;
+}
+
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background-color: rgba(45, 42, 38, 0.55) !important;
+}
+.modal-backdrop.show {
+  opacity: 1 !important;
+}
+
+/* ── Receipt total card ─────────────────────────── */
+/* Applied via className="tr-receipt-card" in TotalsView */
+.tr-receipt-card.card {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 254, 250, 0.98) 0%,
+    rgba(252, 249, 243, 0.95) 100%
+  );
+  border: 1px solid rgba(220, 214, 200, 0.7);
+  border-radius: 12px;
+  box-shadow:
+    var(--tr-shadow-1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.tr-receipt-card .card-body {
+  padding: 0.75rem 1rem;
+}
+
+/* Dashed separator above grand total — applied on the <hr> */
+.tr-receipt-divider {
+  border: none;
+  border-top: 1.5px dashed rgba(180, 168, 148, 0.6);
+  margin: 0.5rem 0;
+}
+
+/* Grand total row emphasis */
+.tr-grand-total {
+  font-size: 1.125rem;
+}
+
+/* ── Dropdown menu glass ────────────────────────── */
+.dropdown-menu {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 255, 255, 0.92) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(232, 228, 222, 0.55);
+  border-radius: 12px;
+  box-shadow: var(--tr-shadow-2);
+  padding: 0.25rem;
+}
+
+.dropdown-item {
+  border-radius: 8px;
+  transition: background-color var(--tr-duration-fast) ease, color var(--tr-duration-fast) ease;
+  padding: 0.5rem 0.75rem;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: rgba(232, 168, 56, 0.1);
+  color: var(--tr-text);
+}
+
+.dropdown-divider {
+  border-color: rgba(232, 228, 222, 0.5);
+  margin: 0.25rem 0;
+}
+
+/* ── Toast notifications ────────────────────────── */
+.toast {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: var(--tr-shadow-3);
+}
+
+/* ── Range slider accent ────────────────────────── */
+.form-range::-webkit-slider-thumb {
+  background: var(--tr-accent);
+  box-shadow: 0 0 0 3px var(--tr-accent-glow);
+}
+.form-range::-moz-range-thumb {
+  background: var(--tr-accent);
+  box-shadow: 0 0 0 3px var(--tr-accent-glow);
+}
+.form-range:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--tr-accent-glow);
+}
+
+/* ── Alert refinements ──────────────────────────── */
+.alert {
+  border-radius: 12px;
+  border-width: 1px;
 }

@@ -1,11 +1,14 @@
-import React, { forwardRef, useMemo, useState } from 'react';
-import { Badge, Button, Dropdown, ListGroup, Form, InputGroup, Modal, Spinner, Toast, ToastContainer } from 'react-bootstrap';
+import React, { forwardRef, useEffect, useRef, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Badge, Button, Dropdown, ListGroup, Form, InputGroup, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
 import { COLOR_HEX } from '../types';
 import { formatCents } from '../utils/currency';
 import { shareBill } from '../utils/billEncoder';
 import { useAuth } from '../hooks/useAuth';
+import { TabListSkeleton } from './Skeleton';
+import './TabList.css';
 
 interface TabListProps {
   tabs: Tab[];
@@ -51,24 +54,10 @@ const MoreToggle = forwardRef<HTMLButtonElement, { onClick: (e: React.MouseEvent
     <button
       ref={ref}
       type="button"
+      className="tr-more-toggle"
       onClick={(e) => {
         e.preventDefault();
         onClick(e);
-      }}
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: '50%',
-        backgroundColor: '#e9ecef',
-        border: 'none',
-        color: '#6c757d',
-        fontSize: '1.1rem',
-        lineHeight: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        padding: 0,
       }}
       aria-label="More options"
     >
@@ -77,12 +66,62 @@ const MoreToggle = forwardRef<HTMLButtonElement, { onClick: (e: React.MouseEvent
   )
 );
 
+interface ToastData {
+  message: string;
+  variant: 'success' | 'danger';
+}
+
+interface AnimatedToastProps {
+  toast: ToastData;
+  onClose: () => void;
+  duration?: number;
+}
+
+function AnimatedToast({ toast, onClose, duration = 3000 }: AnimatedToastProps) {
+  const [progress, setProgress] = useState(100);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const start = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+      setProgress(remaining);
+      if (remaining === 0) {
+        clearInterval(interval);
+        onCloseRef.current();
+      }
+    }, 50);
+    return () => clearInterval(interval);
+  }, [duration]);
+
+  return (
+    <motion.div
+      initial={{ x: 80, opacity: 0, scale: 0.92 }}
+      animate={{ x: 0, opacity: 1, scale: 1 }}
+      exit={{ x: 80, opacity: 0, scale: 0.92 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+      className={`tr-toast tr-toast--${toast.variant}`}
+      onClick={onClose}
+      role="alert"
+      aria-live="polite"
+    >
+      <span className="tr-toast__message">{toast.message}</span>
+      <div
+        className="tr-toast__progress"
+        style={{ width: `${progress}%` }}
+      />
+    </motion.div>
+  );
+}
+
 export default function TabList({ tabs, loading, onCreate, onDelete }: TabListProps) {
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Tab | null>(null);
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'danger' } | null>(null);
+  const [toast, setToast] = useState<ToastData | null>(null);
   const { profile } = useAuth();
 
   const summaries = useMemo(() => {
@@ -146,8 +185,17 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <Spinner animation="border" />
+      <div className="tr-home-layout">
+        <div className="text-center text-md-start">
+          <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 220 }} className="mb-3" />
+          <p className="text-muted small">
+            Split bills with friends. Add items, assign people, and send payment requests.
+          </p>
+        </div>
+        <div>
+          <h5 className="mb-3">My Tabs</h5>
+          <TabListSkeleton />
+        </div>
       </div>
     );
   }
@@ -195,7 +243,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
                     <div className="d-flex justify-content-between align-items-baseline">
                       <strong className="text-truncate">{tab.name}</strong>
                       {summary && (
-                        <span className="text-muted small ms-2 flex-shrink-0">
+                        <span className="text-muted small ms-2 flex-shrink-0 tr-mono">
                           {formatCents(summary.total)}
                         </span>
                       )}
@@ -263,19 +311,17 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
         </Modal.Footer>
       </Modal>
 
-      <ToastContainer position="bottom-center" className="mb-3">
-        <Toast
-          show={!!toast}
-          onClose={() => setToast(null)}
-          autohide
-          delay={3000}
-          bg={toast?.variant}
-        >
-          <Toast.Body className="text-white">
-            {toast?.message}
-          </Toast.Body>
-        </Toast>
-      </ToastContainer>
+      <div className="tr-toast-container">
+        <AnimatePresence>
+          {toast && (
+            <AnimatedToast
+              key={toast.message}
+              toast={toast}
+              onClose={() => setToast(null)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
