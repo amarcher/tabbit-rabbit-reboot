@@ -9,6 +9,7 @@ import {
   Alert,
   Share,
 } from 'react-native';
+import { useToast } from '@/src/components/Toast';
 import * as ImagePicker from 'expo-image-picker';
 import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
@@ -103,6 +104,7 @@ export default function TabEditorScreen() {
     toggleAssignment,
   } = useTab(tabId);
 
+  const { showToast } = useToast();
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);

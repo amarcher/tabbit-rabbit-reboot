@@ -18,6 +18,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { colors, fonts } from '@/src/utils/theme';
+import { ToastProvider } from '@/src/components/Toast';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -79,39 +80,41 @@ function RootLayoutNav() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : ParchmentTheme}>
-        <Stack
-          screenOptions={{
-            animation: 'slide_from_right',
-            gestureEnabled: true,
-            gestureDirection: 'horizontal',
-            animationDuration: 300,
-            headerStyle: { backgroundColor: colors.navBg },
-            headerTintColor: colors.navText,
-            headerTitleStyle: { color: colors.navText, fontFamily: fonts.heading },
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="tab/[tabId]"
-            options={{
-              title: 'Tab',
-              headerBackTitle: 'Back',
+      <ToastProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : ParchmentTheme}>
+          <Stack
+            screenOptions={{
               animation: 'slide_from_right',
+              gestureEnabled: true,
+              gestureDirection: 'horizontal',
+              animationDuration: 300,
+              headerStyle: { backgroundColor: colors.navBg },
+              headerTintColor: colors.navText,
+              headerTitleStyle: { color: colors.navText, fontFamily: fonts.heading },
             }}
-          />
-          <Stack.Screen
-            name="bill/[shareToken]"
-            options={{
-              title: 'Shared Bill',
-              headerBackTitle: 'Back',
-              animation: 'fade_from_bottom',
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </ThemeProvider>
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="tab/[tabId]"
+              options={{
+                title: 'Tab',
+                headerBackTitle: 'Back',
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen
+              name="bill/[shareToken]"
+              options={{
+                title: 'Shared Bill',
+                headerBackTitle: 'Back',
+                animation: 'fade_from_bottom',
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </ThemeProvider>
+      </ToastProvider>
     </GestureHandlerRootView>
   );
 }

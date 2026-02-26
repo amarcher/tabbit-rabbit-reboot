@@ -9,6 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { useToast } from '@/src/components/Toast';
 import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useProStatus } from '@/src/hooks/useProStatus';
@@ -22,6 +23,7 @@ export default function ProfileScreen() {
   const { profile, updateProfile } = useAuth();
   const { isPro, product, purchasing, purchasePro, restorePurchases } = useProStatus();
   const { savedRabbits, refresh: refreshSavedRabbits, removeSaved, updateSaved } = useSavedRabbits();
+  const { showToast } = useToast();
 
   useFocusEffect(
     useCallback(() => {
@@ -90,7 +92,7 @@ export default function ProfileScreen() {
         cashapp_cashtag: stripPrefix(cashapp.trim()) || null,
         paypal_username: stripPrefix(paypal.trim()) || null,
       });
-      Alert.alert('Saved', 'Profile updated successfully.');
+      showToast('Profile updated successfully.', 'success');
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to save profile.');
     } finally {
