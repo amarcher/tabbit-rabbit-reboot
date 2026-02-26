@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { useToast } from '@/src/components/Toast';
 import * as ImagePicker from 'expo-image-picker';
 import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { CoachmarkAnchor, useCoachmark } from '@edwardloopez/react-native-coachmark';
 import { useTab } from '@/src/hooks/useTab';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useProStatus } from '@/src/hooks/useProStatus';
@@ -27,6 +28,7 @@ import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
 import TotalsView from '@/src/components/TotalsView';
 import HintArrow from '@/src/components/HintArrow';
+import { editorTour } from '@/src/utils/onboardingTour';
 import type { RabbitColor, Profile, Tab } from '@/src/types';
 
 function ActionBar({
@@ -105,11 +107,19 @@ export default function TabEditorScreen() {
   } = useTab(tabId);
 
   const { showToast } = useToast();
+  const { start, isActive } = useCoachmark();
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [sharing, setSharing] = useState(false);
 
+  // Auto-start editor tour once the screen loads
+  useEffect(() => {
+    if (!loading && tab && !isActive) {
+      const timer = setTimeout(() => start(editorTour), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, tab, isActive, start]);
 
   React.useEffect(() => {
     if (tab?.name) {
@@ -280,26 +290,35 @@ export default function TabEditorScreen() {
       )}
 
       {/* Action Bar (top) */}
-      <ActionBar
-        onScanReceipt={handleScanReceipt}
-        onShareBill={handleShareBill}
-        scanning={scanning}
-        sharing={sharing}
-        hasItems={hasItems}
-        hasRabbits={hasRabbits}
-      />
+      <CoachmarkAnchor id="scan-receipt" shape="rect" padding={8}>
+        <ActionBar
+          onScanReceipt={handleScanReceipt}
+          onShareBill={handleShareBill}
+          scanning={scanning}
+          sharing={sharing}
+          hasItems={hasItems}
+          hasRabbits={hasRabbits}
+        />
+      </CoachmarkAnchor>
 
       {/* Rabbit Bar */}
-      <RabbitBar
-        rabbits={rabbits}
-        selectedRabbitId={selectedRabbitId}
-        subtotals={subtotals}
-        onSelect={(id) =>
-          setSelectedRabbitId(id === selectedRabbitId ? null : id)
-        }
-        onRemove={removeRabbit}
-        onAddClick={() => setShowAddRabbit(true)}
-      />
+      <CoachmarkAnchor id="rabbit-bar" shape="rect" padding={4}>
+        <RabbitBar
+          rabbits={rabbits}
+          selectedRabbitId={selectedRabbitId}
+          subtotals={subtotals}
+          onSelect={(id) =>
+            setSelectedRabbitId(id === selectedRabbitId ? null : id)
+          }
+          onRemove={removeRabbit}
+          onAddClick={() => setShowAddRabbit(true)}
+          wrapAddChip={(chip) => (
+            <CoachmarkAnchor id="add-rabbit" shape="pill" padding={4}>
+              {chip}
+            </CoachmarkAnchor>
+          )}
+        />
+      </CoachmarkAnchor>
 
       {selectedRabbitId && (
         <Text style={styles.assignHint}>
@@ -329,24 +348,28 @@ export default function TabEditorScreen() {
       />
 
       {/* Totals */}
-      <TotalsView
-        tab={tab}
-        items={items}
-        rabbits={rabbits}
-        assignments={assignments}
-        onUpdateTab={updateTab}
-      />
+      <CoachmarkAnchor id="tax-tip" shape="rect" padding={8}>
+        <TotalsView
+          tab={tab}
+          items={items}
+          rabbits={rabbits}
+          assignments={assignments}
+          onUpdateTab={updateTab}
+        />
+      </CoachmarkAnchor>
 
       {/* Bottom Action Bar — only shown when content exists */}
       {(hasItems || hasRabbits) && (
-        <ActionBar
-          onScanReceipt={handleScanReceipt}
-          onShareBill={handleShareBill}
-          scanning={scanning}
-          sharing={sharing}
-          hasItems={hasItems}
-          hasRabbits={hasRabbits}
-        />
+        <CoachmarkAnchor id="share-bill" shape="rect" padding={8}>
+          <ActionBar
+            onScanReceipt={handleScanReceipt}
+            onShareBill={handleShareBill}
+            scanning={scanning}
+            sharing={sharing}
+            hasItems={hasItems}
+            hasRabbits={hasRabbits}
+          />
+        </CoachmarkAnchor>
       )}
 
       {/* Add Rabbit Modal */}

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,13 @@ import {
 import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { CoachmarkAnchor, useCoachmark } from '@edwardloopez/react-native-coachmark';
 import { useTabs } from '@/src/hooks/useTab';
 import { formatCents } from '@/src/utils/currency';
 import { BUTTON_COLORS } from '@/src/utils/colors';
 import { colors, fonts } from '@/src/utils/theme';
 import HintArrow from '@/src/components/HintArrow';
+import { homeTour } from '@/src/utils/onboardingTour';
 import type { Tab, Item, Rabbit } from '@/src/types';
 
 function TabRow({
@@ -113,6 +115,16 @@ export default function DashboardScreen() {
     Record<string, { items: Item[]; rabbits: Rabbit[] }>
   >({});
 
+  const { start, isActive } = useCoachmark();
+
+  // Auto-start home tour for new users with no tabs
+  useEffect(() => {
+    if (!loading && tabs.length === 0 && !isActive) {
+      const timer = setTimeout(() => start(homeTour), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, tabs.length, isActive, start]);
+
   const loadTabData = useCallback(async () => {
     if (tabs.length === 0) return;
     const keys = tabs.map((t) => `@tab:${t.id}`);
@@ -158,33 +170,35 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.createForm}>
-        <TextInput
-          style={styles.createInput}
-          placeholder={
-            tabs.length === 0
-              ? 'Type a tab name to create one'
-              : 'New tab name (e.g. Friday Dinner)'
-          }
-          placeholderTextColor={colors.placeholder}
-          value={newName}
-          onChangeText={setNewName}
-          returnKeyType="done"
-          onSubmitEditing={handleCreate}
-        />
-        <TouchableOpacity
-          style={[
-            styles.createButton,
-            (creating || !newName.trim()) && styles.createButtonDisabled,
-          ]}
-          onPress={handleCreate}
-          disabled={creating || !newName.trim()}
-        >
-          <Text style={styles.createButtonText}>
-            {creating ? 'Creating...' : 'New Tab'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <CoachmarkAnchor id="create-tab" shape="rect" padding={8}>
+        <View style={styles.createForm}>
+          <TextInput
+            style={styles.createInput}
+            placeholder={
+              tabs.length === 0
+                ? 'Type a tab name to create one'
+                : 'New tab name (e.g. Friday Dinner)'
+            }
+            placeholderTextColor={colors.placeholder}
+            value={newName}
+            onChangeText={setNewName}
+            returnKeyType="done"
+            onSubmitEditing={handleCreate}
+          />
+          <TouchableOpacity
+            style={[
+              styles.createButton,
+              (creating || !newName.trim()) && styles.createButtonDisabled,
+            ]}
+            onPress={handleCreate}
+            disabled={creating || !newName.trim()}
+          >
+            <Text style={styles.createButtonText}>
+              {creating ? 'Creating...' : 'New Tab'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </CoachmarkAnchor>
 
       {tabs.length === 0 && (
         <View style={styles.hintContainer}>

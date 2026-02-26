@@ -12,6 +12,8 @@ interface RabbitBarProps {
   onSelect: (rabbitId: string) => void;
   onRemove: (rabbitId: string) => void;
   onAddClick: () => void;
+  /** Optional wrapper for the "+ Add Someone" chip (used for coachmark anchoring) */
+  wrapAddChip?: (chip: React.ReactElement) => React.ReactElement;
 }
 
 export default function RabbitBar({
@@ -21,6 +23,7 @@ export default function RabbitBar({
   onSelect,
   onRemove,
   onAddClick,
+  wrapAddChip,
 }: RabbitBarProps) {
   const handleLongPress = (rabbit: Rabbit) => {
     Alert.alert(
@@ -69,9 +72,14 @@ export default function RabbitBar({
           </TouchableOpacity>
         );
       })}
-      <TouchableOpacity style={styles.addChip} onPress={onAddClick}>
-        <Text style={styles.addChipText}>+ Add Someone</Text>
-      </TouchableOpacity>
+      {(() => {
+        const chip = (
+          <TouchableOpacity style={styles.addChip} onPress={onAddClick}>
+            <Text style={styles.addChipText}>+ Add Someone</Text>
+          </TouchableOpacity>
+        );
+        return wrapAddChip ? wrapAddChip(chip) : chip;
+      })()}
     </ScrollView>
   );
 }
