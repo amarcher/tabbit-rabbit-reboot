@@ -1,6 +1,6 @@
 # Tabbit Rabbit
 
-A bill-splitting app for web and iOS. Create tabs, add items with prices, assign them to people ("rabbits"), and split costs with tax and tip. Supports AI-powered receipt scanning and payment deep links for Venmo, Cash App, and PayPal.
+A bill-splitting app for web, iOS, and Android. Create tabs, add items with prices, assign them to people ("rabbits"), and split costs with tax and tip. Supports AI-powered receipt scanning and payment deep links for Venmo, Cash App, and PayPal.
 
 **Live at [tabbitrabbit.com](https://tabbitrabbit.com)**
 
@@ -12,7 +12,7 @@ A bill-splitting app for web and iOS. Create tabs, add items with prices, assign
 - **Payment links** — send Venmo charge requests, Cash App links, or PayPal links directly from the app
 - **Bill sharing** — share a tab via link so others can see what they owe
 - **Fully local-first** — all data lives on your device, no account required
-- **iOS app** — native experience with swipe-to-delete, haptics, and Universal Links
+- **iOS & Android apps** — native experience with swipe-to-delete, haptics, and deep links
 
 ## Tech Stack
 
@@ -22,7 +22,7 @@ A bill-splitting app for web and iOS. Create tabs, add items with prices, assign
 | Mobile | Expo SDK 54, React Native, expo-router |
 | Backend | Vercel serverless functions, Vercel KV (Upstash Redis) |
 | Receipt OCR | Claude Haiku 4.5 vision API |
-| Deployment | Web on Vercel, iOS via EAS Build + TestFlight |
+| Deployment | Web on Vercel, mobile via EAS Build (TestFlight / Google Play) |
 
 ## Project Structure
 
@@ -34,7 +34,7 @@ A bill-splitting app for web and iOS. Create tabs, add items with prices, assign
 │   ├── utils/            # payments, billEncoder, scanCounter, anthropic
 │   ├── types/            # TypeScript types
 │   └── styles/           # CSS + gradients
-├── mobile/               # iOS app (Expo + React Native)
+├── mobile/               # Mobile app (Expo + React Native, iOS & Android)
 │   ├── app/              # File-based routing (expo-router)
 │   ├── src/              # Hooks, utils, types (mirrors web)
 │   └── components/       # Native UI components
@@ -66,6 +66,7 @@ cd mobile
 npm install
 npm start            # Expo dev server
 npm run ios          # iOS simulator
+npm run android      # Android emulator
 ```
 
 ### Environment Variables
@@ -96,7 +97,7 @@ The only server-side components are:
 
 ### Bill Sharing
 
-`shareBill()` posts bill data to `/api/share`, which stores it in Vercel KV with a 90-day TTL and returns a 6-character token. Shared bills are viewable at `tabbitrabbit.com/bill/{token}`. On iOS, Universal Links open shared bills directly in the app.
+`shareBill()` posts bill data to `/api/share`, which stores it in Vercel KV with a 90-day TTL and returns a 6-character token. Shared bills are viewable at `tabbitrabbit.com/bill/{token}`. On mobile, deep links open shared bills directly in the app.
 
 ## License
 
