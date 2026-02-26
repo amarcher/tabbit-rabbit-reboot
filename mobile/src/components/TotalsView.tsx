@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,79 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Animated,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { formatCents } from '../utils/currency';
 import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
-import { colors } from '../utils/theme';
+import { colors, timing } from '../utils/theme';
 import PaymentLinks from './PaymentLinks';
+
+function getTipLabel(tip: number): string | null {
+  if (tip >= 25) return 'Wow!';
+  if (tip >= 20) return 'Generous!';
+  if (tip >= 18) return 'Nice!';
+  if (tip >= 15) return 'Standard';
+  return null;
+}
+
+/** Animated tip feedback badge */
+function TipFeedback({ tipPercent }: { tipPercent: number }) {
+  const label = getTipLabel(tipPercent);
+  const opacity = useRef(new Animated.Value(label ? 1 : 0)).current;
+  const translateY = useRef(new Animated.Value(label ? 0 : -4)).current;
+  const prevLabel = useRef<string | null>(label);
+
+  useEffect(() => {
+    if (label && label !== prevLabel.current) {
+      // New label appearing or changing
+      opacity.setValue(0);
+      translateY.setValue(-4);
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: timing.fast,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: timing.fast,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (!label && prevLabel.current) {
+      // Label disappearing
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: timing.fast,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 4,
+          duration: timing.fast,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+    prevLabel.current = label;
+  }, [label, opacity, translateY]);
+
+  if (!label) return null;
+
+  return (
+    <Animated.Text
+      style={[
+        styles.tipFeedback,
+        { opacity, transform: [{ translateY }] },
+      ]}
+    >
+      {label}
+    </Animated.Text>
+  );
+}
 
 interface TotalsViewProps {
   tab: Tab;
@@ -40,9 +106,19 @@ export default function TotalsView({
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 7);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
 
+  // Raw string state for TextInputs — prevents trailing-dot / mid-edit issues
+  const [taxInputText, setTaxInputText] = useState(String(tab.tax_percent || 7));
+  const [tipInputText, setTipInputText] = useState(String(tab.tip_percent || 18));
+
   // Sync local input state when tab values change externally (e.g. receipt scan)
-  useEffect(() => { setTaxPercent(tab.tax_percent || 7); }, [tab.tax_percent]);
-  useEffect(() => { setTipPercent(tab.tip_percent || 18); }, [tab.tip_percent]);
+  useEffect(() => {
+    setTaxPercent(tab.tax_percent || 7);
+    setTaxInputText(String(tab.tax_percent || 7));
+  }, [tab.tax_percent]);
+  useEffect(() => {
+    setTipPercent(tab.tip_percent || 18);
+    setTipInputText(String(tab.tip_percent || 18));
+  }, [tab.tip_percent]);
 
   const itemsSubtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.price_cents, 0),
@@ -92,17 +168,50 @@ export default function TotalsView({
   const tipAmount = Math.round(itemsSubtotal * (tipPercent / 100));
   const grandTotal = itemsSubtotal + taxAmount + tipAmount;
 
-  const handleTaxChange = (val: string) => {
-    const num = parseFloat(val) || 0;
-    setTaxPercent(num);
-    onUpdateTab({ tax_percent: num });
-  };
+  // Slider handlers — update numeric state + text input + persist
+  const handleTaxSlider = useCallback(
+    (val: number) => {
+      const rounded = Math.round(val * 100) / 100; // avoid floating point noise
+      setTaxPercent(rounded);
+      setTaxInputText(String(rounded));
+      onUpdateTab({ tax_percent: rounded });
+    },
+    [onUpdateTab]
+  );
 
-  const handleTipChange = (val: string) => {
-    const num = parseFloat(val) || 0;
-    setTipPercent(num);
-    onUpdateTab({ tip_percent: num });
-  };
+  const handleTipSlider = useCallback(
+    (val: number) => {
+      setTipPercent(val);
+      setTipInputText(String(val));
+      onUpdateTab({ tip_percent: val });
+    },
+    [onUpdateTab]
+  );
+
+  // TextInput handlers — update text freely while typing, parse on blur
+  const handleTaxInputChange = useCallback((text: string) => {
+    setTaxInputText(text);
+  }, []);
+
+  const handleTaxInputBlur = useCallback(() => {
+    const num = parseFloat(taxInputText) || 0;
+    const clamped = Math.min(Math.max(num, 0), 15);
+    setTaxPercent(clamped);
+    setTaxInputText(String(clamped));
+    onUpdateTab({ tax_percent: clamped });
+  }, [taxInputText, onUpdateTab]);
+
+  const handleTipInputChange = useCallback((text: string) => {
+    setTipInputText(text);
+  }, []);
+
+  const handleTipInputBlur = useCallback(() => {
+    const num = parseFloat(tipInputText) || 0;
+    const clamped = Math.min(Math.max(num, 0), 30);
+    setTipPercent(clamped);
+    setTipInputText(String(clamped));
+    onUpdateTab({ tip_percent: clamped });
+  }, [tipInputText, onUpdateTab]);
 
   if (items.length === 0) return null;
 
@@ -110,25 +219,66 @@ export default function TotalsView({
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Totals</Text>
 
-      {/* Tax & Tip Controls */}
-      <View style={styles.controlsRow}>
-        <View style={styles.controlItem}>
-          <Text style={styles.controlLabel}>Tax %</Text>
+      {/* Tax Slider */}
+      <View style={styles.sliderGroup}>
+        <View style={styles.sliderRow}>
+          <Text style={styles.sliderLabel}>Tax %</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={15}
+            step={0.25}
+            value={taxPercent}
+            onValueChange={handleTaxSlider}
+            minimumTrackTintColor={colors.accent}
+            maximumTrackTintColor={colors.border}
+            thumbTintColor={colors.accent}
+            accessibilityLabel="Tax percentage"
+          />
           <TextInput
-            style={styles.controlInput}
+            style={styles.sliderInput}
             keyboardType="decimal-pad"
-            value={String(taxPercent)}
-            onChangeText={handleTaxChange}
+            value={taxInputText}
+            onChangeText={handleTaxInputChange}
+            onBlur={handleTaxInputBlur}
+            selectTextOnFocus
+            returnKeyType="done"
+            accessibilityLabel="Tax percentage input"
           />
         </View>
-        <View style={styles.controlItem}>
-          <Text style={styles.controlLabel}>Tip %</Text>
-          <TextInput
-            style={styles.controlInput}
-            keyboardType="decimal-pad"
-            value={String(tipPercent)}
-            onChangeText={handleTipChange}
+        <Text style={styles.sliderAmount}>{formatCents(taxAmount)}</Text>
+      </View>
+
+      {/* Tip Slider */}
+      <View style={styles.sliderGroup}>
+        <View style={styles.sliderRow}>
+          <Text style={styles.sliderLabel}>Tip %</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={30}
+            step={1}
+            value={tipPercent}
+            onValueChange={handleTipSlider}
+            minimumTrackTintColor={colors.accent}
+            maximumTrackTintColor={colors.border}
+            thumbTintColor={colors.accent}
+            accessibilityLabel="Tip percentage"
           />
+          <TextInput
+            style={styles.sliderInput}
+            keyboardType="decimal-pad"
+            value={tipInputText}
+            onChangeText={handleTipInputChange}
+            onBlur={handleTipInputBlur}
+            selectTextOnFocus
+            returnKeyType="done"
+            accessibilityLabel="Tip percentage input"
+          />
+        </View>
+        <View style={styles.tipAmountRow}>
+          <TipFeedback tipPercent={tipPercent} />
+          <Text style={styles.sliderAmount}>{formatCents(tipAmount)}</Text>
         </View>
       </View>
 
@@ -232,28 +382,52 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 16,
   },
-  controlsRow: {
+  sliderGroup: {
+    marginBottom: 12,
+  },
+  sliderRow: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
+    alignItems: 'center',
+    gap: 8,
   },
-  controlItem: {
-    flex: 1,
-  },
-  controlLabel: {
+  sliderLabel: {
     fontSize: 13,
+    fontWeight: '600',
     color: colors.muted,
-    marginBottom: 4,
+    width: 42,
   },
-  controlInput: {
+  slider: {
+    flex: 1,
+    height: 40,
+  },
+  sliderInput: {
+    width: 56,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 15,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    fontSize: 14,
+    textAlign: 'center',
     backgroundColor: colors.inputBg,
     color: colors.text,
+  },
+  sliderAmount: {
+    fontSize: 12,
+    color: colors.muted,
+    textAlign: 'right',
+    marginTop: 2,
+  },
+  tipAmountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  tipFeedback: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.accent,
   },
   breakdownList: {
     borderRadius: 8,
