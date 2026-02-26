@@ -71,7 +71,8 @@ export default function Confetti({ active, originX, originY, onDone }: ConfettiP
             width: 0,
             height: 0,
             pointerEvents: 'none',
-            zIndex: 9999,
+<<<<<<< HEAD
+            zIndex: 1070,
             overflow: 'visible',
           }}
           aria-hidden="true"

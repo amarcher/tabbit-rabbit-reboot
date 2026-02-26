@@ -45,8 +45,13 @@ export default function AnimatedNumber({
   }, [value, duration, decimals, format, motionValue]);
 
   return (
-    <span className={className} style={style}>
-      {display}
-    </span>
+    <>
+      <span className={className} style={style} aria-hidden="true">
+        {display}
+      </span>
+      <span className="visually-hidden" aria-live="polite">
+        {format ? format(value) : value.toFixed(decimals)}
+      </span>
+    </>
   );
 }

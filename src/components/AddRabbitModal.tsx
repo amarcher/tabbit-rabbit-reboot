@@ -169,6 +169,8 @@ export default function AddRabbitModal({
                       variants={badgeVariants}
                       initial="hidden"
                       animate="visible"
+                      whileHover={{ scale: 1.06 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Badge
                         pill

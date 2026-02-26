@@ -133,7 +133,7 @@ export default function SharedBillPage() {
                   <div>
                     <strong>{rabbit.name}</strong>
                     <br />
-                    <small className="text-muted tr-mono">
+                    <small className="tr-mono" style={{ color: '#2d2a26' }}>
                       {formatCents(subtotal)} + {formatCents(tax)} tax + {formatCents(tip)} tip
                     </small>
                   </div>

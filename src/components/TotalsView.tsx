@@ -251,7 +251,7 @@ export default function TotalsView({
                   <div>
                     <strong>{rabbit.name}</strong>
                     <br />
-                    <small className="text-muted tr-mono">
+                    <small className="tr-mono" style={{ color: '#2d2a26' }}>
                       <AnimatedNumber value={subtotal} format={formatCentsAnimated} duration={0.3} />{' '}
                       +{' '}
                       <AnimatedNumber value={tax} format={formatCentsAnimated} duration={0.3} />{' '}
