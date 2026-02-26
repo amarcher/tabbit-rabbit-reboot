@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +16,8 @@ import { formatCents } from '@/src/utils/currency';
 import { BUTTON_COLORS } from '@/src/utils/colors';
 import { colors, fonts } from '@/src/utils/theme';
 import HintArrow from '@/src/components/HintArrow';
+import FloatingView from '@/src/components/FloatingView';
+import { TabListSkeleton } from '@/src/components/Skeleton';
 import { homeTour } from '@/src/utils/onboardingTour';
 import type { Tab, Item, Rabbit } from '@/src/types';
 
@@ -162,8 +163,31 @@ export default function DashboardScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+      <View style={styles.container}>
+        <View style={styles.createForm}>
+          <TextInput
+            style={styles.createInput}
+            placeholder="New tab name (e.g. Friday Dinner)"
+            placeholderTextColor={colors.placeholder}
+            value={newName}
+            onChangeText={setNewName}
+            returnKeyType="done"
+            onSubmitEditing={handleCreate}
+          />
+          <TouchableOpacity
+            style={[
+              styles.createButton,
+              (creating || !newName.trim()) && styles.createButtonDisabled,
+            ]}
+            onPress={handleCreate}
+            disabled={creating || !newName.trim()}
+          >
+            <Text style={styles.createButtonText}>
+              {creating ? 'Creating...' : 'New Tab'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <TabListSkeleton />
       </View>
     );
   }
@@ -201,9 +225,9 @@ export default function DashboardScreen() {
       </CoachmarkAnchor>
 
       {tabs.length === 0 && (
-        <View style={styles.hintContainer}>
+        <FloatingView style={styles.hintContainer}>
           <HintArrow text="Start by naming your first tab" />
-        </View>
+        </FloatingView>
       )}
 
       {tabs.length === 0 ? (
@@ -232,11 +256,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   createForm: {
     flexDirection: 'row',

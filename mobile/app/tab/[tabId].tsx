@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,14 @@ import {
   ActivityIndicator,
   Alert,
   Share,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import { useToast } from '@/src/components/Toast';
 import * as ImagePicker from 'expo-image-picker';
 import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
@@ -114,6 +121,24 @@ export default function TabEditorScreen() {
   const [scanning, setScanning] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Scroll-to-top button state
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollTopOpacity = useSharedValue(0);
+
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    scrollTopOpacity.value = withTiming(y > 200 ? 1 : 0, { duration: 200 });
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
+
+  const scrollTopStyle = useAnimatedStyle(() => ({
+    opacity: scrollTopOpacity.value,
+    pointerEvents: scrollTopOpacity.value > 0.5 ? 'auto' as const : 'none' as const,
+  }));
 
   // Auto-start editor tour once the screen loads
   useEffect(() => {
@@ -285,7 +310,13 @@ export default function TabEditorScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      ref={scrollViewRef}
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+    >
       {/* Hint: scan a receipt */}
       {showFirstTabHints && (
         <View style={styles.hintRow}>
@@ -391,6 +422,11 @@ export default function TabEditorScreen() {
       <View style={styles.bottomPadding} />
     </ScrollView>
     {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}
+    <Animated.View style={[styles.scrollTopButton, scrollTopStyle]}>
+      <TouchableOpacity onPress={scrollToTop} activeOpacity={0.8}>
+        <Text style={styles.scrollTopText}>↑</Text>
+      </TouchableOpacity>
+    </Animated.View>
     </View>
   );
 }
@@ -453,5 +489,26 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 40,
+  },
+  scrollTopButton: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#a08c64',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  scrollTopText: {
+    fontSize: 20,
+    color: colors.text,
+    fontFamily: fonts.bodyBold,
   },
 });
