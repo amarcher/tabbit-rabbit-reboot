@@ -115,3 +115,15 @@ export const radii = {
   xl: 16,
   pill: 20,
 } as const;
+
+// ---------------------------------------------------------------------------
+// Fonts (Google Fonts loaded in _layout.tsx)
+// ---------------------------------------------------------------------------
+
+export const fonts = {
+  body: 'Nunito_400Regular',
+  bodySemiBold: 'Nunito_600SemiBold',
+  bodyBold: 'Nunito_700Bold',
+  heading: 'DMSans_700Bold',
+  headingSemiBold: 'DMSans_600SemiBold',
+} as const;

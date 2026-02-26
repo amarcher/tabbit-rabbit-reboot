@@ -15,7 +15,7 @@ import { useProStatus } from '@/src/hooks/useProStatus';
 import { useSavedRabbits } from '@/src/hooks/useSavedRabbits';
 import { remainingFreeScans, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
 import { BUTTON_COLORS } from '@/src/utils/colors';
-import { colors } from '@/src/utils/theme';
+import { colors, fonts } from '@/src/utils/theme';
 import type { SavedRabbit } from '@/src/types';
 
 export default function ProfileScreen() {
@@ -324,9 +324,9 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
     color: colors.muted,
     marginBottom: 6,
+    fontFamily: fonts.bodySemiBold,
   },
   input: {
     borderWidth: 1,
@@ -337,6 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: colors.inputBg,
     color: colors.text,
+    fontFamily: fonts.body,
   },
   saveButton: {
     backgroundColor: colors.accent,
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   proSection: {
     marginTop: 32,
@@ -361,19 +362,21 @@ const styles = StyleSheet.create({
   },
   proTitle: {
     fontSize: 18,
-    fontWeight: '700',
     color: colors.text,
     marginBottom: 8,
+    fontFamily: fonts.heading,
   },
   proDescription: {
     fontSize: 14,
     color: colors.muted,
     marginBottom: 4,
+    fontFamily: fonts.body,
   },
   scanCountHint: {
     fontSize: 13,
     color: colors.muted,
     marginBottom: 12,
+    fontFamily: fonts.body,
   },
   proButton: {
     backgroundColor: '#f97316',
@@ -384,7 +387,7 @@ const styles = StyleSheet.create({
   proButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
   },
   proBadgeRow: {
     flexDirection: 'row',
@@ -400,11 +403,12 @@ const styles = StyleSheet.create({
   proBadgeText: {
     color: '#fff',
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: fonts.bodyBold,
   },
   proBadgeLabel: {
     fontSize: 14,
     color: colors.muted,
+    fontFamily: fonts.body,
   },
   linkText: {
     color: colors.link,
@@ -439,8 +443,8 @@ const styles = StyleSheet.create({
   },
   savedRabbitName: {
     fontSize: 16,
-    fontWeight: '600',
     color: colors.text,
+    fontFamily: fonts.bodySemiBold,
   },
   handleBadge: {
     paddingHorizontal: 6,
@@ -451,8 +455,8 @@ const styles = StyleSheet.create({
   },
   handleBadgeText: {
     fontSize: 10,
-    fontWeight: '700',
     color: colors.accent,
+    fontFamily: fonts.bodyBold,
   },
   cashappBadge: {
     borderColor: '#198754',
@@ -487,7 +491,7 @@ const styles = StyleSheet.create({
   },
   saveEditButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     fontSize: 14,
   },
 });

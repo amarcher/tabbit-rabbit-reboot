@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useBillCache } from '@/src/hooks/useBillCache';
 import { formatCents } from '@/src/utils/currency';
-import { colors } from '@/src/utils/theme';
+import { colors, fonts } from '@/src/utils/theme';
 
 export default function BillHistoryScreen() {
   const { cachedBills, loading, refresh } = useBillCache();
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.heading,
     color: colors.text,
     marginBottom: 8,
   },
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   tabName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.text,
   },
   ownerName: {
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   total: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
     marginLeft: 12,
   },

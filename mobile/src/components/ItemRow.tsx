@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { Item, Rabbit, ItemRabbit } from '../types';
 import { formatCents } from '../utils/currency';
 import { getGradientColors } from '../utils/colors';
-import { colors as theme } from '../utils/theme';
+import { colors as theme, fonts } from '../utils/theme';
 
 interface ItemRowProps {
   item: Item;
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: theme.text,
   },
   swipeActions: {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     fontSize: 14,
   },
 });

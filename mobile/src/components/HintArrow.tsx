@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet } from 'react-native';
-import { colors } from '@/src/utils/theme';
+import { colors, fonts } from '@/src/utils/theme';
 
 interface HintArrowProps {
   text: string;
@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 13,
     color: colors.muted,
+    fontFamily: fonts.body,
     fontStyle: 'italic',
   },
 });

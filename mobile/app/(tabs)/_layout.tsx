@@ -2,7 +2,7 @@ import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
 
-import { colors } from '@/src/utils/theme';
+import { colors, fonts } from '@/src/utils/theme';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
@@ -23,7 +23,8 @@ export default function TabLayout() {
         },
         headerStyle: { backgroundColor: colors.navBg },
         headerTintColor: colors.navText,
-        headerTitleStyle: { color: colors.navText },
+        headerTitleStyle: { color: colors.navText, fontFamily: fonts.heading },
+        tabBarLabelStyle: { fontFamily: fonts.bodySemiBold },
         headerShown: true,
       }}>
       <Tabs.Screen

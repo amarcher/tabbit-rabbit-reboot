@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import type { Rabbit } from '../types';
 import { venmoChargeLink, cashAppLink, paypalLink } from '../utils/payments';
+import { fonts } from '../utils/theme';
 
 interface PaymentLinksProps {
   rabbit: Rabbit;
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   venmo: {
     borderColor: '#3d95ce',

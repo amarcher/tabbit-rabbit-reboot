@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import type { Item, Rabbit, ItemRabbit } from '../types';
 import { parseDollars } from '../utils/currency';
-import { colors } from '../utils/theme';
+import { colors, fonts } from '../utils/theme';
 import ItemRow from './ItemRow';
 
 interface ItemListProps {
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     fontSize: 16,
   },
 });

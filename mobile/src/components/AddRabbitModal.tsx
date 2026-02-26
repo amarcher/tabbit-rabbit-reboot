@@ -15,7 +15,7 @@ import * as Crypto from 'expo-crypto';
 import { RABBIT_COLORS, RabbitColor } from '../types';
 import type { SavedRabbit, Profile } from '../types';
 import { BUTTON_COLORS } from '../utils/colors';
-import { colors } from '../utils/theme';
+import { colors, fonts } from '../utils/theme';
 
 interface AddRabbitModalProps {
   visible: boolean;
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.heading,
     color: colors.text,
     marginBottom: 16,
   },
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   savedLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.muted,
     marginBottom: 8,
   },
@@ -329,12 +329,12 @@ const styles = StyleSheet.create({
   },
   chipName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.text,
   },
   chipPayment: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: '#198754',
   },
   divider: {
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.muted,
     marginBottom: 6,
   },
@@ -391,14 +391,14 @@ const styles = StyleSheet.create({
   expandButtonText: {
     fontSize: 14,
     color: colors.link,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   paymentFields: {
     marginBottom: 8,
   },
   paymentLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.muted,
     marginBottom: 8,
   },
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   addButton: {
     paddingHorizontal: 20,
@@ -434,6 +434,6 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
 });

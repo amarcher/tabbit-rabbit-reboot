@@ -20,7 +20,7 @@ import { shareBill } from '@/src/utils/billEncoder';
 import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
 import { receiptValueToPercent } from '@/src/utils/anthropic';
 import type { ReceiptResult } from '@/src/utils/anthropic';
-import { colors } from '@/src/utils/theme';
+import { colors, fonts } from '@/src/utils/theme';
 import ItemList from '@/src/components/ItemList';
 import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   actionButtonOutlineText: {
     color: colors.accent,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     fontSize: 14,
   },
   actionButtonFilled: {
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   },
   actionButtonFilledText: {
     color: colors.text,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     fontSize: 14,
   },
   hintRow: {
@@ -413,10 +413,11 @@ const styles = StyleSheet.create({
   assignHint: {
     fontSize: 13,
     color: colors.muted,
+    fontFamily: fonts.body,
     marginBottom: 8,
   },
   assignHintName: {
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
   },
   bottomPadding: {

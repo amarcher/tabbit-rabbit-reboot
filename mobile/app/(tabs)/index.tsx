@@ -14,7 +14,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useTabs } from '@/src/hooks/useTab';
 import { formatCents } from '@/src/utils/currency';
 import { BUTTON_COLORS } from '@/src/utils/colors';
-import { colors } from '@/src/utils/theme';
+import { colors, fonts } from '@/src/utils/theme';
 import HintArrow from '@/src/components/HintArrow';
 import type { Tab, Item, Rabbit } from '@/src/types';
 
@@ -242,6 +242,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: colors.inputBg,
     color: colors.text,
+    fontFamily: fonts.body,
   },
   createButton: {
     backgroundColor: colors.accent,
@@ -254,9 +255,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   createButtonText: {
-    fontWeight: '700',
     fontSize: 15,
     color: colors.text,
+    fontFamily: fonts.bodyBold,
   },
   list: {
     padding: 16,
@@ -277,15 +278,15 @@ const styles = StyleSheet.create({
   },
   tabName: {
     fontSize: 17,
-    fontWeight: '600',
     color: colors.text,
     flex: 1,
     marginRight: 12,
+    fontFamily: fonts.headingSemiBold,
   },
   tabTotal: {
     fontSize: 16,
-    fontWeight: '700',
     color: colors.text,
+    fontFamily: fonts.bodyBold,
   },
   rabbitChips: {
     flexDirection: 'row',
@@ -301,11 +302,12 @@ const styles = StyleSheet.create({
   },
   rabbitChipText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   tabDate: {
     fontSize: 13,
     color: colors.muted,
+    fontFamily: fonts.body,
   },
   swipeActions: {
     flexDirection: 'row',
@@ -327,8 +329,8 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: '#fff',
-    fontWeight: '600',
     fontSize: 14,
+    fontFamily: fonts.bodySemiBold,
   },
   hintContainer: {
     paddingHorizontal: 16,

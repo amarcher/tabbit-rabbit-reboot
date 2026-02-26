@@ -15,7 +15,7 @@ import { useBillCache } from '@/src/hooks/useBillCache';
 import { formatCents } from '@/src/utils/currency';
 import { getGradientColors } from '@/src/utils/colors';
 import { venmoLink, cashAppLink, paypalLink, buildPaymentNote } from '@/src/utils/payments';
-import { colors } from '@/src/utils/theme';
+import { colors, fonts } from '@/src/utils/theme';
 import { COLOR_HEX, RabbitColor } from '@/src/types';
 
 export default function SharedBillScreen() {
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   tabName: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: fonts.heading,
     color: colors.text,
     marginBottom: 4,
   },
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   },
   itemPrice: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.text,
   },
   breakdownList: {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   rabbitName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
   },
   breakdownDetail: {
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   },
   rabbitTotal: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
   },
   paymentButtons: {
@@ -315,11 +315,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   venmoBtn: { borderColor: '#3d95ce' },
-  venmoText: { color: '#3d95ce', fontSize: 12, fontWeight: '600' },
+  venmoText: { color: '#3d95ce', fontSize: 12, fontFamily: fonts.bodySemiBold },
   cashappBtn: { borderColor: '#198754' },
-  cashappText: { color: '#198754', fontSize: 12, fontWeight: '600' },
+  cashappText: { color: '#198754', fontSize: 12, fontFamily: fonts.bodySemiBold },
   paypalBtn: { borderColor: '#0070ba' },
-  paypalText: { color: '#0070ba', fontSize: 12, fontWeight: '600' },
+  paypalText: { color: '#0070ba', fontSize: 12, fontFamily: fonts.bodySemiBold },
   totalCard: {
     backgroundColor: colors.surface,
     borderRadius: 8,
@@ -347,12 +347,12 @@ const styles = StyleSheet.create({
   },
   grandLabel: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
   },
   grandValue: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
   },
 });

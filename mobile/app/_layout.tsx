@@ -1,5 +1,14 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider, Theme } from '@react-navigation/native';
+import {
+  Nunito_400Regular,
+  Nunito_600SemiBold,
+  Nunito_700Bold,
+} from '@expo-google-fonts/nunito';
+import {
+  DMSans_600SemiBold,
+  DMSans_700Bold,
+} from '@expo-google-fonts/dm-sans';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -8,7 +17,7 @@ import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useColorScheme } from '@/components/useColorScheme';
-import { colors } from '@/src/utils/theme';
+import { colors, fonts } from '@/src/utils/theme';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -36,10 +45,20 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
+    Nunito_400Regular,
+    Nunito_600SemiBold,
+    Nunito_700Bold,
+    DMSans_600SemiBold,
+    DMSans_700Bold,
   });
 
   useEffect(() => {
-    if (error) throw error;
+    if (error) {
+      // Font loading failed — log but don't throw so the app still renders
+      // with system fonts as a graceful fallback.
+      console.warn('Font loading error:', error);
+      SplashScreen.hideAsync();
+    }
   }, [error]);
 
   useEffect(() => {
@@ -48,7 +67,7 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
+  if (!loaded && !error) {
     return null;
   }
 
@@ -65,7 +84,7 @@ function RootLayoutNav() {
           screenOptions={{
             headerStyle: { backgroundColor: colors.navBg },
             headerTintColor: colors.navText,
-            headerTitleStyle: { color: colors.navText },
+            headerTitleStyle: { color: colors.navText, fontFamily: fonts.heading },
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

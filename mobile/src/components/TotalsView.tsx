@@ -13,7 +13,7 @@ import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { formatCents } from '../utils/currency';
 import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
-import { colors, timing } from '../utils/theme';
+import { colors, fonts, timing } from '../utils/theme';
 import PaymentLinks from './PaymentLinks';
 
 function getTipLabel(tip: number): string | null {
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.heading,
     color: colors.text,
     marginBottom: 16,
   },
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   sliderLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.muted,
     width: 42,
   },
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
   },
   tipFeedback: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.accent,
   },
   breakdownList: {
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   },
   rabbitName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
   },
   breakdownDetail: {
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
   },
   rabbitTotal: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
   },
   warningBox: {
@@ -501,12 +501,12 @@ const styles = StyleSheet.create({
   },
   grandLabel: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
   },
   grandValue: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: colors.text,
   },
   chargeButton: {
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
   },
   chargeButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.muted,
   },
 });

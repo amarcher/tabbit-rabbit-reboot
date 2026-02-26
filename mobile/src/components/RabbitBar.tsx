@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'rea
 import type { Rabbit } from '../types';
 import { formatCents } from '../utils/currency';
 import { BUTTON_COLORS, BUTTON_OUTLINE_COLORS } from '../utils/colors';
-import { colors } from '../utils/theme';
+import { colors, fonts } from '../utils/theme';
 
 interface RabbitBarProps {
   rabbits: Rabbit[];
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   badge: {
     backgroundColor: colors.bg,
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.text,
   },
   addChip: {
