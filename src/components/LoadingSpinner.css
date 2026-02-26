@@ -15,19 +15,19 @@
   align-items: center;
 }
 
-/* Each animated dot */
+/* Each animated dot — gentle breathing instead of bounce */
 .tr-spinner__dot {
   border-radius: 50%;
   background-color: var(--tr-accent);
-  animation: tr-dot-bounce 1.2s ease-in-out infinite;
+  animation: tr-dot-breathe 2.4s ease-in-out infinite;
 }
 
 .tr-spinner__dot:nth-child(2) {
-  animation-delay: 0.15s;
+  animation-delay: 0.3s;
 }
 
 .tr-spinner__dot:nth-child(3) {
-  animation-delay: 0.3s;
+  animation-delay: 0.6s;
 }
 
 /* Size variants */
@@ -61,13 +61,14 @@
   font-size: 0.85rem;
 }
 
-@keyframes tr-dot-bounce {
-  0%, 80%, 100% {
-    transform: translateY(0);
-    opacity: 0.45;
+/* Breathing animation — gentle scale pulse */
+@keyframes tr-dot-breathe {
+  0%, 100% {
+    transform: scale(0.7);
+    opacity: 0.35;
   }
-  40% {
-    transform: translateY(-6px);
+  50% {
+    transform: scale(1);
     opacity: 1;
   }
 }

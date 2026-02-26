@@ -1,13 +1,14 @@
 import React, { forwardRef, useEffect, useRef, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Badge, Button, Dropdown, ListGroup, Form, InputGroup, Modal } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
 import { COLOR_HEX } from '../types';
 import { formatCents } from '../utils/currency';
 import { shareBill } from '../utils/billEncoder';
 import { useAuth } from '../hooks/useAuth';
 import { TabListSkeleton } from './Skeleton';
+import HintArrow from './HintArrow';
 import './TabList.css';
 
 interface TabListProps {
@@ -123,6 +124,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
   const [deleteTarget, setDeleteTarget] = useState<Tab | null>(null);
   const [toast, setToast] = useState<ToastData | null>(null);
   const { profile } = useAuth();
+  const navigate = useNavigate();
 
   const summaries = useMemo(() => {
     const map: Record<string, TabSummary | null> = {};
@@ -137,8 +139,11 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
     if (!newName.trim()) return;
     setCreating(true);
     try {
-      await onCreate(newName.trim());
+      const tab = await onCreate(newName.trim());
       setNewName('');
+      if (tab) {
+        navigate(`/tabs/${tab.id}`);
+      }
     } finally {
       setCreating(false);
     }
@@ -188,7 +193,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
       <div className="tr-home-layout">
         <div className="text-center text-md-start">
           <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 220 }} className="mb-3" />
-          <p className="text-muted small">
+          <p className="text-muted small" style={{ maxWidth: 220 }}>
             Split bills with friends. Add items, assign people, and send payment requests.
           </p>
         </div>
@@ -204,33 +209,36 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
     <div className="tr-home-layout">
       <div className="text-center text-md-start">
         <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 220 }} className="mb-3" />
-        <p className="text-muted small">
-          Split bills with friends. Add items, assign people, and send payment requests.
-        </p>
       </div>
 
       <div>
-        <h5 className="mb-3">My Tabs</h5>
+        <div className="d-flex align-items-baseline gap-3 mb-3">
+          <h5 className="mb-0">My Tabs</h5>
+          {tabs.length === 0 && (
+            <HintArrow>Create a tab to start splitting a bill.</HintArrow>
+          )}
+        </div>
 
         <Form onSubmit={handleCreate} className="mb-4">
           <InputGroup>
             <Form.Control
               type="text"
-              placeholder="New tab name (e.g. Friday Dinner)"
+              placeholder={tabs.length === 0 ? 'Type a tab name to create one' : 'New tab name (e.g. Friday Dinner)'}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
             />
-            <Button variant="warning" type="submit" disabled={creating || !newName.trim()}>
+            <Button
+              variant="warning"
+              type="submit"
+              disabled={creating || !newName.trim()}
+              className={!newName.trim() ? 'tr-btn-disabled-muted' : ''}
+            >
               {creating ? 'Creating...' : 'New Tab'}
             </Button>
           </InputGroup>
         </Form>
 
-        {tabs.length === 0 ? (
-          <p className="text-muted text-center">
-            No tabs yet. Create one to start splitting a bill!
-          </p>
-        ) : (
+        {tabs.length > 0 && (
           <ListGroup>
             {tabs.map((tab) => {
               const summary = summaries[tab.id];
@@ -254,6 +262,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
                           <Badge
                             key={r.id}
                             pill
+                            bg=""
                             style={{
                               backgroundColor: COLOR_HEX[r.color],
                               color: '#333',

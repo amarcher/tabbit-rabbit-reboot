@@ -8,7 +8,7 @@ import { useInView } from 'framer-motion';
 export function useScrollReveal(options?: { amount?: number; once?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, {
-    amount: options?.amount ?? 0.15,
+    amount: options?.amount ?? 0,
     once: options?.once ?? true,
   });
   return { ref, isInView };

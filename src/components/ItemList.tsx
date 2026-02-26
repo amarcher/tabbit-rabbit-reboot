@@ -36,7 +36,7 @@ export default function ItemList({
 
   return (
     <div>
-      <ListGroup className="mb-3">
+      <ListGroup className={items.length > 0 ? 'mb-3' : ''}>
         {items.map((item) => (
           <ItemRow
             key={item.id}

@@ -4,9 +4,9 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background-color: #e9ecef;
+  background-color: rgba(200, 192, 178, 0.35);
   border: none;
-  color: #6c757d;
+  color: var(--tr-muted);
   font-size: 1.1rem;
   line-height: 1;
   display: flex;
@@ -14,13 +14,13 @@
   justify-content: center;
   cursor: pointer;
   padding: 0;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.3s var(--tr-ease), color 0.3s var(--tr-ease);
 }
 
 @media (hover: hover) {
   .tr-more-toggle:hover {
-    background-color: #dee2e6;
-    color: #495057;
+    background-color: rgba(200, 192, 178, 0.55);
+    color: var(--tr-text);
   }
 }
 
@@ -40,7 +40,7 @@
 .tr-toast {
   position: relative;
   color: #fff;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 10px 16px;
   min-width: 220px;
   max-width: 320px;
@@ -67,6 +67,6 @@
   left: 0;
   height: 3px;
   background: rgba(255, 255, 255, 0.5);
-  border-radius: 0 0 0 12px;
+  border-radius: 0 0 0 10px;
   transform-origin: left;
 }

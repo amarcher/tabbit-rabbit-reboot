@@ -32,7 +32,7 @@ export default function NavBar() {
       <Container>
         <Navbar.Brand as={Link} to="/" className="tr-navbar-brand">
           <img
-            src="/tbicon.png"
+            src="/tblogo.png"
             alt="Tabbit Rabbit"
             width="24"
             height="24"
