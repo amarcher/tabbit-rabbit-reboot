@@ -49,10 +49,11 @@ function generateParticles(count: number): Particle[] {
 const PARTICLE_COUNT = 48;
 
 export default function Confetti({ active, originX, originY, onDone }: ConfettiProps) {
-  const [particles] = useState<Particle[]>(() => generateParticles(PARTICLE_COUNT));
+  const [particles, setParticles] = useState<Particle[]>(() => generateParticles(PARTICLE_COUNT));
 
   useEffect(() => {
     if (!active) return;
+    setParticles(generateParticles(PARTICLE_COUNT));
     const timer = setTimeout(() => {
       onDone?.();
     }, 1600);

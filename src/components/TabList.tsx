@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useMemo, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useMemo, useState } from 'react';
 import { Badge, Button, Dropdown, ListGroup, Form, InputGroup, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -89,6 +89,8 @@ const TOAST_DURATION = 3000;
 
 function AnimatedToast({ toast, onClose }: { toast: ToastData; onClose: () => void }) {
   const [progress, setProgress] = useState(100);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     const start = performance.now();
@@ -101,13 +103,13 @@ function AnimatedToast({ toast, onClose }: { toast: ToastData; onClose: () => vo
       if (remaining > 0) {
         raf = requestAnimationFrame(tick);
       } else {
-        onClose();
+        onCloseRef.current();
       }
     };
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [onClose]);
+  }, []);
 
   const bgColor = toast.variant === 'success' ? '#198754' : '#dc3545';
 

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { ButtonGroup, Button, Dropdown } from 'react-bootstrap';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { Rabbit } from '../types';
 import { COLOR_HEX } from '../types';
 import { formatCents } from '../utils/currency';
@@ -52,16 +52,14 @@ export default function RabbitBar({
           <Dropdown as={ButtonGroup} key={rabbit.id} drop="up">
             {/* Wrapper holds the ping ring + the motion button */}
             <div className="tr-rabbit-btn-wrapper" style={{ position: 'relative' }}>
-              {/* Sonar ping ring */}
-              <AnimatePresence>
-                {activePing?.id === rabbit.id && (
-                  <span
-                    key={activePing.key}
-                    className="tr-rabbit-ping"
-                    style={{ backgroundColor: hex }}
-                  />
-                )}
-              </AnimatePresence>
+              {/* Sonar ping ring (CSS animation, no exit needed) */}
+              {activePing?.id === rabbit.id && (
+                <span
+                  key={activePing.key}
+                  className="tr-rabbit-ping"
+                  style={{ backgroundColor: hex }}
+                />
+              )}
 
               {/* Spring-animated button wrapper */}
               <motion.div

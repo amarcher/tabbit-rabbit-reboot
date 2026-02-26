@@ -89,14 +89,6 @@
   vertical-align: middle;
 }
 
-/* --- Modal backdrop blur override --- */
-.modal-backdrop {
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  background-color: rgba(0, 0, 0, 0.35) !important;
-  transition: backdrop-filter 0.25s ease;
-}
-
 /* --- Toast progress bar --- */
 .tr-toast-progress {
   height: 3px;
