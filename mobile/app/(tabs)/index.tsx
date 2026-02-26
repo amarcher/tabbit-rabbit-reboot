@@ -15,6 +15,7 @@ import { useTabs } from '@/src/hooks/useTab';
 import { formatCents } from '@/src/utils/currency';
 import { BUTTON_COLORS } from '@/src/utils/colors';
 import { colors } from '@/src/utils/theme';
+import HintArrow from '@/src/components/HintArrow';
 import type { Tab, Item, Rabbit } from '@/src/types';
 
 function TabRow({
@@ -160,7 +161,11 @@ export default function DashboardScreen() {
       <View style={styles.createForm}>
         <TextInput
           style={styles.createInput}
-          placeholder="New tab name (e.g. Friday Dinner)"
+          placeholder={
+            tabs.length === 0
+              ? 'Type a tab name to create one'
+              : 'New tab name (e.g. Friday Dinner)'
+          }
           placeholderTextColor={colors.placeholder}
           value={newName}
           onChangeText={setNewName}
@@ -181,12 +186,14 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {tabs.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>
-            No tabs yet. Create one to start splitting a bill!
-          </Text>
+      {tabs.length === 0 && (
+        <View style={styles.hintContainer}>
+          <HintArrow text="Start by naming your first tab" />
         </View>
+      )}
+
+      {tabs.length === 0 ? (
+        <View style={styles.emptyState} />
       ) : (
         <FlatList
           data={tabs}
@@ -323,15 +330,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+  hintContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: colors.muted,
-    textAlign: 'center',
   },
 });

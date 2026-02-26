@@ -25,6 +25,7 @@ import ItemList from '@/src/components/ItemList';
 import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
 import TotalsView from '@/src/components/TotalsView';
+import HintArrow from '@/src/components/HintArrow';
 import type { RabbitColor, Profile, Tab } from '@/src/types';
 
 function ActionBar({
@@ -32,28 +33,50 @@ function ActionBar({
   onShareBill,
   scanning,
   sharing,
+  hasItems,
+  hasRabbits,
 }: {
   onScanReceipt: () => void;
   onShareBill: () => void;
   scanning: boolean;
   sharing: boolean;
+  hasItems: boolean;
+  hasRabbits: boolean;
 }) {
+  const showShare = hasItems && hasRabbits;
+  const scanIsPrimary = !hasItems;
+
   return (
     <View style={styles.actionBar}>
       <TouchableOpacity
-        style={styles.actionButton}
+        style={[
+          scanIsPrimary ? styles.actionButtonFilled : styles.actionButtonOutline,
+          !showShare && { flex: 1 },
+        ]}
         onPress={onScanReceipt}
         disabled={scanning}
       >
-        <Text style={styles.actionButtonText}>
+        <Text
+          style={
+            scanIsPrimary
+              ? styles.actionButtonFilledText
+              : styles.actionButtonOutlineText
+          }
+        >
           {scanning ? 'Scanning...' : 'Scan Receipt'}
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.actionButton} onPress={onShareBill} disabled={sharing}>
-        <Text style={styles.actionButtonText}>
-          {sharing ? 'Sharing...' : 'Share Bill'}
-        </Text>
-      </TouchableOpacity>
+      {showShare && (
+        <TouchableOpacity
+          style={styles.actionButtonOutline}
+          onPress={onShareBill}
+          disabled={sharing}
+        >
+          <Text style={styles.actionButtonOutlineText}>
+            {sharing ? 'Sharing...' : 'Share Bill'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -241,14 +264,27 @@ export default function TabEditorScreen() {
     );
   }
 
+  const hasItems = items.length > 0;
+  const hasRabbits = rabbits.length > 0;
+  const showFirstTabHints = !hasItems && !hasRabbits;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Hint: scan a receipt */}
+      {showFirstTabHints && (
+        <View style={styles.hintRow}>
+          <HintArrow text="Scan a receipt to get started" />
+        </View>
+      )}
+
       {/* Action Bar (top) */}
       <ActionBar
         onScanReceipt={handleScanReceipt}
         onShareBill={handleShareBill}
         scanning={scanning}
         sharing={sharing}
+        hasItems={hasItems}
+        hasRabbits={hasRabbits}
       />
 
       {/* Rabbit Bar */}
@@ -272,6 +308,13 @@ export default function TabEditorScreen() {
         </Text>
       )}
 
+      {/* Hint: enter items manually */}
+      {showFirstTabHints && (
+        <View style={styles.hintRow}>
+          <HintArrow text="Or enter items manually below" />
+        </View>
+      )}
+
       {/* Item List */}
       <ItemList
         items={items}
@@ -283,7 +326,7 @@ export default function TabEditorScreen() {
         onDeleteItem={deleteItem}
       />
 
-      {/* Totals (no share button — it's in the action bar now) */}
+      {/* Totals */}
       <TotalsView
         tab={tab}
         items={items}
@@ -292,13 +335,17 @@ export default function TabEditorScreen() {
         onUpdateTab={updateTab}
       />
 
-      {/* Action Bar (bottom) */}
-      <ActionBar
-        onScanReceipt={handleScanReceipt}
-        onShareBill={handleShareBill}
-        scanning={scanning}
-        sharing={sharing}
-      />
+      {/* Bottom Action Bar — only shown when content exists */}
+      {(hasItems || hasRabbits) && (
+        <ActionBar
+          onScanReceipt={handleScanReceipt}
+          onShareBill={handleShareBill}
+          scanning={scanning}
+          sharing={sharing}
+          hasItems={hasItems}
+          hasRabbits={hasRabbits}
+        />
+      )}
 
       {/* Add Rabbit Modal */}
       <AddRabbitModal
@@ -335,7 +382,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
   },
-  actionButton: {
+  actionButtonOutline: {
     flex: 1,
     borderWidth: 1.5,
     borderColor: colors.accent,
@@ -343,10 +390,25 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
   },
-  actionButtonText: {
+  actionButtonOutlineText: {
     color: colors.accent,
     fontWeight: '600',
     fontSize: 14,
+  },
+  actionButtonFilled: {
+    flex: 1,
+    backgroundColor: colors.accent,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  actionButtonFilledText: {
+    color: colors.text,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  hintRow: {
+    marginBottom: 8,
   },
   assignHint: {
     fontSize: 13,
