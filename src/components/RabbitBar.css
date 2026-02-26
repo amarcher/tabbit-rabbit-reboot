@@ -19,8 +19,14 @@
 .tr-rabbit-ping {
   position: absolute;
   inset: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   pointer-events: none;
   animation: sonarPing 0.55s ease-out forwards;
   z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-rabbit-ping {
+    animation: none !important;
+  }
 }

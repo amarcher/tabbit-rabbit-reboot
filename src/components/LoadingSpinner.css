@@ -18,7 +18,7 @@
 /* Each animated dot */
 .tr-spinner__dot {
   border-radius: 50%;
-  background-color: #e8a838;
+  background-color: var(--tr-accent);
   animation: tr-dot-bounce 1.2s ease-in-out infinite;
 }
 
@@ -48,7 +48,7 @@
 
 /* Message text */
 .tr-spinner__message {
-  color: #8a857d;
+  color: var(--tr-muted);
   font-size: 0.85rem;
   text-align: center;
 }
@@ -58,7 +58,7 @@
 }
 
 .tr-spinner--lg .tr-spinner__message {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 }
 
 @keyframes tr-dot-bounce {
@@ -68,6 +68,13 @@
   }
   40% {
     transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-spinner__dot {
+    animation: none !important;
     opacity: 1;
   }
 }

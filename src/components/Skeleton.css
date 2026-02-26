@@ -28,7 +28,7 @@
   align-items: center;
   padding: 12px 16px;
   border: 1px solid #e8e4de;
-  border-radius: 8px;
+  border-radius: 12px;
   background-color: #fff;
   gap: 12px;
 }
@@ -61,9 +61,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 12px 16px;
   border: 1px solid #e8e4de;
-  border-radius: 8px;
+  border-radius: 12px;
   background-color: #fff;
   gap: 12px;
 }
@@ -89,5 +89,11 @@
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none !important;
   }
 }
