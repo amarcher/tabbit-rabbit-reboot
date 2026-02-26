@@ -5,6 +5,10 @@
       "dest": "/api/aasa"
     },
     {
+      "src": "/.well-known/assetlinks.json",
+      "dest": "/api/assetlinks"
+    },
+    {
       "src": "/privacy",
       "dest": "/privacy",
       "headers": { "Content-Type": "text/html; charset=utf-8" }

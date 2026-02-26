@@ -1,46 +1,104 @@
-# Getting Started with Create React App
+# Tabbit Rabbit
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A bill-splitting app for web, iOS, and Android. Create tabs, add items with prices, assign them to people ("rabbits"), and split costs with tax and tip. Supports AI-powered receipt scanning and payment deep links for Venmo, Cash App, and PayPal.
 
-## Available Scripts
+**Live at [tabbitrabbit.com](https://tabbitrabbit.com)**
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Split bills easily** — add items, assign them to rabbits, and auto-calculate each person's share with tax and tip
+- **Receipt scanning** — snap a photo of a receipt and let Claude AI extract items and prices automatically
+- **Multi-rabbit items** — items shared between multiple people show a gradient of each person's color
+- **Payment links** — send Venmo charge requests, Cash App links, or PayPal links directly from the app
+- **Bill sharing** — share a tab via link so others can see what they owe
+- **Fully local-first** — all data lives on your device, no account required
+- **iOS & Android apps** — native experience with swipe-to-delete, haptics, and deep links
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Tech Stack
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+| Layer | Technology |
+|-------|------------|
+| Web | React 19, TypeScript, Bootstrap 5, react-bootstrap |
+| Mobile | Expo SDK 54, React Native, expo-router |
+| Backend | Vercel serverless functions, Vercel KV (Upstash Redis) |
+| Receipt OCR | Claude Haiku 4.5 vision API |
+| Deployment | Web on Vercel, mobile via EAS Build (TestFlight / Google Play) |
 
-### `npm test`
+## Project Structure
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+├── src/                  # Web app (React + TypeScript)
+│   ├── components/       # UI components (TabEditor, ItemList, PaymentLinks, etc.)
+│   ├── pages/            # Route pages (Dashboard, TabPage, SharedBillPage)
+│   ├── hooks/            # useTab, useAuth, useSharedTab
+│   ├── utils/            # payments, billEncoder, scanCounter, anthropic
+│   ├── types/            # TypeScript types
+│   └── styles/           # CSS + gradients
+├── mobile/               # Mobile app (Expo + React Native, iOS & Android)
+│   ├── app/              # File-based routing (expo-router)
+│   ├── src/              # Hooks, utils, types (mirrors web)
+│   └── components/       # Native UI components
+├── api/                  # Vercel serverless functions
+│   ├── share.js          # POST — store bill in KV, return share token
+│   ├── bill/[token].js   # GET — fetch shared bill by token
+│   ├── parse-receipt.js  # POST — server-side receipt OCR proxy
+│   ├── bill-og.js        # GET — OG meta tags for social link previews
+│   ├── bill-image.tsx    # GET — dynamic OG image generation
+│   └── aasa.js           # GET — Apple App Site Association for deep links
+└── public/               # Static assets
+```
 
-### `npm run build`
+## Getting Started
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Web App
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+npm install
+npm start            # Dev server on http://localhost:3000
+npm run build        # Production build
+npm test             # Run tests
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Mobile App
 
-### `npm run eject`
+```bash
+cd mobile
+npm install
+npm start            # Expo dev server
+npm run ios          # iOS simulator
+npm run android      # Android emulator
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Environment Variables
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Create a `.env.local` in the root for the web app:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```
+ANTHROPIC_API_KEY=<key>             # Server-side receipt OCR
+KV_REST_API_URL=<url>               # Vercel KV (Upstash Redis)
+KV_REST_API_TOKEN=<token>           # Vercel KV auth
+KV_REST_API_READ_ONLY_TOKEN=<token>
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## Architecture
 
-## Learn More
+### Local-First
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+All tab data lives on-device — `localStorage` on web, `AsyncStorage` on mobile. There is no backend database for user tabs and no account/login required. Profiles are stored locally.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+The only server-side components are:
+- **Vercel KV** — stores shared bills (90-day TTL) when a user shares a tab
+- **Vercel serverless functions** — bill sharing API, receipt OCR proxy, OG image generation
+
+### Receipt OCR (Dual Path)
+
+1. **BYOK** — bring your own Anthropic API key for unlimited direct client-side scanning
+2. **Free** — 10 scans/month via the Vercel serverless proxy (tracked locally)
+
+### Bill Sharing
+
+`shareBill()` posts bill data to `/api/share`, which stores it in Vercel KV with a 90-day TTL and returns a 6-character token. Shared bills are viewable at `tabbitrabbit.com/bill/{token}`. On mobile, deep links open shared bills directly in the app.
+
+## License
+
+Private — all rights reserved.
