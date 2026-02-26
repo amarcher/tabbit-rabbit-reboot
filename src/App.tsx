@@ -1,5 +1,6 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
 import { useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
 import ProfileSettings from './components/ProfileSettings';
@@ -7,6 +8,79 @@ import Dashboard from './pages/Dashboard';
 import TabPage from './pages/TabPage';
 import SharedBillPage from './pages/SharedBillPage';
 import './App.css';
+
+const pageVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 40 : -40,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? -40 : 40,
+    opacity: 0,
+  }),
+};
+
+const routeOrder = ['/', '/profile'];
+
+function getDirection(from: string, to: string): number {
+  const fromIndex = routeOrder.indexOf(from);
+  const toIndex = routeOrder.indexOf(to);
+  if (fromIndex === -1 || toIndex === -1) return 1;
+  return toIndex >= fromIndex ? 1 : -1;
+}
+
+interface AnimatedRoutesProps {
+  profile: ReturnType<typeof useAuth>['profile'];
+  updateProfile: ReturnType<typeof useAuth>['updateProfile'];
+}
+
+function AnimatedRoutes({ profile, updateProfile }: AnimatedRoutesProps) {
+  const location = useLocation();
+  const prevPathRef = useRef(location.pathname);
+  const direction = getDirection(prevPathRef.current, location.pathname);
+
+  useEffect(() => {
+    prevPathRef.current = location.pathname;
+  }, [location.pathname]);
+
+  const focusRef = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    // After route change, move focus to top of new page for screen readers
+    focusRef.current?.focus();
+  }, [location.pathname]);
+
+  return (
+    <AnimatePresence mode="wait" custom={direction}>
+      <motion.div
+        key={location.pathname}
+        custom={direction}
+        variants={pageVariants}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+        <div ref={focusRef} tabIndex={-1} style={{ outline: 'none' }} />
+        <Routes location={location}>
+          <Route
+            path="/profile"
+            element={
+              <ProfileSettings profile={profile} updateProfile={updateProfile} />
+            }
+          />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/tabs/:tabId" element={<TabPage />} />
+          <Route path="/bill/:shareToken" element={<SharedBillPage />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 function App() {
   const { profile, loading, updateProfile } = useAuth();
@@ -22,21 +96,13 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route
-            path="/profile"
-            element={
-              <ProfileSettings profile={profile} updateProfile={updateProfile} />
-            }
-          />
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/tabs/:tabId" element={<TabPage />} />
-          <Route path="/bill/:shareToken" element={<SharedBillPage />} />
-        </Routes>
-      </Layout>
-    </BrowserRouter>
+    <MotionConfig reducedMotion="user">
+      <BrowserRouter>
+        <Layout>
+          <AnimatedRoutes profile={profile} updateProfile={updateProfile} />
+        </Layout>
+      </BrowserRouter>
+    </MotionConfig>
   );
 }
 

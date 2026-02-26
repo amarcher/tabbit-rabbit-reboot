@@ -1,0 +1,76 @@
+/* ── NavBar component styles ─────────────────────── */
+
+.tr-navbar {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.tr-navbar--default {
+  background-color: rgba(45, 42, 38, 0.88);
+  box-shadow: none;
+}
+
+.tr-navbar--scrolled {
+  background-color: rgba(45, 42, 38, 0.97);
+  box-shadow: 0 1px 16px rgba(0, 0, 0, 0.18);
+}
+
+.tr-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tr-navbar-brand img {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.tr-nav-links {
+  position: relative;
+  gap: 0.5rem;
+}
+
+.tr-nav-link {
+  padding-bottom: 6px;
+  transition: color 0.2s ease;
+}
+
+.tr-nav-link--inactive {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+}
+
+.tr-nav-link--active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.tr-nav-indicator {
+  position: absolute;
+  bottom: 2px;
+  left: 0.5rem;
+  right: 0.5rem;
+  height: 2px;
+  border-radius: 2px;
+  background-color: #e8a838;
+}
+
+/* Mobile nav */
+.tr-mobile-nav-link {
+  padding-left: 0.75rem;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.tr-mobile-nav-link--inactive {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 400;
+  border-left: 3px solid transparent;
+}
+
+.tr-mobile-nav-link--active {
+  color: #ffffff;
+  font-weight: 600;
+  border-left: 3px solid #e8a838;
+}
