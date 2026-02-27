@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Form, Button, Badge } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { RABBIT_COLORS, RabbitColor, COLOR_HEX } from '../types';
 import type { SavedRabbit, Profile } from '../types';
 
@@ -45,6 +46,7 @@ export default function AddRabbitModal({
   onAddSavedRabbit,
   onRemoveSavedRabbit,
 }: AddRabbitModalProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [venmo, setVenmo] = useState('');
   const [cashapp, setCashapp] = useState('');
@@ -94,6 +96,7 @@ export default function AddRabbitModal({
         venmo_username: venmoClean,
         cashapp_cashtag: cashappClean,
         paypal_username: paypalClean,
+        currency_code: 'USD',
         created_at: new Date().toISOString(),
       };
 
@@ -120,6 +123,7 @@ export default function AddRabbitModal({
       venmo_username: saved.venmo_username,
       cashapp_cashtag: saved.cashapp_cashtag,
       paypal_username: saved.paypal_username,
+      currency_code: 'USD',
       created_at: new Date().toISOString(),
     };
 
@@ -145,7 +149,7 @@ export default function AddRabbitModal({
         transition={{ type: 'spring', stiffness: 340, damping: 26 }}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Add Someone</Modal.Title>
+          <Modal.Title>{t('addRabbitModal.title')}</Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
@@ -159,7 +163,7 @@ export default function AddRabbitModal({
                   initial="hidden"
                   animate="visible"
                 >
-                  <small className="text-muted fw-semibold">Saved Rabbits</small>
+                  <small className="text-muted fw-semibold">{t('addRabbitModal.savedRabbits')}</small>
                 </motion.div>
                 <div className="d-flex flex-wrap gap-2 mb-3">
                   {savedRabbits.map((saved, i) => (
@@ -196,7 +200,7 @@ export default function AddRabbitModal({
                 </div>
                 <div className="d-flex align-items-center gap-2 mb-3">
                   <hr className="flex-grow-1 m-0" />
-                  <small className="text-muted">or add new</small>
+                  <small className="text-muted">{t('addRabbitModal.orAddNew')}</small>
                   <hr className="flex-grow-1 m-0" />
                 </div>
               </>
@@ -210,10 +214,10 @@ export default function AddRabbitModal({
               animate="visible"
             >
               <Form.Group>
-                <Form.Label>Name</Form.Label>
+                <Form.Label>{t('addRabbitModal.nameLabel')}</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="e.g. Alex"
+                  placeholder={t('addRabbitModal.namePlaceholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoFocus
@@ -229,7 +233,7 @@ export default function AddRabbitModal({
               initial="hidden"
               animate="visible"
             >
-              <span>Color:</span>
+              <span>{t('addRabbitModal.colorLabel')}</span>
               <span
                 className={`tr-color-swatch${swatchSpin ? ' tr-swatch-spin' : ''}`}
                 style={{
@@ -257,16 +261,16 @@ export default function AddRabbitModal({
                   className="p-0 mb-2"
                   onClick={() => setShowPaymentFields(true)}
                 >
-                  + Add payment info
+                  {t('addRabbitModal.addPaymentInfo')}
                 </Button>
               ) : (
                 <div>
-                  <small className="text-muted fw-semibold d-block mb-2">Payment Info (optional)</small>
+                  <small className="text-muted fw-semibold d-block mb-2">{t('addRabbitModal.paymentInfoLabel')}</small>
                   <AnimatePresence>
                     {[
-                      { placeholder: 'Venmo username', value: venmo, onChange: setVenmo },
-                      { placeholder: 'Cash App $cashtag', value: cashapp, onChange: setCashapp },
-                      { placeholder: 'PayPal username', value: paypal, onChange: setPaypal },
+                      { placeholder: t('addRabbitModal.venmoPlaeholder'), value: venmo, onChange: setVenmo },
+                      { placeholder: t('addRabbitModal.cashappPlaceholder'), value: cashapp, onChange: setCashapp },
+                      { placeholder: t('addRabbitModal.paypalPlaceholder'), value: paypal, onChange: setPaypal },
                     ].map((field, idx) => (
                       <motion.div
                         key={field.placeholder}
@@ -289,7 +293,7 @@ export default function AddRabbitModal({
                     ))}
                   </AnimatePresence>
                   <small className="text-muted">
-                    Adding payment info saves this rabbit for future tabs.
+                    {t('addRabbitModal.paymentHintSave')}
                   </small>
                 </div>
               )}
@@ -297,10 +301,10 @@ export default function AddRabbitModal({
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={handleClose}>
-              Cancel
+              {t('addRabbitModal.cancel')}
             </Button>
             <Button variant="primary" type="submit" disabled={!name.trim()}>
-              Add
+              {t('addRabbitModal.add')}
             </Button>
           </Modal.Footer>
         </Form>

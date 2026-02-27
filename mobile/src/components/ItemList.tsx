@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -10,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import type { Item, Rabbit, ItemRabbit } from '../types';
-import { parseDollars } from '../utils/currency';
+import { parseAmount, getPricePlaceholder } from '../utils/currency';
 import { colors, fonts } from '../utils/theme';
 import ItemRow from './ItemRow';
 
@@ -19,6 +20,7 @@ interface ItemListProps {
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
   selectedRabbitId: string | null;
+  currencyCode: string;
   onToggle: (itemId: string, rabbitId: string) => void;
   onAddItem: (description: string, priceCents: number) => void;
   onDeleteItem: (itemId: string) => void;
@@ -29,16 +31,18 @@ export default function ItemList({
   rabbits,
   assignments,
   selectedRabbitId,
+  currencyCode,
   onToggle,
   onAddItem,
   onDeleteItem,
 }: ItemListProps) {
+  const { t } = useTranslation();
   const [desc, setDesc] = useState('');
   const [price, setPrice] = useState('');
 
   const handleAdd = () => {
     if (!desc.trim() || !price.trim()) return;
-    onAddItem(desc.trim(), parseDollars(price));
+    onAddItem(desc.trim(), parseAmount(price, currencyCode));
     setDesc('');
     setPrice('');
   };
@@ -53,6 +57,7 @@ export default function ItemList({
             rabbits={rabbits}
             assignments={assignments}
             selectedRabbitId={selectedRabbitId}
+            currencyCode={currencyCode}
             onToggle={onToggle}
             onDelete={onDeleteItem}
           />
@@ -62,7 +67,7 @@ export default function ItemList({
       <View style={styles.addForm}>
         <TextInput
           style={[styles.input, styles.descInput]}
-          placeholder="Item name"
+          placeholder={t('placeholders.itemName')}
           placeholderTextColor={colors.placeholder}
           value={desc}
           onChangeText={setDesc}
@@ -70,7 +75,7 @@ export default function ItemList({
         />
         <TextInput
           style={[styles.input, styles.priceInput]}
-          placeholder="$0.00"
+          placeholder={getPricePlaceholder(currencyCode)}
           placeholderTextColor={colors.placeholder}
           value={price}
           onChangeText={setPrice}
@@ -86,7 +91,7 @@ export default function ItemList({
           onPress={handleAdd}
           disabled={!desc.trim() || !price.trim()}
         >
-          <Text style={styles.addButtonText}>Add</Text>
+          <Text style={styles.addButtonText}>{t('actions.add')}</Text>
         </TouchableOpacity>
       </View>
     </View>

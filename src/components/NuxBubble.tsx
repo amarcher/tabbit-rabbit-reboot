@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { createPopper, Instance as PopperInstance } from '@popperjs/core';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface NuxBubbleProps {
   target: Element;
@@ -35,6 +36,7 @@ export default function NuxBubble({
   onDismiss,
   onSkipAll,
 }: NuxBubbleProps) {
+  const { t } = useTranslation();
   const popperAnchorRef = useRef<HTMLDivElement>(null);
   const arrowRef = useRef<HTMLDivElement>(null);
   const popperRef = useRef<PopperInstance | null>(null);
@@ -86,15 +88,15 @@ export default function NuxBubble({
         <div className="nux-bubble__message">{renderMessage(message)}</div>
         <div className="nux-bubble__footer">
           <span className="nux-bubble__step-counter">
-            {stepIndex + 1} of {totalSteps}
+            {t('nux.stepOf', { current: stepIndex + 1, total: totalSteps })}
           </span>
           <div className="nux-bubble__actions">
             <button type="button" className="nux-bubble__skip-link" onClick={onSkipAll}>
-              Skip tour
+              {t('nux.skipTour')}
             </button>
             {showDismiss && (
               <button type="button" className="nux-bubble__dismiss-btn" onClick={onDismiss}>
-                Got it
+                {t('nux.gotIt')}
               </button>
             )}
           </div>

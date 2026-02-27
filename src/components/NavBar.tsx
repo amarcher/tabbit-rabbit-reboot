@@ -2,17 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import '../styles/navbar.css';
 
-const NAV_LINKS = [
-  { to: '/', label: 'My Tabs' },
-  { to: '/profile', label: 'Profile' },
-];
-
 export default function NavBar() {
+  const { t } = useTranslation();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const NAV_LINKS = [
+    { to: '/', label: t('nav.myTabs') },
+    { to: '/profile', label: t('nav.profile') },
+  ];
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 8);

@@ -1,0 +1,184 @@
+{
+  "nav": {
+    "myTabs": "My Tabs",
+    "profile": "Profile"
+  },
+  "tabList": {
+    "heading": "My Tabs",
+    "tagline": "Split bills with friends. Add items, assign people, and send payment requests.",
+    "placeholderEmpty": "Type a tab name to create one",
+    "placeholderDefault": "New tab name (e.g. Friday Dinner)",
+    "creating": "Creating...",
+    "newTab": "New Tab",
+    "hintCreate": "Create a tab to start splitting a bill.",
+    "sharing": "Sharing...",
+    "shareBill": "Share Bill",
+    "delete": "Delete",
+    "deleteModal": {
+      "confirm": "Delete {{name}}?",
+      "cannotUndo": "This can't be undone.",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "toast": {
+      "copySuccess": "Share link copied to clipboard!",
+      "shareFailed": "Failed to share bill. Please try again."
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "Loading tab...",
+    "hintScan": "Scan a receipt to get started",
+    "hintManual": "Or enter items manually",
+    "scanning": "Scanning...",
+    "scanReceipt": "Scan Receipt",
+    "sharing": "Sharing...",
+    "copied": "Copied!",
+    "shareBill": "Share Bill",
+    "assignHint": "Tap items to assign them to <strong>{{name}}</strong>",
+    "clickToEdit": "Click to edit",
+    "scanError": {
+      "scanLimitReached": "You've used all {{limit}} free scans this month. Add your own API key in Profile for unlimited scans.",
+      "noItemsFound": "No items found in receipt. Try a clearer photo.",
+      "failedToProcess": "Failed to process receipt"
+    }
+  },
+  "totals": {
+    "heading": "Totals",
+    "tax": "Tax %",
+    "tip": "Tip %",
+    "taxWord": "tax",
+    "tipWord": "tip",
+    "tipLabels": {
+      "wow": "Wow!",
+      "generous": "Generous!",
+      "nice": "Nice!",
+      "standard": "Standard"
+    },
+    "subtotal": "Subtotal",
+    "taxWithPercent": "Tax ({{percent}}%)",
+    "tipWithPercent": "Tip ({{percent}}%)",
+    "grandTotal": "Grand Total",
+    "unassignedWarning_one": "{{count}} item not assigned to anyone yet.",
+    "unassignedWarning_other": "{{count}} items not assigned to anyone yet.",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} tax + {{tip}} tip",
+    "requestViaVenmo": "Request via Venmo",
+    "venmoModal": {
+      "title": "Request from {{name}} via Venmo",
+      "usernameLabel": "Venmo username",
+      "usernamePlaceholder": "username",
+      "cancel": "Cancel",
+      "sendRequest": "Send Request"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ Add Someone",
+    "remove": "Remove",
+    "removeConfirm": "Remove {{name}}?"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "Item name",
+    "pricePlaceholder": "$0.00",
+    "addButton": "Add"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "Delete item"
+  },
+  "addRabbitModal": {
+    "title": "Add Someone",
+    "savedRabbits": "Saved Rabbits",
+    "orAddNew": "or add new",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Alex",
+    "colorLabel": "Color:",
+    "addPaymentInfo": "+ Add payment info",
+    "paymentInfoLabel": "Payment Info (optional)",
+    "paymentHintSave": "Adding payment info saves this rabbit for future tabs.",
+    "venmoPlaeholder": "Venmo username",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "PayPal username",
+    "cancel": "Cancel",
+    "add": "Add"
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "savedSuccess": "Profile saved!",
+    "displayNameLabel": "Display Name",
+    "displayNamePlaceholder": "Your name",
+    "paymentHint": "Set your payment usernames so people can pay you when you share a bill.",
+    "venmoLabel": "Venmo Username",
+    "venmoPlaceholder": "e.g. john-doe-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "e.g. johndoe",
+    "paypalLabel": "PayPal Username",
+    "paypalPlaceholder": "e.g. johndoe",
+    "defaultCurrencyLabel": "Default Currency",
+    "currencyHint": "New tabs will use this currency by default.",
+    "languageLabel": "Language",
+    "saving": "Saving...",
+    "saveProfile": "Save Profile",
+    "savedRabbits": {
+      "heading": "Saved Rabbits",
+      "empty": "No saved rabbits yet. Add payment info when adding someone to a tab and they'll appear here.",
+      "namePlaceholder": "Name",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "username",
+      "save": "Save",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "remove": "Remove",
+      "removeConfirm": "Remove {{name}} from saved rabbits?"
+    },
+    "advanced": {
+      "heading": "Advanced",
+      "freeScansRemaining": "{{remaining}} of {{limit}} free receipt scans remaining this month.",
+      "apiKeyLabel": "Anthropic API Key",
+      "usingOwnKey": "Using your own key — unlimited scans.",
+      "removeKey": "Remove",
+      "saveApiKey": "Save API Key",
+      "apiKeyHint": "Use your own API key for unlimited scans. Stored in your browser only.",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "Get a key at console.anthropic.com"
+    }
+  },
+  "nux": {
+    "skipTour": "Skip tour",
+    "gotIt": "Got it",
+    "stepOf": "{{current}} of {{total}}",
+    "steps": {
+      "createTab": "Give your tab a name and hit **New Tab** to start splitting a bill!",
+      "scanReceipt": "Snap a photo of your receipt to auto-import items",
+      "addItemManually": "Or type items in manually",
+      "addRabbit": "Add the people splitting this bill. You can include their Venmo, Cash App, or PayPal too!",
+      "assignItems": "Click a person above, then tap their items.",
+      "taxTip": "Adjust tax and tip — they apply proportionally to each person's share.",
+      "profile": "Set up your profile with payment handles to send payment requests and share bills."
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "Loading bill...",
+    "billNotFound": "Bill not found",
+    "goToApp": "Go to Tabbit Rabbit",
+    "sharedBy": "Shared by {{name}}",
+    "whatEachPersonOwes": "What each person owes",
+    "subtotal": "Subtotal",
+    "taxWithPercent": "Tax ({{percent}}%)",
+    "tipWithPercent": "Tip ({{percent}}%)",
+    "grandTotal": "Grand Total",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} tax + {{tip}} tip",
+    "cta": {
+      "tagline": "Split bills with friends",
+      "tryApp": "Try Tabbit Rabbit"
+    }
+  },
+  "layout": {
+    "scrollToTop": "Scroll to top",
+    "backToTop": "Back to top"
+  },
+  "common": {
+    "loading": "Loading",
+    "loadingTabs": "Loading tabs",
+    "loadingItems": "Loading items",
+    "moreOptions": "More options"
+  }
+}

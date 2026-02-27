@@ -44,7 +44,7 @@ function decodeLegacyBill(encoded: string) {
     }));
 
     return {
-      tab: { name: compact.n, tax_percent: compact.x, tip_percent: compact.p },
+      tab: { name: compact.n, tax_percent: compact.x, tip_percent: compact.p, currency_code: compact.cc || 'USD' },
       items,
       rabbits,
       assignments,
@@ -64,8 +64,22 @@ async function getBill(token: string) {
   return await kv.get(`bill:${token}`);
 }
 
-function formatCents(cents: number) {
-  return '$' + (Math.round(cents) / 100).toFixed(2);
+const ZERO_DECIMAL = new Set(['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'UGX', 'RWF', 'PYG']);
+
+function formatAmount(cents: number, currencyCode: string = 'USD') {
+  const code = currencyCode.toUpperCase();
+  const isZero = ZERO_DECIMAL.has(code);
+  const value = isZero ? cents : Math.round(cents) / 100;
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: code,
+      minimumFractionDigits: isZero ? 0 : 2,
+      maximumFractionDigits: isZero ? 0 : 2,
+    }).format(value);
+  } catch {
+    return '$' + (Math.round(cents) / 100).toFixed(2);
+  }
 }
 
 export default async function handler(req: Request) {
@@ -82,6 +96,7 @@ export default async function handler(req: Request) {
   }
 
   const { tab, items, rabbits, assignments } = data;
+  const currencyCode = tab.currency_code || 'USD';
   const subtotalCents = items.reduce((sum: number, i: { price_cents: number }) => sum + i.price_cents, 0);
   const taxAmount = Math.round(subtotalCents * (tab.tax_percent / 100));
   const tipAmount = Math.round(subtotalCents * (tab.tip_percent / 100));
@@ -137,7 +152,7 @@ export default async function handler(req: Request) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
             <div style={{ fontSize: 20, color: '#666' }}>Grand Total</div>
             <div style={{ fontSize: 56, fontWeight: 700, color: '#333' }}>
-              {formatCents(grandTotal)}
+              {formatAmount(grandTotal, currencyCode)}
             </div>
           </div>
         </div>
@@ -160,7 +175,7 @@ export default async function handler(req: Request) {
                 {person.name}
               </div>
               <div style={{ fontSize: 32, fontWeight: 700, color: '#333' }}>
-                {formatCents(person.total)}
+                {formatAmount(person.total, currencyCode)}
               </div>
             </div>
           ))}

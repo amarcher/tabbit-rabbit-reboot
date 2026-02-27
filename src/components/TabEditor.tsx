@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Alert, Button, Form } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTab } from '../hooks/useTab';
 import { useAuth } from '../hooks/useAuth';
 import { useSavedRabbits } from '../hooks/useSavedRabbits';
@@ -20,6 +21,7 @@ import { useNux } from '../contexts/NuxContext';
 import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
+  const { t } = useTranslation();
   const { tabId } = useParams<{ tabId: string }>();
   const { profile } = useAuth();
   const { active: nuxActive, completeAction } = useNux();
@@ -108,7 +110,7 @@ export default function TabEditor() {
 
     const byokKey = getStoredApiKey();
     if (!byokKey && !canScanFree()) {
-      setScanError(`You've used all ${FREE_SCAN_LIMIT} free scans this month. Add your own API key in Profile for unlimited scans.`);
+      setScanError(t('tabEditor.scanError.scanLimitReached', { limit: FREE_SCAN_LIMIT }));
       if (fileRef.current) fileRef.current.value = '';
       return;
     }
@@ -149,10 +151,10 @@ export default function TabEditor() {
       if (result?.items?.length) {
         handleReceiptParsed(result);
       } else {
-        setScanError('No items found in receipt. Try a clearer photo.');
+        setScanError(t('tabEditor.scanError.noItemsFound'));
       }
     } catch (err: any) {
-      setScanError(err.message || 'Failed to process receipt');
+      setScanError(err.message || t('tabEditor.scanError.failedToProcess'));
     } finally {
       setScanning(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -205,10 +207,12 @@ export default function TabEditor() {
   if (loading || !tab) {
     return (
       <div className="d-flex justify-content-center align-items-center py-5">
-        <LoadingSpinner size="md" message="Loading tab..." />
+        <LoadingSpinner size="md" message={t('tabEditor.loadingTab')} />
       </div>
     );
   }
+
+  const currencyCode = tab.currency_code || 'USD';
 
   const hasItems = items.length > 0;
   const hasRabbits = rabbits.length > 0;
@@ -224,7 +228,7 @@ export default function TabEditor() {
     <div className="my-3">
       {!hasItems && isFirstTab && !nuxActive && (
         <div className="mb-2">
-          <HintArrow>Scan a receipt to get started</HintArrow>
+          <HintArrow>{t('tabEditor.hintScan')}</HintArrow>
         </div>
       )}
       <div className="d-flex gap-2">
@@ -238,10 +242,10 @@ export default function TabEditor() {
           {scanning ? (
             <>
               <LoadingSpinner size="sm" />
-              <span className="ms-1">Scanning...</span>
+              <span className="ms-1">{t('tabEditor.scanning')}</span>
             </>
           ) : (
-            'Scan Receipt'
+            t('tabEditor.scanReceipt')
           )}
         </Button>
         {hasItems && hasRabbits && (
@@ -252,7 +256,7 @@ export default function TabEditor() {
             onClick={handleShareBill}
             disabled={sharing}
           >
-            {sharing ? 'Sharing...' : copied ? 'Copied!' : 'Share Bill'}
+            {sharing ? t('tabEditor.sharing') : copied ? t('tabEditor.copied') : t('tabEditor.shareBill')}
           </Button>
         )}
       </div>
@@ -304,7 +308,7 @@ export default function TabEditor() {
                   setTabName(tab.name);
                   setEditingName(true);
                 }}
-                title="Click to edit"
+                title={t('tabEditor.clickToEdit')}
               >
                 {tab.name}
               </h4>
@@ -323,6 +327,7 @@ export default function TabEditor() {
             rabbits={rabbits}
             selectedRabbitId={selectedRabbitId}
             subtotals={subtotals}
+            currencyCode={currencyCode}
             onSelect={(id) =>
               setSelectedRabbitId(id === selectedRabbitId ? null : id)
             }
@@ -331,17 +336,19 @@ export default function TabEditor() {
           />
 
           {selectedRabbitId && (
-            <p className="text-muted small mb-2">
-              Tap items to assign them to{' '}
-              <strong>
-                {rabbits.find((r) => r.id === selectedRabbitId)?.name}
-              </strong>
-            </p>
+            <p
+              className="text-muted small mb-2"
+              dangerouslySetInnerHTML={{
+                __html: t('tabEditor.assignHint', {
+                  name: rabbits.find((r) => r.id === selectedRabbitId)?.name,
+                }),
+              }}
+            />
           )}
 
           {!hasItems && isFirstTab && !nuxActive && (
             <div style={{ marginBottom: 4 }}>
-              <HintArrow>Or enter items manually</HintArrow>
+              <HintArrow>{t('tabEditor.hintManual')}</HintArrow>
             </div>
           )}
           <ItemList
@@ -349,6 +356,7 @@ export default function TabEditor() {
             rabbits={rabbits}
             assignments={assignments}
             selectedRabbitId={selectedRabbitId}
+            currencyCode={currencyCode}
             onToggle={toggleAssignment}
             onAddItem={(desc, cents) => { addItem(desc, cents); completeAction('add-items'); }}
             onDeleteItem={deleteItem}

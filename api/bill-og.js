@@ -2,8 +2,22 @@ const { getBill } = require('./_lib/getBill');
 
 const CRAWLER_UA = /facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot|Discordbot|TelegramBot/i;
 
-function formatCents(cents) {
-  return '$' + (Math.round(cents) / 100).toFixed(2);
+const ZERO_DECIMAL = new Set(['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'UGX', 'RWF', 'PYG']);
+
+function formatAmount(cents, currencyCode = 'USD') {
+  const code = (currencyCode || 'USD').toUpperCase();
+  const isZero = ZERO_DECIMAL.has(code);
+  const value = isZero ? cents : Math.round(cents) / 100;
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: code,
+      minimumFractionDigits: isZero ? 0 : 2,
+      maximumFractionDigits: isZero ? 0 : 2,
+    }).format(value);
+  } catch {
+    return '$' + (Math.round(cents) / 100).toFixed(2);
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -29,6 +43,7 @@ module.exports = async function handler(req, res) {
   }
 
   const { tab, items, rabbits, assignments } = data;
+  const currencyCode = tab.currency_code || 'USD';
   const subtotalCents = items.reduce((sum, i) => sum + i.price_cents, 0);
   const taxAmount = Math.round(subtotalCents * (tab.tax_percent / 100));
   const tipAmount = Math.round(subtotalCents * (tab.tip_percent / 100));
@@ -49,10 +64,10 @@ module.exports = async function handler(req, res) {
     }
 
     const withTaxTip = total * (1 + tab.tax_percent / 100 + tab.tip_percent / 100);
-    return `${rabbit.name}: ${formatCents(Math.round(withTaxTip))}`;
+    return `${rabbit.name}: ${formatAmount(Math.round(withTaxTip), currencyCode)}`;
   });
 
-  const title = `${tab.name} - ${formatCents(grandTotal)}`;
+  const title = `${tab.name} - ${formatAmount(grandTotal, currencyCode)}`;
   const description = breakdown.join(' | ') || `${items.length} items`;
   const ogImageUrl = `https://tabbitrabbit.com/api/bill-image?token=${encodeURIComponent(token)}`;
 

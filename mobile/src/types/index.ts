@@ -5,6 +5,7 @@ export interface Profile {
   venmo_username: string | null;
   cashapp_cashtag: string | null;
   paypal_username: string | null;
+  currency_code: string;
   created_at: string;
 }
 
@@ -12,6 +13,7 @@ export interface Tab {
   id: string;
   name: string;
   owner_id: string;
+  currency_code: string;
   tax_percent: number;
   tip_percent: number;
   receipt_image_url: string | null;

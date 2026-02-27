@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -38,6 +39,7 @@ export default function AddRabbitModal({
   onAddSavedRabbit,
   onRemoveSavedRabbit,
 }: AddRabbitModalProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [venmo, setVenmo] = useState('');
   const [cashapp, setCashapp] = useState('');
@@ -75,6 +77,7 @@ export default function AddRabbitModal({
         venmo_username: venmoClean,
         cashapp_cashtag: cashappClean,
         paypal_username: paypalClean,
+        currency_code: 'USD',
         created_at: new Date().toISOString(),
       };
 
@@ -102,6 +105,7 @@ export default function AddRabbitModal({
       venmo_username: saved.venmo_username,
       cashapp_cashtag: saved.cashapp_cashtag,
       paypal_username: saved.paypal_username,
+      currency_code: 'USD',
       created_at: new Date().toISOString(),
     };
 
@@ -114,12 +118,12 @@ export default function AddRabbitModal({
 
   const handleLongPressSaved = (saved: SavedRabbit) => {
     Alert.alert(
-      'Remove Saved Rabbit',
-      `Remove ${saved.name} from your saved rabbits?`,
+      t('messages.removeSavedRabbitTitle'),
+      t('messages.confirmRemoveSavedRabbit', { name: saved.name }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('actions.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('actions.remove'),
           style: 'destructive',
           onPress: () => onRemoveSavedRabbit?.(saved.id),
         },
@@ -140,12 +144,12 @@ export default function AddRabbitModal({
       >
         <View style={styles.modal}>
           <ScrollView keyboardShouldPersistTaps="handled" bounces={false}>
-            <Text style={styles.title}>Add Someone</Text>
+            <Text style={styles.title}>{t('labels.addSomeoneTitle')}</Text>
 
             {/* Saved Rabbits (Pro only) */}
             {isPro && savedRabbits.length > 0 && (
               <View style={styles.savedSection}>
-                <Text style={styles.savedLabel}>Saved Rabbits</Text>
+                <Text style={styles.savedLabel}>{t('labels.savedRabbits')}</Text>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -177,17 +181,17 @@ export default function AddRabbitModal({
 
                 <View style={styles.divider}>
                   <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>or add new</Text>
+                  <Text style={styles.dividerText}>{t('labels.orAddNew')}</Text>
                   <View style={styles.dividerLine} />
                 </View>
               </View>
             )}
 
             {/* Name Input */}
-            <Text style={styles.label}>Name</Text>
+            <Text style={styles.label}>{t('labels.name')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Alex"
+              placeholder={t('placeholders.exampleName')}
               placeholderTextColor={colors.placeholder}
               value={name}
               onChangeText={setName}
@@ -198,7 +202,7 @@ export default function AddRabbitModal({
 
             {/* Color Preview */}
             <View style={styles.colorRow}>
-              <Text style={styles.colorLabel}>Color:</Text>
+              <Text style={styles.colorLabel}>{t('labels.color')}</Text>
               <View
                 style={[
                   styles.colorDot,
@@ -215,14 +219,14 @@ export default function AddRabbitModal({
                     style={styles.expandButton}
                     onPress={() => setShowPaymentFields(true)}
                   >
-                    <Text style={styles.expandButtonText}>+ Add payment info</Text>
+                    <Text style={styles.expandButtonText}>{t('actions.addPaymentInfo')}</Text>
                   </TouchableOpacity>
                 ) : (
                   <View style={styles.paymentFields}>
-                    <Text style={styles.paymentLabel}>Payment Info (optional)</Text>
+                    <Text style={styles.paymentLabel}>{t('labels.paymentInfoOptional')}</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="Venmo username"
+                      placeholder={t('placeholders.venmoUsername')}
                       placeholderTextColor={colors.placeholder}
                       value={venmo}
                       onChangeText={setVenmo}
@@ -231,7 +235,7 @@ export default function AddRabbitModal({
                     />
                     <TextInput
                       style={styles.input}
-                      placeholder="Cash App $cashtag"
+                      placeholder={t('placeholders.cashAppCashtag')}
                       placeholderTextColor={colors.placeholder}
                       value={cashapp}
                       onChangeText={setCashapp}
@@ -240,7 +244,7 @@ export default function AddRabbitModal({
                     />
                     <TextInput
                       style={styles.input}
-                      placeholder="PayPal username"
+                      placeholder={t('placeholders.paypalUsername')}
                       placeholderTextColor={colors.placeholder}
                       value={paypal}
                       onChangeText={setPaypal}
@@ -250,7 +254,7 @@ export default function AddRabbitModal({
                       onSubmitEditing={handleSubmit}
                     />
                     <Text style={styles.paymentHint}>
-                      Adding payment info saves this rabbit for future tabs.
+                      {t('messages.paymentSaveHint')}
                     </Text>
                   </View>
                 )}
@@ -260,14 +264,14 @@ export default function AddRabbitModal({
             {/* Buttons */}
             <View style={styles.buttons}>
               <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text style={styles.cancelText}>{t('actions.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.addButton, !name.trim() && styles.addButtonDisabled]}
                 onPress={handleSubmit}
                 disabled={!name.trim()}
               >
-                <Text style={styles.addButtonText}>Add</Text>
+                <Text style={styles.addButtonText}>{t('actions.add')}</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -23,6 +24,7 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { CoachmarkAnchor, useCoachmark } from '@edwardloopez/react-native-coachmark';
 import { useTab } from '@/src/hooks/useTab';
 import { useAuth } from '@/src/hooks/useAuth';
+import { isZeroDecimalCurrency } from '@/src/utils/currency';
 import { useProStatus } from '@/src/hooks/useProStatus';
 import { useSavedRabbits } from '@/src/hooks/useSavedRabbits';
 import { shareBill } from '@/src/utils/billEncoder';
@@ -54,6 +56,7 @@ function ActionBar({
   hasItems: boolean;
   hasRabbits: boolean;
 }) {
+  const { t } = useTranslation();
   const showShare = hasItems && hasRabbits;
   const scanIsPrimary = !hasItems;
 
@@ -74,7 +77,7 @@ function ActionBar({
               : styles.actionButtonOutlineText
           }
         >
-          {scanning ? 'Scanning...' : 'Scan Receipt'}
+          {scanning ? t('actions.scanning') : t('actions.scanReceipt')}
         </Text>
       </TouchableOpacity>
       {showShare && (
@@ -84,7 +87,7 @@ function ActionBar({
           disabled={sharing}
         >
           <Text style={styles.actionButtonOutlineText}>
-            {sharing ? 'Sharing...' : 'Share Bill'}
+            {sharing ? t('actions.sharing') : t('actions.shareBill')}
           </Text>
         </TouchableOpacity>
       )}
@@ -114,6 +117,7 @@ export default function TabEditorScreen() {
     toggleAssignment,
   } = useTab(tabId);
 
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const { start, stop, isActive } = useCoachmark();
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
@@ -182,25 +186,25 @@ export default function TabEditorScreen() {
   const handleScanReceipt = async () => {
     if (!(await canScanFree())) {
       Alert.alert(
-        'Out of Free Scans',
-        `You've used all ${FREE_SCAN_LIMIT} free scans this month. Upgrade to Tabbit Pro for unlimited scans.`,
+        t('scan.outOfFreeScans'),
+        t('scan.outOfFreeScansMsg', { limit: FREE_SCAN_LIMIT }),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('actions.cancel'), style: 'cancel' },
           {
-            text: 'Upgrade to Pro',
+            text: t('actions.upgradeToPro'),
             onPress: () => router.push('/(tabs)/profile'),
           },
         ]
       );
       return;
     }
-    Alert.alert('Scan Receipt', 'Choose image source', [
+    Alert.alert(t('actions.scanReceipt'), t('scan.chooseImageSource'), [
       {
-        text: 'Camera',
+        text: t('scan.camera'),
         onPress: async () => {
           const { status } = await ImagePicker.requestCameraPermissionsAsync();
           if (status !== 'granted') {
-            Alert.alert('Permission needed', 'Camera permission is required.');
+            Alert.alert(t('scan.permissionNeeded'), t('scan.cameraPermissionRequired'));
             return;
           }
           const result = await ImagePicker.launchCameraAsync({
@@ -213,7 +217,7 @@ export default function TabEditorScreen() {
         },
       },
       {
-        text: 'Photo Library',
+        text: t('scan.photoLibrary'),
         onPress: async () => {
           const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
@@ -224,13 +228,14 @@ export default function TabEditorScreen() {
           }
         },
       },
-      { text: 'Cancel', style: 'cancel' },
+      { text: t('actions.cancel'), style: 'cancel' },
     ]);
   };
 
   const processReceiptImage = async (uri: string) => {
-    if (!tabId) return;
+    if (!tabId || !tab) return;
     setScanning(true);
+    const tabCurrency = tab.currency_code || 'USD';
     try {
       const image_base64 = await readAsStringAsync(uri, {
         encoding: EncodingType.Base64,
@@ -239,7 +244,7 @@ export default function TabEditorScreen() {
       const res = await fetch('https://tabbitrabbit.com/api/parse-receipt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64, media_type: 'image/jpeg' }),
+        body: JSON.stringify({ image_base64, media_type: 'image/jpeg', currency_code: tabCurrency }),
       });
       if (!res.ok) {
         const errBody = await res.text();
@@ -248,14 +253,20 @@ export default function TabEditorScreen() {
       const result: ReceiptResult = await res.json();
       const remaining = FREE_SCAN_LIMIT - (await incrementScanCount());
       if (remaining > 0) {
-        Alert.alert('Scan Complete', `${remaining} free scan${remaining === 1 ? '' : 's'} remaining this month.`);
+        showToast(t('messages.freeScansRemainingShort', { count: remaining }), 'info');
+      }
+
+      // Check for currency mismatch
+      if (result.currency_code && result.currency_code !== tabCurrency) {
+        showToast(t('scan.currencyMismatchShort', { detected: result.currency_code }), 'info');
       }
 
       if (result?.items?.length) {
+        const zeroDec = isZeroDecimalCurrency(tabCurrency);
         addItems(
           result.items.map((item) => ({
             description: item.description,
-            price_cents: Math.round(item.price * 100),
+            price_cents: zeroDec ? Math.round(item.price) : Math.round(item.price * 100),
           }))
         );
         const taxPercent = receiptValueToPercent(result.tax, result.tax_unit, result.subtotal);
@@ -265,10 +276,10 @@ export default function TabEditorScreen() {
         if (tipPercent !== null) updates.tip_percent = tipPercent;
         if (Object.keys(updates).length) updateTab(updates);
       } else {
-        Alert.alert('No items found', 'Try a clearer photo.');
+        Alert.alert(t('scan.noItemsFound'), t('scan.tryAClearerPhoto'));
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to process receipt');
+      Alert.alert(t('messages.error'), err.message || t('scan.failedToProcessReceipt'));
     } finally {
       setScanning(false);
     }
@@ -294,7 +305,7 @@ export default function TabEditorScreen() {
       setShowConfetti(true);
       await Share.share({ url });
     } catch {
-      Alert.alert('Error', 'Failed to share bill. Please try again.');
+      Alert.alert(t('messages.error'), t('messages.shareError'));
     } finally {
       setSharing(false);
     }
@@ -311,6 +322,7 @@ export default function TabEditorScreen() {
   const hasItems = items.length > 0;
   const hasRabbits = rabbits.length > 0;
   const showFirstTabHints = !hasItems && !hasRabbits;
+  const currencyCode = tab.currency_code || 'USD';
 
   return (
     <View style={{ flex: 1 }}>
@@ -324,7 +336,7 @@ export default function TabEditorScreen() {
       {/* Hint: scan a receipt */}
       {showFirstTabHints && (
         <View style={styles.hintRow}>
-          <HintArrow text="Scan a receipt to get started" />
+          <HintArrow text={t('hints.scanToStart')} />
         </View>
       )}
 
@@ -346,6 +358,7 @@ export default function TabEditorScreen() {
           rabbits={rabbits}
           selectedRabbitId={selectedRabbitId}
           subtotals={subtotals}
+          currencyCode={currencyCode}
           onSelect={(id) =>
             setSelectedRabbitId(id === selectedRabbitId ? null : id)
           }
@@ -361,17 +374,14 @@ export default function TabEditorScreen() {
 
       {selectedRabbitId && (
         <Text style={styles.assignHint}>
-          Tap items to assign them to{' '}
-          <Text style={styles.assignHintName}>
-            {rabbits.find((r) => r.id === selectedRabbitId)?.name}
-          </Text>
+          {t('messages.tapToAssign', { name: rabbits.find((r) => r.id === selectedRabbitId)?.name })}
         </Text>
       )}
 
       {/* Hint: enter items manually */}
       {showFirstTabHints && (
         <View style={styles.hintRow}>
-          <HintArrow text="Or enter items manually below" />
+          <HintArrow text={t('hints.orEnterManuallyBelow')} />
         </View>
       )}
 
@@ -381,6 +391,7 @@ export default function TabEditorScreen() {
         rabbits={rabbits}
         assignments={assignments}
         selectedRabbitId={selectedRabbitId}
+        currencyCode={currencyCode}
         onToggle={toggleAssignment}
         onAddItem={addItem}
         onDeleteItem={deleteItem}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -9,10 +10,11 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useBillCache } from '@/src/hooks/useBillCache';
-import { formatCents } from '@/src/utils/currency';
+import { formatAmount } from '@/src/utils/currency';
 import { colors, fonts } from '@/src/utils/theme';
 
 export default function BillHistoryScreen() {
+  const { t } = useTranslation();
   const { cachedBills, loading, refresh } = useBillCache();
   const router = useRouter();
 
@@ -27,10 +29,8 @@ export default function BillHistoryScreen() {
   if (cachedBills.length === 0) {
     return (
       <View style={styles.emptyState}>
-        <Text style={styles.emptyTitle}>No Bills Yet</Text>
-        <Text style={styles.emptyText}>
-          Bills you view from shared links will appear here for offline access.
-        </Text>
+        <Text style={styles.emptyTitle}>{t('messages.noBillsYet')}</Text>
+        <Text style={styles.emptyText}>{t('messages.noBillsDesc')}</Text>
       </View>
     );
   }
@@ -50,7 +50,7 @@ export default function BillHistoryScreen() {
           <View style={styles.rowInfo}>
             <Text style={styles.tabName}>{item.tabName}</Text>
             {item.ownerName && (
-              <Text style={styles.ownerName}>by {item.ownerName}</Text>
+              <Text style={styles.ownerName}>{t('messages.sharedBy', { name: item.ownerName })}</Text>
             )}
             <Text style={styles.viewedDate}>
               {new Date(item.viewedAt).toLocaleDateString()} at{' '}
@@ -60,7 +60,7 @@ export default function BillHistoryScreen() {
               })}
             </Text>
           </View>
-          <Text style={styles.total}>{formatCents(item.totalCents)}</Text>
+          <Text style={styles.total}>{formatAmount(item.totalCents, item.currencyCode || 'USD')}</Text>
         </TouchableOpacity>
       )}
       contentContainerStyle={styles.list}

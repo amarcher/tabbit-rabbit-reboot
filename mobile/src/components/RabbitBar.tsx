@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { Rabbit } from '../types';
-import { formatCents } from '../utils/currency';
+import { formatAmount } from '../utils/currency';
 import { BUTTON_COLORS, BUTTON_OUTLINE_COLORS } from '../utils/colors';
 import { colors, fonts } from '../utils/theme';
 
@@ -9,6 +10,7 @@ interface RabbitBarProps {
   rabbits: Rabbit[];
   selectedRabbitId: string | null;
   subtotals: Record<string, number>;
+  currencyCode: string;
   onSelect: (rabbitId: string) => void;
   onRemove: (rabbitId: string) => void;
   onAddClick: () => void;
@@ -20,18 +22,21 @@ export default function RabbitBar({
   rabbits,
   selectedRabbitId,
   subtotals,
+  currencyCode,
   onSelect,
   onRemove,
   onAddClick,
   wrapAddChip,
 }: RabbitBarProps) {
+  const { t } = useTranslation();
+
   const handleLongPress = (rabbit: Rabbit) => {
     Alert.alert(
-      `Remove ${rabbit.name}?`,
-      'This will unassign them from all items.',
+      t('messages.confirmRemoveRabbit', { name: rabbit.name }),
+      t('messages.removeFromAllItems'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => onRemove(rabbit.id) },
+        { text: t('actions.cancel'), style: 'cancel' },
+        { text: t('actions.remove'), style: 'destructive', onPress: () => onRemove(rabbit.id) },
       ]
     );
   };
@@ -66,7 +71,7 @@ export default function RabbitBar({
             </Text>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>
-                {formatCents(subtotals[rabbit.id] || 0)}
+                {formatAmount(subtotals[rabbit.id] || 0, currencyCode)}
               </Text>
             </View>
           </TouchableOpacity>
@@ -75,7 +80,7 @@ export default function RabbitBar({
       {(() => {
         const chip = (
           <TouchableOpacity style={styles.addChip} onPress={onAddClick}>
-            <Text style={styles.addChipText}>+ Add Someone</Text>
+            <Text style={styles.addChipText}>{t('actions.addSomeone')}</Text>
           </TouchableOpacity>
         );
         return wrapAddChip ? wrapAddChip(chip) : chip;

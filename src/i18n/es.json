@@ -1,0 +1,184 @@
+{
+  "nav": {
+    "myTabs": "Mis Cuentas",
+    "profile": "Perfil"
+  },
+  "tabList": {
+    "heading": "Mis Cuentas",
+    "tagline": "Divide cuentas con amigos. Agrega artículos, asigna personas y envía solicitudes de pago.",
+    "placeholderEmpty": "Escribe un nombre para crear una cuenta",
+    "placeholderDefault": "Nombre de cuenta (ej. Cena del viernes)",
+    "creating": "Creando...",
+    "newTab": "Nueva Cuenta",
+    "hintCreate": "Crea una cuenta para empezar a dividir.",
+    "sharing": "Compartiendo...",
+    "shareBill": "Compartir Cuenta",
+    "delete": "Eliminar",
+    "deleteModal": {
+      "confirm": "¿Eliminar {{name}}?",
+      "cannotUndo": "Esto no se puede deshacer.",
+      "cancel": "Cancelar",
+      "delete": "Eliminar"
+    },
+    "toast": {
+      "copySuccess": "¡Enlace copiado al portapapeles!",
+      "shareFailed": "Error al compartir. Inténtalo de nuevo."
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "Cargando cuenta...",
+    "hintScan": "Escanea un recibo para empezar",
+    "hintManual": "O ingresa artículos manualmente",
+    "scanning": "Escaneando...",
+    "scanReceipt": "Escanear Recibo",
+    "sharing": "Compartiendo...",
+    "copied": "¡Copiado!",
+    "shareBill": "Compartir Cuenta",
+    "assignHint": "Toca artículos para asignarlos a <strong>{{name}}</strong>",
+    "clickToEdit": "Clic para editar",
+    "scanError": {
+      "scanLimitReached": "Has usado tus {{limit}} escaneos gratuitos este mes. Agrega tu propia clave API en Perfil para escaneos ilimitados.",
+      "noItemsFound": "No se encontraron artículos en el recibo. Intenta con una foto más clara.",
+      "failedToProcess": "Error al procesar el recibo"
+    }
+  },
+  "totals": {
+    "heading": "Totales",
+    "tax": "Impuesto %",
+    "tip": "Propina %",
+    "taxWord": "imp.",
+    "tipWord": "prop.",
+    "tipLabels": {
+      "wow": "¡Increíble!",
+      "generous": "¡Generoso!",
+      "nice": "¡Bien!",
+      "standard": "Estándar"
+    },
+    "subtotal": "Subtotal",
+    "taxWithPercent": "Impuesto ({{percent}}%)",
+    "tipWithPercent": "Propina ({{percent}}%)",
+    "grandTotal": "Total General",
+    "unassignedWarning_one": "{{count}} artículo sin asignar.",
+    "unassignedWarning_other": "{{count}} artículos sin asignar.",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} imp. + {{tip}} prop.",
+    "requestViaVenmo": "Solicitar por Venmo",
+    "venmoModal": {
+      "title": "Solicitar a {{name}} por Venmo",
+      "usernameLabel": "Usuario de Venmo",
+      "usernamePlaceholder": "usuario",
+      "cancel": "Cancelar",
+      "sendRequest": "Enviar Solicitud"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ Agregar Persona",
+    "remove": "Eliminar",
+    "removeConfirm": "¿Eliminar a {{name}}?"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "Nombre del artículo",
+    "pricePlaceholder": "$0.00",
+    "addButton": "Agregar"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "Eliminar artículo"
+  },
+  "addRabbitModal": {
+    "title": "Agregar Persona",
+    "savedRabbits": "Personas Guardadas",
+    "orAddNew": "o agregar nueva",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "ej. Alejandro",
+    "colorLabel": "Color:",
+    "addPaymentInfo": "+ Agregar datos de pago",
+    "paymentInfoLabel": "Datos de Pago (opcional)",
+    "paymentHintSave": "Agregar datos de pago guarda a esta persona para futuras cuentas.",
+    "venmoPlaeholder": "Usuario de Venmo",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "Usuario de PayPal",
+    "cancel": "Cancelar",
+    "add": "Agregar"
+  },
+  "profile": {
+    "title": "Configuración de Perfil",
+    "savedSuccess": "¡Perfil guardado!",
+    "displayNameLabel": "Nombre para Mostrar",
+    "displayNamePlaceholder": "Tu nombre",
+    "paymentHint": "Configura tus datos de pago para que te paguen cuando compartas una cuenta.",
+    "venmoLabel": "Usuario de Venmo",
+    "venmoPlaceholder": "ej. juan-perez-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "ej. juanperez",
+    "paypalLabel": "Usuario de PayPal",
+    "paypalPlaceholder": "ej. juanperez",
+    "defaultCurrencyLabel": "Moneda Predeterminada",
+    "currencyHint": "Las nuevas cuentas usarán esta moneda por defecto.",
+    "languageLabel": "Idioma",
+    "saving": "Guardando...",
+    "saveProfile": "Guardar Perfil",
+    "savedRabbits": {
+      "heading": "Personas Guardadas",
+      "empty": "Aún no hay personas guardadas. Agrega datos de pago al añadir a alguien y aparecerán aquí.",
+      "namePlaceholder": "Nombre",
+      "venmoPlaceholder": "@usuario",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "usuario",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "edit": "Editar",
+      "remove": "Eliminar",
+      "removeConfirm": "¿Eliminar a {{name}} de personas guardadas?"
+    },
+    "advanced": {
+      "heading": "Avanzado",
+      "freeScansRemaining": "{{remaining}} de {{limit}} escaneos gratuitos restantes este mes.",
+      "apiKeyLabel": "Clave API de Anthropic",
+      "usingOwnKey": "Usando tu propia clave — escaneos ilimitados.",
+      "removeKey": "Eliminar",
+      "saveApiKey": "Guardar Clave API",
+      "apiKeyHint": "Usa tu propia clave API para escaneos ilimitados. Se guarda solo en tu navegador.",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "Obtén una clave en console.anthropic.com"
+    }
+  },
+  "nux": {
+    "skipTour": "Saltar tour",
+    "gotIt": "Entendido",
+    "stepOf": "{{current}} de {{total}}",
+    "steps": {
+      "createTab": "¡Dale un nombre a tu cuenta y presiona **Nueva Cuenta** para empezar a dividir!",
+      "scanReceipt": "Toma una foto de tu recibo para importar artículos automáticamente",
+      "addItemManually": "O escríbelos manualmente",
+      "addRabbit": "¡Agrega a las personas que dividen esta cuenta. Puedes incluir su Venmo, Cash App o PayPal!",
+      "assignItems": "Haz clic en una persona arriba, luego toca sus artículos.",
+      "taxTip": "Ajusta impuesto y propina — se aplican proporcionalmente a la parte de cada persona.",
+      "profile": "Configura tu perfil con datos de pago para enviar solicitudes y compartir cuentas."
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "Cargando cuenta...",
+    "billNotFound": "Cuenta no encontrada",
+    "goToApp": "Ir a Tabbit Rabbit",
+    "sharedBy": "Compartida por {{name}}",
+    "whatEachPersonOwes": "Lo que debe cada persona",
+    "subtotal": "Subtotal",
+    "taxWithPercent": "Impuesto ({{percent}}%)",
+    "tipWithPercent": "Propina ({{percent}}%)",
+    "grandTotal": "Total General",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} imp. + {{tip}} prop.",
+    "cta": {
+      "tagline": "Divide cuentas con amigos",
+      "tryApp": "Prueba Tabbit Rabbit"
+    }
+  },
+  "layout": {
+    "scrollToTop": "Ir arriba",
+    "backToTop": "Volver arriba"
+  },
+  "common": {
+    "loading": "Cargando",
+    "loadingTabs": "Cargando cuentas",
+    "loadingItems": "Cargando artículos",
+    "moreOptions": "Más opciones"
+  }
+}

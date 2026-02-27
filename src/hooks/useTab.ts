@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Tab, Item, Rabbit, ItemRabbit, Profile } from '../types';
+import { getDefaultTaxTip } from '../utils/currency';
 
 const TABS_INDEX_KEY = 'tabbitrabbit:tabs';
 const TAB_PREFIX = 'tabbitrabbit:tab:';
@@ -29,13 +30,15 @@ export function useTabs() {
     fetchTabs();
   }, [fetchTabs]);
 
-  const createTab = async (name: string) => {
+  const createTab = async (name: string, currencyCode: string = 'USD') => {
+    const defaults = getDefaultTaxTip(currencyCode);
     const newTab: Tab = {
       id: crypto.randomUUID(),
       name,
       owner_id: '',
-      tax_percent: 0,
-      tip_percent: 0,
+      currency_code: currencyCode,
+      tax_percent: defaults.tax,
+      tip_percent: defaults.tip,
       receipt_image_url: null,
       created_at: new Date().toISOString(),
       share_token: crypto.randomUUID(),
@@ -91,6 +94,10 @@ export function useTab(tabId: string | undefined) {
     const raw = localStorage.getItem(TAB_PREFIX + tabId);
     if (raw) {
       const data: TabData = JSON.parse(raw);
+      // Lazy migration: ensure currency_code exists
+      if (!data.tab.currency_code) {
+        data.tab.currency_code = 'USD';
+      }
       setTab(data.tab);
       setItems(data.items);
       setRabbits(data.rabbits);

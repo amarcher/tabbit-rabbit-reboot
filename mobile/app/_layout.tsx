@@ -1,3 +1,5 @@
+import '@/src/i18n/i18n';
+import { useTranslation } from 'react-i18next';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider, Theme } from '@react-navigation/native';
 import {
@@ -82,6 +84,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme();
 
   return (
@@ -104,16 +107,16 @@ function RootLayoutNav() {
               <Stack.Screen
                 name="tab/[tabId]"
                 options={{
-                  title: 'Tab',
-                  headerBackTitle: 'Back',
+                  title: t('labels.tab'),
+                  headerBackTitle: t('labels.back'),
                   animation: 'slide_from_right',
                 }}
               />
               <Stack.Screen
                 name="bill/[shareToken]"
                 options={{
-                  title: 'Shared Bill',
-                  headerBackTitle: 'Back',
+                  title: t('labels.sharedBill'),
+                  headerBackTitle: t('labels.back'),
                   animation: 'fade_from_bottom',
                   presentation: 'modal',
                 }}

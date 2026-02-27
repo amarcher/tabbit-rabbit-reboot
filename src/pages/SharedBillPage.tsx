@@ -2,8 +2,9 @@ import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, ListGroup, Container, Alert } from 'react-bootstrap';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useSharedTab } from '../hooks/useSharedTab';
-import { formatCents } from '../utils/currency';
+import { formatAmount, amountToDecimal } from '../utils/currency';
 import { buildPaymentNote } from '../utils/payments';
 import { getGradientStyle } from '../utils/gradients';
 import { COLOR_HEX, RabbitColor } from '../types';
@@ -12,6 +13,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function SharedBillPage() {
+  const { t } = useTranslation();
   const { shareToken } = useParams<{ shareToken: string }>();
   const { data, loading, error } = useSharedTab(shareToken);
 
@@ -53,7 +55,7 @@ export default function SharedBillPage() {
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center py-5">
-        <LoadingSpinner size="md" message="Loading bill..." />
+        <LoadingSpinner size="md" message={t('sharedBill.loadingBill')} />
       </div>
     );
   }
@@ -64,9 +66,9 @@ export default function SharedBillPage() {
         <Card style={{ maxWidth: 500, width: '100%' }}>
           <Card.Body className="text-center">
             <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 150 }} className="mb-3" />
-            <Alert variant="warning">{error || 'Bill not found'}</Alert>
+            <Alert variant="warning">{error || t('sharedBill.billNotFound')}</Alert>
             <Link to="/" className="btn btn-success">
-              Go to Tabbit Rabbit
+              {t('sharedBill.goToApp')}
             </Link>
           </Card.Body>
         </Card>
@@ -75,6 +77,7 @@ export default function SharedBillPage() {
   }
 
   const { tab, items, rabbits, assignments, ownerProfile } = data;
+  const currencyCode = tab.currency_code || 'USD';
   const itemsSubtotal = items.reduce((sum, item) => sum + item.price_cents, 0);
   const taxAmount = Math.round(itemsSubtotal * (tab.tax_percent / 100));
   const tipAmount = Math.round(itemsSubtotal * (tab.tip_percent / 100));
@@ -86,7 +89,7 @@ export default function SharedBillPage() {
         <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 120 }} className="mb-2" />
         <h3>{tab.name}</h3>
         {ownerProfile.display_name && (
-          <p className="text-muted">Shared by {ownerProfile.display_name}</p>
+          <p className="text-muted">{t('sharedBill.sharedBy', { name: ownerProfile.display_name })}</p>
         )}
       </div>
 
@@ -108,7 +111,7 @@ export default function SharedBillPage() {
               className="d-flex justify-content-between"
             >
               <span>{item.description}</span>
-              <strong className="tr-mono">{formatCents(item.price_cents)}</strong>
+              <strong className="tr-mono">{formatAmount(item.price_cents, currencyCode)}</strong>
             </ListGroup.Item>
           );
         })}
@@ -122,7 +125,7 @@ export default function SharedBillPage() {
           animate={breakdownReveal.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
           transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <h5 className="mb-2">What each person owes</h5>
+          <h5 className="mb-2">{t('sharedBill.whatEachPersonOwes')}</h5>
           <ListGroup className="mb-3">
             {totals.map(({ rabbit, subtotal, tax, tip, total }) => (
               <ListGroup.Item
@@ -134,15 +137,19 @@ export default function SharedBillPage() {
                     <strong>{rabbit.name}</strong>
                     <br />
                     <small className="tr-mono" style={{ color: '#2d2a26' }}>
-                      {formatCents(subtotal)} + {formatCents(tax)} tax + {formatCents(tip)} tip
+                      {t('sharedBill.rabbitBreakdown', {
+                        subtotal: formatAmount(subtotal, currencyCode),
+                        tax: formatAmount(tax, currencyCode),
+                        tip: formatAmount(tip, currencyCode),
+                      })}
                     </small>
                   </div>
                   <div className="text-end">
-                    <strong className="fs-5 tr-mono">{formatCents(total)}</strong>
+                    <strong className="fs-5 tr-mono">{formatAmount(total, currencyCode)}</strong>
                     <div className="mt-1">
                       <OwnerPaymentLinks
                         ownerProfile={ownerProfile}
-                        amount={total / 100}
+                        amount={amountToDecimal(total, currencyCode)}
                         note={buildPaymentNote(tab.name, rabbit.name,
                           assignments
                             .filter((a) => a.rabbit_id === rabbit.id)
@@ -171,21 +178,21 @@ export default function SharedBillPage() {
         <Card className="mb-4">
           <Card.Body className="py-2">
             <div className="d-flex justify-content-between small">
-              <span>Subtotal</span>
-              <span className="tr-mono">{formatCents(itemsSubtotal)}</span>
+              <span>{t('sharedBill.subtotal')}</span>
+              <span className="tr-mono">{formatAmount(itemsSubtotal, currencyCode)}</span>
             </div>
             <div className="d-flex justify-content-between small">
-              <span>Tax ({tab.tax_percent}%)</span>
-              <span className="tr-mono">{formatCents(taxAmount)}</span>
+              <span>{t('sharedBill.taxWithPercent', { percent: tab.tax_percent })}</span>
+              <span className="tr-mono">{formatAmount(taxAmount, currencyCode)}</span>
             </div>
             <div className="d-flex justify-content-between small mb-1">
-              <span>Tip ({tab.tip_percent}%)</span>
-              <span className="tr-mono">{formatCents(tipAmount)}</span>
+              <span>{t('sharedBill.tipWithPercent', { percent: tab.tip_percent })}</span>
+              <span className="tr-mono">{formatAmount(tipAmount, currencyCode)}</span>
             </div>
             <hr className="my-1" />
             <div className="d-flex justify-content-between">
-              <strong>Grand Total</strong>
-              <strong className="tr-mono">{formatCents(grandTotal)}</strong>
+              <strong>{t('sharedBill.grandTotal')}</strong>
+              <strong className="tr-mono">{formatAmount(grandTotal, currencyCode)}</strong>
             </div>
           </Card.Body>
         </Card>
@@ -200,9 +207,9 @@ export default function SharedBillPage() {
       >
         <Card className="text-center mb-4" bg="light">
           <Card.Body>
-            <p className="mb-2">Split bills with friends</p>
+            <p className="mb-2">{t('sharedBill.cta.tagline')}</p>
             <Link to="/" className="btn btn-success">
-              Try Tabbit Rabbit
+              {t('sharedBill.cta.tryApp')}
             </Link>
           </Card.Body>
         </Card>
