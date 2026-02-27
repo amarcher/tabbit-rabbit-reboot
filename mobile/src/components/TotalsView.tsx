@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
-import { formatCents } from '../utils/currency';
 import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
 import { colors, fonts, timing } from '../utils/theme';
@@ -182,9 +181,10 @@ export default function TotalsView({
 
   const handleTipSlider = useCallback(
     (val: number) => {
-      setTipPercent(val);
-      setTipInputText(String(val));
-      onUpdateTab({ tip_percent: val });
+      const rounded = Math.round(val);
+      setTipPercent(rounded);
+      setTipInputText(String(rounded));
+      onUpdateTab({ tip_percent: rounded });
     },
     [onUpdateTab]
   );

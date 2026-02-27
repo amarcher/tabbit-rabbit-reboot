@@ -131,9 +131,14 @@ export default function SharedBillScreen() {
             >
               <View style={styles.breakdownLeft}>
                 <Text style={styles.rabbitName}>{rabbit.name}</Text>
-                <Text style={styles.breakdownDetail}>
-                  <AnimatedNumber value={subtotal} style={styles.breakdownDetail} /> + <AnimatedNumber value={tax} style={styles.breakdownDetail} /> tax + <AnimatedNumber value={tip} style={styles.breakdownDetail} /> tip
-                </Text>
+                <View style={styles.breakdownDetailRow}>
+                  <AnimatedNumber value={subtotal} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> + </Text>
+                  <AnimatedNumber value={tax} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> tax + </Text>
+                  <AnimatedNumber value={tip} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> tip</Text>
+                </View>
               </View>
               <View style={styles.breakdownRight}>
                 <AnimatedNumber value={total} style={styles.rabbitTotal} />
@@ -291,10 +296,15 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyBold,
     color: colors.text,
   },
+  breakdownDetailRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginTop: 2,
+  },
   breakdownDetail: {
     fontSize: 12,
     color: colors.muted,
-    marginTop: 2,
   },
   breakdownRight: {
     alignItems: 'flex-end',
