@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Tab, Item, Rabbit, ItemRabbit, Profile } from '../types';
+import { getDefaultTaxTip } from '../utils/currency';
 
 const TABS_INDEX_KEY = '@tabs';
 const TAB_PREFIX = '@tab:';
@@ -36,13 +37,15 @@ export function useTabs() {
     fetchTabs();
   }, [fetchTabs]);
 
-  const createTab = async (name: string) => {
+  const createTab = async (name: string, currencyCode: string = 'USD') => {
+    const defaults = getDefaultTaxTip(currencyCode);
     const newTab: Tab = {
       id: Crypto.randomUUID(),
       name,
       owner_id: '',
-      tax_percent: 0,
-      tip_percent: 0,
+      currency_code: currencyCode,
+      tax_percent: defaults.tax,
+      tip_percent: defaults.tip,
       receipt_image_url: null,
       created_at: new Date().toISOString(),
       share_token: Crypto.randomUUID(),
@@ -104,6 +107,10 @@ export function useTab(tabId: string | undefined) {
       const raw = await AsyncStorage.getItem(TAB_PREFIX + tabId);
       if (raw) {
         const data: TabData = JSON.parse(raw);
+        // Lazy migration: ensure currency_code exists
+        if (!data.tab.currency_code) {
+          data.tab.currency_code = 'USD';
+        }
         setTab(data.tab);
         setItems(data.items);
         setRabbits(data.rabbits);

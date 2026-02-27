@@ -6,6 +6,7 @@ interface CompactBill {
   n: string; // tab name
   x: number; // tax_percent
   p: number; // tip_percent
+  cc?: string; // currency_code (omitted = USD for backward compat)
   i: [string, number][]; // items: [description, price_cents]
   r: [string, number][]; // rabbits: [name, colorIndex]
   a: [number, number][]; // assignments: [itemIdx, rabbitIdx]
@@ -22,7 +23,7 @@ const COLOR_ORDER: RabbitColor[] = [
 ];
 
 export interface SharedTabData {
-  tab: { name: string; tax_percent: number; tip_percent: number };
+  tab: { name: string; tax_percent: number; tip_percent: number; currency_code?: string };
   items: { id: string; description: string; price_cents: number }[];
   rabbits: { id: string; name: string; color: string }[];
   assignments: { item_id: string; rabbit_id: string }[];
@@ -35,7 +36,7 @@ export interface SharedTabData {
 }
 
 export function encodeBill(
-  tab: { name: string; tax_percent: number; tip_percent: number },
+  tab: { name: string; tax_percent: number; tip_percent: number; currency_code?: string },
   items: { id: string; description: string; price_cents: number }[],
   rabbits: { id: string; name: string; color: string }[],
   assignments: { item_id: string; rabbit_id: string }[],
@@ -54,6 +55,7 @@ export function encodeBill(
     n: tab.name,
     x: tab.tax_percent,
     p: tab.tip_percent,
+    ...(tab.currency_code && tab.currency_code !== 'USD' ? { cc: tab.currency_code } : {}),
     i: items.map((item) => [item.description, item.price_cents]),
     r: rabbits.map((r) => [
       r.name,
@@ -125,6 +127,7 @@ export function decodeBill(encoded: string): SharedTabData | null {
         name: compact.n,
         tax_percent: compact.x,
         tip_percent: compact.p,
+        currency_code: compact.cc || 'USD',
       },
       items,
       rabbits,
