@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,19 @@ import {
   ActivityIndicator,
   Alert,
   Share,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
+import { useToast } from '@/src/components/Toast';
 import * as ImagePicker from 'expo-image-picker';
 import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { CoachmarkAnchor, useCoachmark } from '@edwardloopez/react-native-coachmark';
 import { useTab } from '@/src/hooks/useTab';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useProStatus } from '@/src/hooks/useProStatus';
@@ -20,10 +29,14 @@ import { shareBill } from '@/src/utils/billEncoder';
 import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
 import { receiptValueToPercent } from '@/src/utils/anthropic';
 import type { ReceiptResult } from '@/src/utils/anthropic';
+import { colors, fonts } from '@/src/utils/theme';
 import ItemList from '@/src/components/ItemList';
 import RabbitBar from '@/src/components/RabbitBar';
 import AddRabbitModal from '@/src/components/AddRabbitModal';
 import TotalsView from '@/src/components/TotalsView';
+import HintArrow from '@/src/components/HintArrow';
+import Confetti from '@/src/components/Confetti';
+import { editorTour } from '@/src/utils/onboardingTour';
 import type { RabbitColor, Profile, Tab } from '@/src/types';
 
 function ActionBar({
@@ -31,28 +44,50 @@ function ActionBar({
   onShareBill,
   scanning,
   sharing,
+  hasItems,
+  hasRabbits,
 }: {
   onScanReceipt: () => void;
   onShareBill: () => void;
   scanning: boolean;
   sharing: boolean;
+  hasItems: boolean;
+  hasRabbits: boolean;
 }) {
+  const showShare = hasItems && hasRabbits;
+  const scanIsPrimary = !hasItems;
+
   return (
     <View style={styles.actionBar}>
       <TouchableOpacity
-        style={styles.actionButton}
+        style={[
+          scanIsPrimary ? styles.actionButtonFilled : styles.actionButtonOutline,
+          !showShare && { flex: 1 },
+        ]}
         onPress={onScanReceipt}
         disabled={scanning}
       >
-        <Text style={styles.actionButtonText}>
+        <Text
+          style={
+            scanIsPrimary
+              ? styles.actionButtonFilledText
+              : styles.actionButtonOutlineText
+          }
+        >
           {scanning ? 'Scanning...' : 'Scan Receipt'}
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.actionButton} onPress={onShareBill} disabled={sharing}>
-        <Text style={styles.actionButtonText}>
-          {sharing ? 'Sharing...' : 'Share Bill'}
-        </Text>
-      </TouchableOpacity>
+      {showShare && (
+        <TouchableOpacity
+          style={styles.actionButtonOutline}
+          onPress={onShareBill}
+          disabled={sharing}
+        >
+          <Text style={styles.actionButtonOutlineText}>
+            {sharing ? 'Sharing...' : 'Share Bill'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -79,11 +114,43 @@ export default function TabEditorScreen() {
     toggleAssignment,
   } = useTab(tabId);
 
+  const { showToast } = useToast();
+  const { start, stop, isActive } = useCoachmark();
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
+  // Scroll-to-top button state
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollTopOpacity = useSharedValue(0);
+
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    scrollTopOpacity.value = withTiming(y > 200 ? 1 : 0, { duration: 200 });
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
+
+  const scrollTopStyle = useAnimatedStyle(() => ({
+    opacity: scrollTopOpacity.value,
+    pointerEvents: scrollTopOpacity.value > 0.5 ? 'auto' as const : 'none' as const,
+  }));
+
+  // Auto-start editor tour once the screen loads; stop on unmount
+  useEffect(() => {
+    if (!loading && tab && !isActive) {
+      const timer = setTimeout(() => start(editorTour), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, tab, isActive, start]);
+
+  useEffect(() => {
+    return () => { stop(); };
+  }, [stop]);
 
   React.useEffect(() => {
     if (tab?.name) {
@@ -224,6 +291,7 @@ export default function TabEditorScreen() {
         },
       });
       const url = `https://tabbitrabbit.com/bill/${token}`;
+      setShowConfetti(true);
       await Share.share({ url });
     } catch {
       Alert.alert('Error', 'Failed to share bill. Please try again.');
@@ -240,27 +308,56 @@ export default function TabEditorScreen() {
     );
   }
 
+  const hasItems = items.length > 0;
+  const hasRabbits = rabbits.length > 0;
+  const showFirstTabHints = !hasItems && !hasRabbits;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={{ flex: 1 }}>
+    <ScrollView
+      ref={scrollViewRef}
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+    >
+      {/* Hint: scan a receipt */}
+      {showFirstTabHints && (
+        <View style={styles.hintRow}>
+          <HintArrow text="Scan a receipt to get started" />
+        </View>
+      )}
+
       {/* Action Bar (top) */}
-      <ActionBar
-        onScanReceipt={handleScanReceipt}
-        onShareBill={handleShareBill}
-        scanning={scanning}
-        sharing={sharing}
-      />
+      <CoachmarkAnchor id="scan-receipt" shape="rect" padding={8}>
+        <ActionBar
+          onScanReceipt={handleScanReceipt}
+          onShareBill={handleShareBill}
+          scanning={scanning}
+          sharing={sharing}
+          hasItems={hasItems}
+          hasRabbits={hasRabbits}
+        />
+      </CoachmarkAnchor>
 
       {/* Rabbit Bar */}
-      <RabbitBar
-        rabbits={rabbits}
-        selectedRabbitId={selectedRabbitId}
-        subtotals={subtotals}
-        onSelect={(id) =>
-          setSelectedRabbitId(id === selectedRabbitId ? null : id)
-        }
-        onRemove={removeRabbit}
-        onAddClick={() => setShowAddRabbit(true)}
-      />
+      <CoachmarkAnchor id="rabbit-bar" shape="rect" padding={4}>
+        <RabbitBar
+          rabbits={rabbits}
+          selectedRabbitId={selectedRabbitId}
+          subtotals={subtotals}
+          onSelect={(id) =>
+            setSelectedRabbitId(id === selectedRabbitId ? null : id)
+          }
+          onRemove={removeRabbit}
+          onAddClick={() => setShowAddRabbit(true)}
+          wrapAddChip={(chip) => (
+            <CoachmarkAnchor id="add-rabbit" shape="pill" padding={4}>
+              {chip}
+            </CoachmarkAnchor>
+          )}
+        />
+      </CoachmarkAnchor>
 
       {selectedRabbitId && (
         <Text style={styles.assignHint}>
@@ -269,6 +366,13 @@ export default function TabEditorScreen() {
             {rabbits.find((r) => r.id === selectedRabbitId)?.name}
           </Text>
         </Text>
+      )}
+
+      {/* Hint: enter items manually */}
+      {showFirstTabHints && (
+        <View style={styles.hintRow}>
+          <HintArrow text="Or enter items manually below" />
+        </View>
       )}
 
       {/* Item List */}
@@ -282,7 +386,7 @@ export default function TabEditorScreen() {
         onDeleteItem={deleteItem}
       />
 
-      {/* Totals (no share button — it's in the action bar now) */}
+      {/* Totals */}
       <TotalsView
         tab={tab}
         items={items}
@@ -291,13 +395,17 @@ export default function TabEditorScreen() {
         onUpdateTab={updateTab}
       />
 
-      {/* Action Bar (bottom) */}
-      <ActionBar
-        onScanReceipt={handleScanReceipt}
-        onShareBill={handleShareBill}
-        scanning={scanning}
-        sharing={sharing}
-      />
+      {/* Bottom Action Bar — only shown when content exists */}
+      {(hasItems || hasRabbits) && (
+        <ActionBar
+          onScanReceipt={handleScanReceipt}
+          onShareBill={handleShareBill}
+          scanning={scanning}
+          sharing={sharing}
+          hasItems={hasItems}
+          hasRabbits={hasRabbits}
+        />
+      )}
 
       {/* Add Rabbit Modal */}
       <AddRabbitModal
@@ -313,13 +421,20 @@ export default function TabEditorScreen() {
 
       <View style={styles.bottomPadding} />
     </ScrollView>
+    {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}
+    <Animated.View style={[styles.scrollTopButton, scrollTopStyle]}>
+      <TouchableOpacity onPress={scrollToTop} activeOpacity={0.8}>
+        <Text style={styles.scrollTopText}>↑</Text>
+      </TouchableOpacity>
+    </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.bg,
   },
   content: {
     padding: 16,
@@ -334,29 +449,66 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
   },
-  actionButton: {
+  actionButtonOutline: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: '#0dcaf0',
+    borderColor: colors.accent,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
-  actionButtonText: {
-    color: '#0dcaf0',
-    fontWeight: '600',
+  actionButtonOutlineText: {
+    color: colors.accent,
+    fontFamily: fonts.bodySemiBold,
     fontSize: 14,
+  },
+  actionButtonFilled: {
+    flex: 1,
+    backgroundColor: colors.accent,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  actionButtonFilledText: {
+    color: colors.text,
+    fontFamily: fonts.bodyBold,
+    fontSize: 14,
+  },
+  hintRow: {
+    marginBottom: 8,
   },
   assignHint: {
     fontSize: 13,
-    color: '#999',
+    color: colors.muted,
+    fontFamily: fonts.body,
     marginBottom: 8,
   },
   assignHintName: {
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
   },
   bottomPadding: {
     height: 40,
+  },
+  scrollTopButton: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#a08c64',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  scrollTopText: {
+    fontSize: 20,
+    color: colors.text,
+    fontFamily: fonts.bodyBold,
   },
 });

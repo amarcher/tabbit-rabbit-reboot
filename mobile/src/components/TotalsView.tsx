@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,79 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Animated,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
-import { formatCents } from '../utils/currency';
 import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
+import { colors, fonts, timing } from '../utils/theme';
 import PaymentLinks from './PaymentLinks';
+import AnimatedNumber from './AnimatedNumber';
+
+function getTipLabel(tip: number): string | null {
+  if (tip >= 25) return 'Wow!';
+  if (tip >= 20) return 'Generous!';
+  if (tip >= 18) return 'Nice!';
+  if (tip >= 15) return 'Standard';
+  return null;
+}
+
+/** Animated tip feedback badge */
+function TipFeedback({ tipPercent }: { tipPercent: number }) {
+  const label = getTipLabel(tipPercent);
+  const opacity = useRef(new Animated.Value(label ? 1 : 0)).current;
+  const translateY = useRef(new Animated.Value(label ? 0 : -4)).current;
+  const prevLabel = useRef<string | null>(label);
+
+  useEffect(() => {
+    if (label && label !== prevLabel.current) {
+      // New label appearing or changing
+      opacity.setValue(0);
+      translateY.setValue(-4);
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: timing.fast,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: timing.fast,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (!label && prevLabel.current) {
+      // Label disappearing
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: timing.fast,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 4,
+          duration: timing.fast,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+    prevLabel.current = label;
+  }, [label, opacity, translateY]);
+
+  if (!label) return null;
+
+  return (
+    <Animated.Text
+      style={[
+        styles.tipFeedback,
+        { opacity, transform: [{ translateY }] },
+      ]}
+    >
+      {label}
+    </Animated.Text>
+  );
+}
 
 interface TotalsViewProps {
   tab: Tab;
@@ -39,9 +106,19 @@ export default function TotalsView({
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 7);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
 
+  // Raw string state for TextInputs — prevents trailing-dot / mid-edit issues
+  const [taxInputText, setTaxInputText] = useState(String(tab.tax_percent || 7));
+  const [tipInputText, setTipInputText] = useState(String(tab.tip_percent || 18));
+
   // Sync local input state when tab values change externally (e.g. receipt scan)
-  useEffect(() => { setTaxPercent(tab.tax_percent || 7); }, [tab.tax_percent]);
-  useEffect(() => { setTipPercent(tab.tip_percent || 18); }, [tab.tip_percent]);
+  useEffect(() => {
+    setTaxPercent(tab.tax_percent || 7);
+    setTaxInputText(String(tab.tax_percent || 7));
+  }, [tab.tax_percent]);
+  useEffect(() => {
+    setTipPercent(tab.tip_percent || 18);
+    setTipInputText(String(tab.tip_percent || 18));
+  }, [tab.tip_percent]);
 
   const itemsSubtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.price_cents, 0),
@@ -91,17 +168,51 @@ export default function TotalsView({
   const tipAmount = Math.round(itemsSubtotal * (tipPercent / 100));
   const grandTotal = itemsSubtotal + taxAmount + tipAmount;
 
-  const handleTaxChange = (val: string) => {
-    const num = parseFloat(val) || 0;
-    setTaxPercent(num);
-    onUpdateTab({ tax_percent: num });
-  };
+  // Slider handlers — update numeric state + text input + persist
+  const handleTaxSlider = useCallback(
+    (val: number) => {
+      const rounded = Math.round(val * 100) / 100; // avoid floating point noise
+      setTaxPercent(rounded);
+      setTaxInputText(String(rounded));
+      onUpdateTab({ tax_percent: rounded });
+    },
+    [onUpdateTab]
+  );
 
-  const handleTipChange = (val: string) => {
-    const num = parseFloat(val) || 0;
-    setTipPercent(num);
-    onUpdateTab({ tip_percent: num });
-  };
+  const handleTipSlider = useCallback(
+    (val: number) => {
+      const rounded = Math.round(val);
+      setTipPercent(rounded);
+      setTipInputText(String(rounded));
+      onUpdateTab({ tip_percent: rounded });
+    },
+    [onUpdateTab]
+  );
+
+  // TextInput handlers — update text freely while typing, parse on blur
+  const handleTaxInputChange = useCallback((text: string) => {
+    setTaxInputText(text);
+  }, []);
+
+  const handleTaxInputBlur = useCallback(() => {
+    const num = parseFloat(taxInputText) || 0;
+    const clamped = Math.min(Math.max(num, 0), 15);
+    setTaxPercent(clamped);
+    setTaxInputText(String(clamped));
+    onUpdateTab({ tax_percent: clamped });
+  }, [taxInputText, onUpdateTab]);
+
+  const handleTipInputChange = useCallback((text: string) => {
+    setTipInputText(text);
+  }, []);
+
+  const handleTipInputBlur = useCallback(() => {
+    const num = parseFloat(tipInputText) || 0;
+    const clamped = Math.min(Math.max(num, 0), 30);
+    setTipPercent(clamped);
+    setTipInputText(String(clamped));
+    onUpdateTab({ tip_percent: clamped });
+  }, [tipInputText, onUpdateTab]);
 
   if (items.length === 0) return null;
 
@@ -109,25 +220,66 @@ export default function TotalsView({
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Totals</Text>
 
-      {/* Tax & Tip Controls */}
-      <View style={styles.controlsRow}>
-        <View style={styles.controlItem}>
-          <Text style={styles.controlLabel}>Tax %</Text>
+      {/* Tax Slider */}
+      <View style={styles.sliderGroup}>
+        <View style={styles.sliderRow}>
+          <Text style={styles.sliderLabel}>Tax %</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={15}
+            step={0.25}
+            value={taxPercent}
+            onValueChange={handleTaxSlider}
+            minimumTrackTintColor={colors.accent}
+            maximumTrackTintColor={colors.border}
+            thumbTintColor={colors.accent}
+            accessibilityLabel="Tax percentage"
+          />
           <TextInput
-            style={styles.controlInput}
+            style={styles.sliderInput}
             keyboardType="decimal-pad"
-            value={String(taxPercent)}
-            onChangeText={handleTaxChange}
+            value={taxInputText}
+            onChangeText={handleTaxInputChange}
+            onBlur={handleTaxInputBlur}
+            selectTextOnFocus
+            returnKeyType="done"
+            accessibilityLabel="Tax percentage input"
           />
         </View>
-        <View style={styles.controlItem}>
-          <Text style={styles.controlLabel}>Tip %</Text>
-          <TextInput
-            style={styles.controlInput}
-            keyboardType="decimal-pad"
-            value={String(tipPercent)}
-            onChangeText={handleTipChange}
+        <AnimatedNumber value={taxAmount} style={styles.sliderAmount} />
+      </View>
+
+      {/* Tip Slider */}
+      <View style={styles.sliderGroup}>
+        <View style={styles.sliderRow}>
+          <Text style={styles.sliderLabel}>Tip %</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={30}
+            step={1}
+            value={tipPercent}
+            onValueChange={handleTipSlider}
+            minimumTrackTintColor={colors.accent}
+            maximumTrackTintColor={colors.border}
+            thumbTintColor={colors.accent}
+            accessibilityLabel="Tip percentage"
           />
+          <TextInput
+            style={styles.sliderInput}
+            keyboardType="decimal-pad"
+            value={tipInputText}
+            onChangeText={handleTipInputChange}
+            onBlur={handleTipInputBlur}
+            selectTextOnFocus
+            returnKeyType="done"
+            accessibilityLabel="Tip percentage input"
+          />
+        </View>
+        <View style={styles.tipAmountRow}>
+          <TipFeedback tipPercent={tipPercent} />
+          <AnimatedNumber value={tipAmount} style={styles.sliderAmount} />
         </View>
       </View>
 
@@ -144,12 +296,17 @@ export default function TotalsView({
             >
               <View style={styles.breakdownLeft}>
                 <Text style={styles.rabbitName}>{rabbit.name}</Text>
-                <Text style={styles.breakdownDetail}>
-                  {formatCents(subtotal)} + {formatCents(tax)} tax + {formatCents(tip)} tip
-                </Text>
+                <View style={styles.breakdownDetailRow}>
+                  <AnimatedNumber value={subtotal} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> + </Text>
+                  <AnimatedNumber value={tax} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> tax + </Text>
+                  <AnimatedNumber value={tip} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> tip</Text>
+                </View>
               </View>
               <View style={styles.breakdownRight}>
-                <Text style={styles.rabbitTotal}>{formatCents(total)}</Text>
+                <AnimatedNumber value={total} style={styles.rabbitTotal} />
                 <PaymentLinks
                   rabbit={rabbit}
                   amount={total / 100}
@@ -196,20 +353,20 @@ export default function TotalsView({
       <View style={styles.totalCard}>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Subtotal</Text>
-          <Text style={styles.totalValue}>{formatCents(itemsSubtotal)}</Text>
+          <AnimatedNumber value={itemsSubtotal} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Tax ({taxPercent}%)</Text>
-          <Text style={styles.totalValue}>{formatCents(taxAmount)}</Text>
+          <AnimatedNumber value={taxAmount} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Tip ({tipPercent}%)</Text>
-          <Text style={styles.totalValue}>{formatCents(tipAmount)}</Text>
+          <AnimatedNumber value={tipAmount} style={styles.totalValue} />
         </View>
         <View style={styles.divider} />
         <View style={styles.totalRow}>
           <Text style={styles.grandLabel}>Grand Total</Text>
-          <Text style={styles.grandValue}>{formatCents(grandTotal)}</Text>
+          <AnimatedNumber value={grandTotal} style={styles.grandValue} />
         </View>
       </View>
 
@@ -223,34 +380,60 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingTop: 24,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#dee2e6',
+    borderTopColor: colors.border,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.heading,
+    color: colors.text,
     marginBottom: 16,
   },
-  controlsRow: {
+  sliderGroup: {
+    marginBottom: 12,
+  },
+  sliderRow: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
+    alignItems: 'center',
+    gap: 8,
   },
-  controlItem: {
-    flex: 1,
-  },
-  controlLabel: {
+  sliderLabel: {
     fontSize: 13,
-    color: '#666',
-    marginBottom: 4,
+    fontFamily: fonts.bodySemiBold,
+    color: colors.muted,
+    width: 42,
   },
-  controlInput: {
+  slider: {
+    flex: 1,
+    height: 40,
+  },
+  sliderInput: {
+    width: 56,
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 15,
-    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    fontSize: 14,
+    textAlign: 'center',
+    backgroundColor: colors.inputBg,
+    color: colors.text,
+  },
+  sliderAmount: {
+    fontSize: 12,
+    color: colors.muted,
+    textAlign: 'right',
+    marginTop: 2,
+  },
+  tipAmountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  tipFeedback: {
+    fontSize: 13,
+    fontFamily: fonts.bodyBold,
+    color: colors.accent,
   },
   breakdownList: {
     borderRadius: 8,
@@ -270,13 +453,18 @@ const styles = StyleSheet.create({
   },
   rabbitName: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
+  },
+  breakdownDetailRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginTop: 2,
   },
   breakdownDetail: {
     fontSize: 12,
-    color: '#666',
-    marginTop: 2,
+    color: colors.muted,
   },
   breakdownRight: {
     alignItems: 'flex-end',
@@ -284,25 +472,30 @@ const styles = StyleSheet.create({
   },
   rabbitTotal: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
   },
   warningBox: {
-    backgroundColor: '#fff3cd',
+    backgroundColor: colors.warningBg,
     padding: 10,
     borderRadius: 6,
     marginBottom: 16,
   },
   warningText: {
     fontSize: 13,
-    color: '#856404',
+    color: colors.warningText,
   },
   totalCard: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    backgroundColor: '#fffefa',
+    borderRadius: 10,
     padding: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#dee2e6',
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#a08c64',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   totalRow: {
     flexDirection: 'row',
@@ -311,30 +504,32 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
-    color: '#666',
+    color: colors.muted,
   },
   totalValue: {
     fontSize: 14,
-    color: '#333',
+    color: colors.text,
   },
   divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#dee2e6',
+    height: 1,
+    borderTopWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(160,140,100,0.35)',
     marginVertical: 8,
   },
   grandLabel: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
   },
   grandValue: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
   },
   chargeButton: {
     borderWidth: 1,
-    borderColor: '#6c757d',
+    borderColor: colors.muted,
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -342,7 +537,7 @@ const styles = StyleSheet.create({
   },
   chargeButtonText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#6c757d',
+    fontFamily: fonts.bodySemiBold,
+    color: colors.muted,
   },
 });

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import type { Item, Rabbit, ItemRabbit } from '../types';
 import { parseDollars } from '../utils/currency';
+import { colors, fonts } from '../utils/theme';
 import ItemRow from './ItemRow';
 
 interface ItemListProps {
@@ -62,7 +63,7 @@ export default function ItemList({
         <TextInput
           style={[styles.input, styles.descInput]}
           placeholder="Item name"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.placeholder}
           value={desc}
           onChangeText={setDesc}
           returnKeyType="next"
@@ -70,7 +71,7 @@ export default function ItemList({
         <TextInput
           style={[styles.input, styles.priceInput]}
           placeholder="$0.00"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.placeholder}
           value={price}
           onChangeText={setPrice}
           keyboardType="decimal-pad"
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     marginBottom: 12,
   },
   addForm: {
@@ -109,12 +110,13 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.inputBg,
+    color: colors.text,
   },
   descInput: {
     flex: 1,
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
     width: 90,
   },
   addButton: {
-    backgroundColor: '#198754',
+    backgroundColor: colors.accent,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 6,
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     fontSize: 16,
   },
 });

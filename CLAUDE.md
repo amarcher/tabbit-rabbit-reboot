@@ -24,6 +24,13 @@ npx expo install <pkg>  # Install Expo-compatible packages (always use this, not
 npx tsc --noEmit     # TypeScript check (no build step — EAS builds natively)
 ```
 
+### Dev Client Testing (mobile/ directory)
+```bash
+npx eas build --profile development --platform ios  # Build dev client (needed after native dep changes)
+REACT_NATIVE_PACKAGER_HOSTNAME=<LAN_IP> npx expo start --dev-client  # Start bundler for physical device
+```
+New native build required when adding packages with native modules (e.g., `react-native-svg`, `@react-native-community/slider`). JS-only changes hot-reload without a new build. No test suite exists for mobile.
+
 ### EAS Build & Deploy (mobile/ directory)
 ```bash
 npx eas build --platform ios --profile production   # Build for TestFlight
@@ -34,7 +41,7 @@ npx eas build:list --platform ios --limit 1 --json --non-interactive  # Check bu
 ## Tech Stack
 
 - **Web**: React 19, TypeScript, CRA, Bootstrap 5, react-bootstrap, react-router-dom v7
-- **Mobile**: Expo SDK 54, React Native, expo-router (file-based routing), TypeScript
+- **Mobile**: Expo SDK 54, React Native, expo-router (file-based routing), TypeScript, react-native-reanimated, Nunito + DM Sans fonts
 - **Backend**: Vercel serverless functions + Vercel KV (Upstash Redis)
 - **Auth**: None — local profiles stored in localStorage (web) / AsyncStorage (mobile)
 - **Receipt OCR**: Claude Haiku 4.5 vision API (BYOK direct or free via Vercel serverless)
@@ -76,6 +83,7 @@ Web (`src/`) and mobile (`mobile/src/`) share the same architecture but are inde
 - **billEncoder.ts** — LZ-string compression for legacy bill URLs + `shareBill()` POST to `/api/share`
 - **scanCounter.ts** — monthly free scan tracking (10/month)
 - **colors** — web has `gradients.ts` (CSS linear-gradient strings), mobile has `colors.ts` (hex arrays for `expo-linear-gradient`)
+- **theme.ts** — mobile has a centralized design token file (`mobile/src/utils/theme.ts`) exporting `colors`, `fonts`, `shadow*`, `spacing`, `radii`, `timing`. All 16+ mobile files import from this.
 - **useBillCache.ts** — mobile-only, caches shared bills in AsyncStorage for offline access
 
 ### Key Patterns
@@ -97,6 +105,23 @@ Receipt scanning logic lives inline in `mobile/app/tab/[tabId].tsx` (mobile) and
 **Swipe-to-delete** (mobile): Items and tabs use `react-native-gesture-handler` `Swipeable` with Delete/Cancel actions instead of delete buttons.
 
 **Deep linking**: iOS Universal Links intercept `tabbitrabbit.com/bill/*` via AASA file (served by `/api/aasa`). expo-router maps these to `app/bill/[shareToken].tsx`.
+
+**NUX onboarding** (mobile): Uses `@edwardloopez/react-native-coachmark` with two tours defined in `mobile/src/utils/onboardingTour.ts`:
+- `homeTour` — single step on the home screen for new users (no tabs)
+- `editorTour` — 3 steps on the tab editor (scan, add people, assign)
+Both use `showOnce: true` and persist completion state via AsyncStorage. CoachmarkAnchors must only wrap components that are **always mounted** — wrapping conditionally-rendered components causes crashes when anchors appear/disappear mid-tour. The editor tour calls `stop()` on unmount to prevent the overlay from animating toward unmounted anchors.
+
+**Toast notifications** (mobile): `ToastProvider` in root layout provides `useToast()` hook with `showToast(message, type)`. Replaces blocking `Alert.alert` for success/info feedback. Animated slide-in with progress bar countdown.
+
+**AnimatedNumber** (mobile): Smoothly animates between currency values using react-native-reanimated. Applied to all currency displays in TotalsView and SharedBillPage. Formatting must happen on the JS thread via `runOnJS` — never call `.toFixed()` or other JS methods directly inside a reanimated worklet.
+
+**Confetti burst** (mobile): 36-particle spring animation on successful bill share. Renders as an absolute overlay sibling to the ScrollView.
+
+**Skeleton loading** (mobile): `TabListSkeleton` replaces `ActivityIndicator` on the home screen during initial load. Uses a breathing opacity animation.
+
+**Tax/tip sliders** (mobile): `@react-native-community/slider` with companion TextInput for manual entry. Separate string state (`taxInputText`/`tipInputText`) prevents the trailing-dot input issue.
+
+**patch-package**: Used to patch `@edwardloopez/react-native-coachmark` (hide step dots on single-step tours). Patch file at `mobile/patches/`. `postinstall` script in package.json runs `npx patch-package` to re-apply on every install including EAS builds.
 
 ## Environment Variables
 
@@ -123,6 +148,10 @@ KV_REST_API_READ_ONLY_TOKEN=<token>
 - **Keyboard occlusion**: Add `automaticallyAdjustKeyboardInsets` to `ScrollView` components containing `TextInput` fields so they scroll above the virtual keyboard when focused.
 - **Anthropic vision API**: Only accepts image/jpeg, image/png, image/gif, image/webp — normalize other content types to jpeg.
 - **Browser CORS for Anthropic**: Web BYOK requires `anthropic-dangerous-direct-browser-access: true` header.
+- **Reanimated worklets**: Functions called inside `useAnimatedReaction` or worklet callbacks run on the UI thread with a limited JS runtime. Never call `.toFixed()`, `JSON.stringify()`, or other complex JS methods directly in worklets — use `runOnJS(handler)(value)` to move formatting to the JS thread.
+- **Coachmark anchor lifecycle**: `CoachmarkAnchor` components must wrap always-mounted views. Wrapping conditionally-rendered components (e.g., inside `{hasItems && ...}`) crashes the coachmark overlay when those components mount/unmount mid-tour. Tours should call `stop()` on screen unmount.
+- **fontWeight vs fontFamily**: React Native custom Google Fonts bake weight into the variant name (e.g., `Nunito_700Bold`). Setting both `fontFamily` and `fontWeight` causes conflicts — always remove `fontWeight` when using a named font variant.
+- **patch-package**: Used for small library fixes. Patch files in `mobile/patches/` are auto-applied via `postinstall` script. Always commit patch files to the repo.
 
 ## Legacy: Supabase
 

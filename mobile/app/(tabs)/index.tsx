@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,17 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { CoachmarkAnchor, useCoachmark } from '@edwardloopez/react-native-coachmark';
 import { useTabs } from '@/src/hooks/useTab';
 import { formatCents } from '@/src/utils/currency';
 import { BUTTON_COLORS } from '@/src/utils/colors';
+import { colors, fonts } from '@/src/utils/theme';
+import { TabListSkeleton } from '@/src/components/Skeleton';
+import { homeTour } from '@/src/utils/onboardingTour';
 import type { Tab, Item, Rabbit } from '@/src/types';
 
 function TabRow({
@@ -111,6 +114,16 @@ export default function DashboardScreen() {
     Record<string, { items: Item[]; rabbits: Rabbit[] }>
   >({});
 
+  const { start, isActive } = useCoachmark();
+
+  // Auto-start home tour for new users with no tabs
+  useEffect(() => {
+    if (!loading && tabs.length === 0 && !isActive) {
+      const timer = setTimeout(() => start(homeTour), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, tabs.length, isActive, start]);
+
   const loadTabData = useCallback(async () => {
     if (tabs.length === 0) return;
     const keys = tabs.map((t) => `@tab:${t.id}`);
@@ -148,44 +161,69 @@ export default function DashboardScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+      <View style={styles.container}>
+        <View style={styles.createForm}>
+          <TextInput
+            style={styles.createInput}
+            placeholder="New tab name (e.g. Friday Dinner)"
+            placeholderTextColor={colors.placeholder}
+            value={newName}
+            onChangeText={setNewName}
+            returnKeyType="done"
+            onSubmitEditing={handleCreate}
+          />
+          <TouchableOpacity
+            style={[
+              styles.createButton,
+              (creating || !newName.trim()) && styles.createButtonDisabled,
+            ]}
+            onPress={handleCreate}
+            disabled={creating || !newName.trim()}
+          >
+            <Text style={styles.createButtonText}>
+              {creating ? 'Creating...' : 'New Tab'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <TabListSkeleton />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.createForm}>
-        <TextInput
-          style={styles.createInput}
-          placeholder="New tab name (e.g. Friday Dinner)"
-          placeholderTextColor="#999"
-          value={newName}
-          onChangeText={setNewName}
-          returnKeyType="done"
-          onSubmitEditing={handleCreate}
-        />
-        <TouchableOpacity
-          style={[
-            styles.createButton,
-            (creating || !newName.trim()) && styles.createButtonDisabled,
-          ]}
-          onPress={handleCreate}
-          disabled={creating || !newName.trim()}
-        >
-          <Text style={styles.createButtonText}>
-            {creating ? 'Creating...' : 'New Tab'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <CoachmarkAnchor id="create-tab" shape="rect" padding={8}>
+        <View style={styles.createForm}>
+          <TextInput
+            style={styles.createInput}
+            placeholder={
+              tabs.length === 0
+                ? 'Type a tab name to create one'
+                : 'New tab name (e.g. Friday Dinner)'
+            }
+            placeholderTextColor={colors.placeholder}
+            value={newName}
+            onChangeText={setNewName}
+            returnKeyType="done"
+            onSubmitEditing={handleCreate}
+          />
+          <TouchableOpacity
+            style={[
+              styles.createButton,
+              (creating || !newName.trim()) && styles.createButtonDisabled,
+            ]}
+            onPress={handleCreate}
+            disabled={creating || !newName.trim()}
+          >
+            <Text style={styles.createButtonText}>
+              {creating ? 'Creating...' : 'New Tab'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </CoachmarkAnchor>
 
       {tabs.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>
-            No tabs yet. Create one to start splitting a bill!
-          </Text>
-        </View>
+        <View style={styles.emptyState} />
       ) : (
         <FlatList
           data={tabs}
@@ -209,33 +247,30 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.bg,
   },
   createForm: {
     flexDirection: 'row',
     padding: 16,
     gap: 8,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#dee2e6',
+    borderBottomColor: colors.border,
   },
   createInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.inputBg,
+    color: colors.text,
+    fontFamily: fonts.body,
   },
   createButton: {
-    backgroundColor: '#ffc107',
+    backgroundColor: colors.accent,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -245,20 +280,20 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   createButtonText: {
-    fontWeight: '700',
     fontSize: 15,
-    color: '#333',
+    color: colors.text,
+    fontFamily: fonts.bodyBold,
   },
   list: {
     padding: 16,
   },
   tabRow: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     padding: 16,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     gap: 6,
   },
   tableRow: {
@@ -268,15 +303,15 @@ const styles = StyleSheet.create({
   },
   tabName: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#333',
+    color: colors.text,
     flex: 1,
     marginRight: 12,
+    fontFamily: fonts.headingSemiBold,
   },
   tabTotal: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    color: colors.text,
+    fontFamily: fonts.bodyBold,
   },
   rabbitChips: {
     flexDirection: 'row',
@@ -292,11 +327,12 @@ const styles = StyleSheet.create({
   },
   rabbitChipText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   tabDate: {
     fontSize: 13,
-    color: '#999',
+    color: colors.muted,
+    fontFamily: fonts.body,
   },
   swipeActions: {
     flexDirection: 'row',
@@ -305,31 +341,23 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   deleteAction: {
-    backgroundColor: '#dc3545',
+    backgroundColor: colors.danger,
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
   },
   cancelAction: {
-    backgroundColor: '#6c757d',
+    backgroundColor: colors.muted,
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
   },
   actionText: {
     color: '#fff',
-    fontWeight: '600',
     fontSize: 14,
+    fontFamily: fonts.bodySemiBold,
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
   },
 });

@@ -15,6 +15,7 @@ import * as Crypto from 'expo-crypto';
 import { RABBIT_COLORS, RabbitColor } from '../types';
 import type { SavedRabbit, Profile } from '../types';
 import { BUTTON_COLORS } from '../utils/colors';
+import { colors, fonts } from '../utils/theme';
 
 interface AddRabbitModalProps {
   visible: boolean;
@@ -187,7 +188,7 @@ export default function AddRabbitModal({
             <TextInput
               style={styles.input}
               placeholder="e.g. Alex"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.placeholder}
               value={name}
               onChangeText={setName}
               autoFocus
@@ -222,7 +223,7 @@ export default function AddRabbitModal({
                     <TextInput
                       style={styles.input}
                       placeholder="Venmo username"
-                      placeholderTextColor="#999"
+                      placeholderTextColor={colors.placeholder}
                       value={venmo}
                       onChangeText={setVenmo}
                       autoCapitalize="none"
@@ -231,7 +232,7 @@ export default function AddRabbitModal({
                     <TextInput
                       style={styles.input}
                       placeholder="Cash App $cashtag"
-                      placeholderTextColor="#999"
+                      placeholderTextColor={colors.placeholder}
                       value={cashapp}
                       onChangeText={setCashapp}
                       autoCapitalize="none"
@@ -240,7 +241,7 @@ export default function AddRabbitModal({
                     <TextInput
                       style={styles.input}
                       placeholder="PayPal username"
-                      placeholderTextColor="#999"
+                      placeholderTextColor={colors.placeholder}
                       value={paypal}
                       onChangeText={setPaypal}
                       autoCapitalize="none"
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modal: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 24,
     width: '85%',
@@ -293,7 +294,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.heading,
+    color: colors.text,
     marginBottom: 16,
   },
   savedSection: {
@@ -301,8 +303,8 @@ const styles = StyleSheet.create({
   },
   savedLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#666',
+    fontFamily: fonts.bodySemiBold,
+    color: colors.muted,
     marginBottom: 8,
   },
   savedRow: {
@@ -318,7 +320,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
   },
   chipDot: {
     width: 10,
@@ -327,12 +329,12 @@ const styles = StyleSheet.create({
   },
   chipName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontFamily: fonts.bodySemiBold,
+    color: colors.text,
   },
   chipPayment: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: '#198754',
   },
   divider: {
@@ -345,26 +347,28 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#dee2e6',
+    backgroundColor: colors.border,
   },
   dividerText: {
     fontSize: 12,
-    color: '#999',
+    color: colors.muted,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
+    fontFamily: fonts.bodySemiBold,
+    color: colors.muted,
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
     marginBottom: 12,
+    backgroundColor: colors.inputBg,
+    color: colors.text,
   },
   colorRow: {
     flexDirection: 'row',
@@ -374,7 +378,7 @@ const styles = StyleSheet.create({
   },
   colorLabel: {
     fontSize: 14,
-    color: '#666',
+    color: colors.muted,
   },
   colorDot: {
     width: 24,
@@ -386,21 +390,21 @@ const styles = StyleSheet.create({
   },
   expandButtonText: {
     fontSize: 14,
-    color: '#0d6efd',
-    fontWeight: '600',
+    color: colors.link,
+    fontFamily: fonts.bodySemiBold,
   },
   paymentFields: {
     marginBottom: 8,
   },
   paymentLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#666',
+    fontFamily: fonts.bodySemiBold,
+    color: colors.muted,
     marginBottom: 8,
   },
   paymentHint: {
     fontSize: 12,
-    color: '#999',
+    color: colors.muted,
     marginBottom: 8,
   },
   buttons: {
@@ -413,23 +417,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: '#6c757d',
+    backgroundColor: colors.muted,
   },
   cancelText: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   addButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: '#0d6efd',
+    backgroundColor: colors.accent,
   },
   addButtonDisabled: {
     opacity: 0.5,
   },
   addButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
 });

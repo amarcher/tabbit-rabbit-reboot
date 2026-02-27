@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'rea
 import type { Rabbit } from '../types';
 import { formatCents } from '../utils/currency';
 import { BUTTON_COLORS, BUTTON_OUTLINE_COLORS } from '../utils/colors';
+import { colors, fonts } from '../utils/theme';
 
 interface RabbitBarProps {
   rabbits: Rabbit[];
@@ -11,6 +12,8 @@ interface RabbitBarProps {
   onSelect: (rabbitId: string) => void;
   onRemove: (rabbitId: string) => void;
   onAddClick: () => void;
+  /** Optional wrapper for the "+ Add Someone" chip (used for coachmark anchoring) */
+  wrapAddChip?: (chip: React.ReactElement) => React.ReactElement;
 }
 
 export default function RabbitBar({
@@ -20,6 +23,7 @@ export default function RabbitBar({
   onSelect,
   onRemove,
   onAddClick,
+  wrapAddChip,
 }: RabbitBarProps) {
   const handleLongPress = (rabbit: Rabbit) => {
     Alert.alert(
@@ -68,9 +72,14 @@ export default function RabbitBar({
           </TouchableOpacity>
         );
       })}
-      <TouchableOpacity style={styles.addChip} onPress={onAddClick}>
-        <Text style={styles.addChipText}>+ Add Someone</Text>
-      </TouchableOpacity>
+      {(() => {
+        const chip = (
+          <TouchableOpacity style={styles.addChip} onPress={onAddClick}>
+            <Text style={styles.addChipText}>+ Add Someone</Text>
+          </TouchableOpacity>
+        );
+        return wrapAddChip ? wrapAddChip(chip) : chip;
+      })()}
     </ScrollView>
   );
 }
@@ -93,29 +102,29 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   badge: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.bg,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
+    fontFamily: fonts.bodySemiBold,
+    color: colors.text,
   },
   addChip: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#6c757d',
+    borderColor: colors.muted,
     borderStyle: 'dashed',
   },
   addChipText: {
     fontSize: 15,
-    color: '#6c757d',
+    color: colors.muted,
   },
 });

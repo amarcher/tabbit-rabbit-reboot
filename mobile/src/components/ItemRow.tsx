@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { Item, Rabbit, ItemRabbit } from '../types';
 import { formatCents } from '../utils/currency';
 import { getGradientColors } from '../utils/colors';
+import { colors as theme, fonts } from '../utils/theme';
 
 interface ItemRowProps {
   item: Item;
@@ -30,8 +31,8 @@ export default function ItemRow({
     .map((a) => a.rabbit_id);
 
   const assignedRabbits = rabbits.filter((r) => itemRabbitIds.includes(r.id));
-  const colors = assignedRabbits.map((r) => r.color);
-  const gradientColors = getGradientColors(colors);
+  const rabbitColors = assignedRabbits.map((r) => r.color);
+  const gradientColors = getGradientColors(rabbitColors);
 
   const isSelectedRabbitAssigned =
     selectedRabbitId != null && itemRabbitIds.includes(selectedRabbitId);
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#dee2e6',
+    borderBottomColor: theme.border,
   },
   highlighted: {
     shadowColor: '#EDD29E',
@@ -113,32 +114,32 @@ const styles = StyleSheet.create({
   description: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: theme.text,
     marginRight: 8,
   },
   price: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontFamily: fonts.bodySemiBold,
+    color: theme.text,
   },
   swipeActions: {
     flexDirection: 'row',
   },
   confirmButton: {
-    backgroundColor: '#dc3545',
+    backgroundColor: theme.danger,
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
   },
   cancelButton: {
-    backgroundColor: '#6c757d',
+    backgroundColor: theme.muted,
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
   },
   actionText: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     fontSize: 14,
   },
 });
