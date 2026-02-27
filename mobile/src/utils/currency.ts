@@ -37,6 +37,26 @@ export function isZeroDecimalCurrency(currencyCode: string): boolean {
   return ZERO_DECIMAL_CURRENCIES.has(currencyCode.toUpperCase());
 }
 
+const formatterCache = new Map<string, Intl.NumberFormat>();
+
+function getFormatter(currencyCode: string): Intl.NumberFormat {
+  const key = currencyCode.toUpperCase();
+  let fmt = formatterCache.get(key);
+  if (!fmt) {
+    const isZero = isZeroDecimalCurrency(key);
+    fmt = new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: key,
+      minimumFractionDigits: isZero ? 0 : 2,
+      maximumFractionDigits: isZero ? 0 : 2,
+    });
+    formatterCache.set(key, fmt);
+  }
+  return fmt;
+}
+
+const symbolCache = new Map<string, Intl.NumberFormat>();
+
 /**
  * Format a smallest-unit amount (cents/yen/etc.) for display.
  * For USD, 1299 → "$12.99". For JPY, 1299 → "¥1,299".
@@ -47,12 +67,7 @@ export function formatAmount(cents: number, currencyCode: string = 'USD'): strin
   const value = isZero ? cents : cents / 100;
 
   try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: code,
-      minimumFractionDigits: isZero ? 0 : 2,
-      maximumFractionDigits: isZero ? 0 : 2,
-    }).format(value);
+    return getFormatter(code).format(value);
   } catch {
     return isZero ? `${cents}` : `$${(cents / 100).toFixed(2)}`;
   }
@@ -76,11 +91,14 @@ export function parseAmount(input: string, currencyCode: string = 'USD'): number
  * Get the currency symbol for a given currency code.
  */
 export function getCurrencySymbol(currencyCode: string): string {
+  const code = currencyCode.toUpperCase();
   try {
-    const parts = new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: currencyCode.toUpperCase(),
-    }).formatToParts(0);
+    let fmt = symbolCache.get(code);
+    if (!fmt) {
+      fmt = new Intl.NumberFormat(undefined, { style: 'currency', currency: code });
+      symbolCache.set(code, fmt);
+    }
+    const parts = fmt.formatToParts(0);
     return parts.find((p) => p.type === 'currency')?.value || currencyCode;
   } catch {
     return currencyCode;

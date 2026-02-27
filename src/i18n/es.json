@@ -39,7 +39,8 @@
     "scanError": {
       "scanLimitReached": "Has usado tus {{limit}} escaneos gratuitos este mes. Agrega tu propia clave API en Perfil para escaneos ilimitados.",
       "noItemsFound": "No se encontraron artículos en el recibo. Intenta con una foto más clara.",
-      "failedToProcess": "Error al procesar el recibo"
+      "failedToProcess": "Error al procesar el recibo",
+      "currencyMismatch": "Nota: El recibo parece estar en {{detected}}, pero esta cuenta usa {{expected}}. Los artículos se agregaron como {{expected}}."
     }
   },
   "totals": {

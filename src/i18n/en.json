@@ -39,7 +39,8 @@
     "scanError": {
       "scanLimitReached": "You've used all {{limit}} free scans this month. Add your own API key in Profile for unlimited scans.",
       "noItemsFound": "No items found in receipt. Try a clearer photo.",
-      "failedToProcess": "Failed to process receipt"
+      "failedToProcess": "Failed to process receipt",
+      "currencyMismatch": "Note: Receipt appears to be in {{detected}}, but this tab uses {{expected}}. Items were added as {{expected}}."
     }
   },
   "totals": {

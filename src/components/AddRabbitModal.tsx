@@ -13,6 +13,7 @@ interface AddRabbitModalProps {
   savedRabbits?: SavedRabbit[];
   onAddSavedRabbit?: (saved: SavedRabbit) => void;
   onRemoveSavedRabbit?: (id: string) => void;
+  currencyCode?: string;
 }
 
 const fieldVariants = {
@@ -45,6 +46,7 @@ export default function AddRabbitModal({
   savedRabbits = [],
   onAddSavedRabbit,
   onRemoveSavedRabbit,
+  currencyCode = 'USD',
 }: AddRabbitModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
@@ -96,7 +98,7 @@ export default function AddRabbitModal({
         venmo_username: venmoClean,
         cashapp_cashtag: cashappClean,
         paypal_username: paypalClean,
-        currency_code: 'USD',
+        currency_code: currencyCode,
         created_at: new Date().toISOString(),
       };
 

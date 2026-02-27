@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Alert, Button, Form } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { useTab } from '../hooks/useTab';
 import { useAuth } from '../hooks/useAuth';
 import { useSavedRabbits } from '../hooks/useSavedRabbits';
@@ -18,6 +18,7 @@ import LoadingSpinner from './LoadingSpinner';
 import Confetti from './Confetti';
 import HintArrow from './HintArrow';
 import { useNux } from '../contexts/NuxContext';
+import { isZeroDecimalCurrency } from '../utils/currency';
 import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
@@ -89,9 +90,11 @@ export default function TabEditor() {
   };
 
   const handleReceiptParsed = (result: ReceiptResult) => {
+    const tabCurrency = tab?.currency_code || 'USD';
+    const zeroDec = isZeroDecimalCurrency(tabCurrency);
     const batchItems = result.items.map((item) => ({
       description: item.description,
-      price_cents: Math.round(item.price * 100),
+      price_cents: zeroDec ? Math.round(item.price) : Math.round(item.price * 100),
     }));
     addItems(batchItems);
     completeAction('add-items');
@@ -133,12 +136,12 @@ export default function TabEditor() {
       let result: ReceiptResult;
 
       if (byokKey) {
-        result = await scanReceiptDirect(byokKey, image_base64, media_type);
+        result = await scanReceiptDirect(byokKey, image_base64, media_type, tab.currency_code || 'USD');
       } else {
         const res = await fetch('/api/parse-receipt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image_base64, media_type }),
+          body: JSON.stringify({ image_base64, media_type, currency_code: tab.currency_code || 'USD' }),
         });
         if (!res.ok) {
           const errBody = await res.text();
@@ -150,6 +153,12 @@ export default function TabEditor() {
 
       if (result?.items?.length) {
         handleReceiptParsed(result);
+        if (result.currency_code && result.currency_code !== (tab.currency_code || 'USD')) {
+          setScanError(t('tabEditor.scanError.currencyMismatch', {
+            detected: result.currency_code,
+            expected: tab.currency_code || 'USD',
+          }));
+        }
       } else {
         setScanError(t('tabEditor.scanError.noItemsFound'));
       }
@@ -336,14 +345,13 @@ export default function TabEditor() {
           />
 
           {selectedRabbitId && (
-            <p
-              className="text-muted small mb-2"
-              dangerouslySetInnerHTML={{
-                __html: t('tabEditor.assignHint', {
-                  name: rabbits.find((r) => r.id === selectedRabbitId)?.name,
-                }),
-              }}
-            />
+            <p className="text-muted small mb-2">
+              <Trans
+                i18nKey="tabEditor.assignHint"
+                values={{ name: rabbits.find((r) => r.id === selectedRabbitId)?.name }}
+                components={{ strong: <strong /> }}
+              />
+            </p>
           )}
 
           {!hasItems && isFirstTab && !nuxActive && (
@@ -383,6 +391,7 @@ export default function TabEditor() {
         savedRabbits={savedRabbits}
         onAddSavedRabbit={addSaved}
         onRemoveSavedRabbit={removeSaved}
+        currencyCode={tab?.currency_code || 'USD'}
       />
     </div>
   );

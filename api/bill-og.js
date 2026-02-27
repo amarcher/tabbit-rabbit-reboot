@@ -4,17 +4,30 @@ const CRAWLER_UA = /facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot
 
 const ZERO_DECIMAL = new Set(['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'UGX', 'RWF', 'PYG']);
 
+const formatterCache = new Map();
+
+function getFormatter(currencyCode, locale = 'en-US') {
+  const key = `${locale}:${currencyCode}`;
+  let fmt = formatterCache.get(key);
+  if (!fmt) {
+    const isZero = ZERO_DECIMAL.has(currencyCode);
+    fmt = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: isZero ? 0 : 2,
+      maximumFractionDigits: isZero ? 0 : 2,
+    });
+    formatterCache.set(key, fmt);
+  }
+  return fmt;
+}
+
 function formatAmount(cents, currencyCode = 'USD') {
   const code = (currencyCode || 'USD').toUpperCase();
   const isZero = ZERO_DECIMAL.has(code);
   const value = isZero ? cents : Math.round(cents) / 100;
   try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: code,
-      minimumFractionDigits: isZero ? 0 : 2,
-      maximumFractionDigits: isZero ? 0 : 2,
-    }).format(value);
+    return getFormatter(code).format(value);
   } catch {
     return '$' + (Math.round(cents) / 100).toFixed(2);
   }

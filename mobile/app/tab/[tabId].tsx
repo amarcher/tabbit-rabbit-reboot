@@ -428,6 +428,7 @@ export default function TabEditorScreen() {
         savedRabbits={savedRabbits}
         onAddSavedRabbit={addSaved}
         onRemoveSavedRabbit={removeSaved}
+        currencyCode={tab?.currency_code || 'USD'}
       />
 
       <View style={styles.bottomPadding} />
