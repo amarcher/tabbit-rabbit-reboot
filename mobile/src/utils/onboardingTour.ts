@@ -22,7 +22,7 @@ export const homeTour = createTour(
 
 /**
  * Tab editor tour — shown the first time a user opens the tab editor.
- * Walks through scanning, adding people, assigning items, tax/tip, and sharing.
+ * Walks through scanning, adding people, and assigning items.
  */
 export const editorTour = createTour(
   'tabbit-editor-onboarding',
@@ -46,30 +46,12 @@ export const editorTour = createTour(
     },
     {
       id: 'rabbit-bar',
-      title: 'Assign Items',
+      title: 'Assign & Share',
       description:
-        'Tap a person, then tap items to assign them. Items can be shared between people!',
+        'Tap a person, then tap items to assign them. When done, adjust tax & tip and share the bill!',
       placement: 'bottom',
       shape: 'rect',
       padding: 4,
-    },
-    {
-      id: 'tax-tip',
-      title: 'Tax & Tip',
-      description:
-        "Use the sliders to adjust tax and tip. Everyone's share updates automatically.",
-      placement: 'top',
-      shape: 'rect',
-      padding: 8,
-    },
-    {
-      id: 'share-bill',
-      title: 'Share the Bill',
-      description:
-        "When you're done, share the bill so everyone can see what they owe and pay you directly.",
-      placement: 'top',
-      shape: 'rect',
-      padding: 8,
     },
   ],
   { showOnce: true, delay: 800 }

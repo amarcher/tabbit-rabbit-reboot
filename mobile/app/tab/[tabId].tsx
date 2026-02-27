@@ -115,7 +115,7 @@ export default function TabEditorScreen() {
   } = useTab(tabId);
 
   const { showToast } = useToast();
-  const { start, isActive } = useCoachmark();
+  const { start, stop, isActive } = useCoachmark();
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -140,13 +140,17 @@ export default function TabEditorScreen() {
     pointerEvents: scrollTopOpacity.value > 0.5 ? 'auto' as const : 'none' as const,
   }));
 
-  // Auto-start editor tour once the screen loads
+  // Auto-start editor tour once the screen loads; stop on unmount
   useEffect(() => {
     if (!loading && tab && !isActive) {
       const timer = setTimeout(() => start(editorTour), 1000);
       return () => clearTimeout(timer);
     }
   }, [loading, tab, isActive, start]);
+
+  useEffect(() => {
+    return () => { stop(); };
+  }, [stop]);
 
   React.useEffect(() => {
     if (tab?.name) {
@@ -383,28 +387,24 @@ export default function TabEditorScreen() {
       />
 
       {/* Totals */}
-      <CoachmarkAnchor id="tax-tip" shape="rect" padding={8}>
-        <TotalsView
-          tab={tab}
-          items={items}
-          rabbits={rabbits}
-          assignments={assignments}
-          onUpdateTab={updateTab}
-        />
-      </CoachmarkAnchor>
+      <TotalsView
+        tab={tab}
+        items={items}
+        rabbits={rabbits}
+        assignments={assignments}
+        onUpdateTab={updateTab}
+      />
 
       {/* Bottom Action Bar — only shown when content exists */}
       {(hasItems || hasRabbits) && (
-        <CoachmarkAnchor id="share-bill" shape="rect" padding={8}>
-          <ActionBar
-            onScanReceipt={handleScanReceipt}
-            onShareBill={handleShareBill}
-            scanning={scanning}
-            sharing={sharing}
-            hasItems={hasItems}
-            hasRabbits={hasRabbits}
-          />
-        </CoachmarkAnchor>
+        <ActionBar
+          onScanReceipt={handleScanReceipt}
+          onShareBill={handleShareBill}
+          scanning={scanning}
+          sharing={sharing}
+          hasItems={hasItems}
+          hasRabbits={hasRabbits}
+        />
       )}
 
       {/* Add Rabbit Modal */}

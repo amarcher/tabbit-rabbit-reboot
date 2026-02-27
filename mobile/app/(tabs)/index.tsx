@@ -15,8 +15,6 @@ import { useTabs } from '@/src/hooks/useTab';
 import { formatCents } from '@/src/utils/currency';
 import { BUTTON_COLORS } from '@/src/utils/colors';
 import { colors, fonts } from '@/src/utils/theme';
-import HintArrow from '@/src/components/HintArrow';
-import FloatingView from '@/src/components/FloatingView';
 import { TabListSkeleton } from '@/src/components/Skeleton';
 import { homeTour } from '@/src/utils/onboardingTour';
 import type { Tab, Item, Rabbit } from '@/src/types';
@@ -224,12 +222,6 @@ export default function DashboardScreen() {
         </View>
       </CoachmarkAnchor>
 
-      {tabs.length === 0 && (
-        <FloatingView style={styles.hintContainer}>
-          <HintArrow text="Start by naming your first tab" />
-        </FloatingView>
-      )}
-
       {tabs.length === 0 ? (
         <View style={styles.emptyState} />
       ) : (
@@ -364,10 +356,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontFamily: fonts.bodySemiBold,
-  },
-  hintContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
   },
   emptyState: {
     flex: 1,

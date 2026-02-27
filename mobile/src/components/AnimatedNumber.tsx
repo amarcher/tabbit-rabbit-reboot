@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Text, type TextStyle, type StyleProp } from 'react-native';
 import {
   useSharedValue,
@@ -36,6 +36,11 @@ export default function AnimatedNumber({
   const animatedValue = useSharedValue(value);
   const [displayText, setDisplayText] = useState(formatCentsValue(value));
 
+  // Format on JS thread — avoids calling .toFixed() in the worklet context
+  const updateDisplay = useCallback((cents: number) => {
+    setDisplayText(formatCentsValue(cents));
+  }, []);
+
   useEffect(() => {
     animatedValue.value = withTiming(value, {
       duration,
@@ -46,7 +51,7 @@ export default function AnimatedNumber({
   useAnimatedReaction(
     () => animatedValue.value,
     (current) => {
-      runOnJS(setDisplayText)(formatCentsValue(current));
+      runOnJS(updateDisplay)(current);
     }
   );
 
