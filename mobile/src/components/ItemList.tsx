@@ -4,7 +4,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   FlatList,
   StyleSheet,
   KeyboardAvoidingView,
@@ -25,6 +25,8 @@ interface ItemListProps {
   onAddItem: (description: string, priceCents: number) => void;
   onDeleteItem: (itemId: string) => void;
 }
+
+const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 export default function ItemList({
   items,
@@ -87,16 +89,17 @@ export default function ItemList({
           returnKeyType="done"
           onSubmitEditing={handleAdd}
         />
-        <TouchableOpacity
-          style={[
+        <Pressable
+          style={({ pressed }) => [
             styles.addButton,
             (!desc.trim() || !price.trim()) && styles.addButtonDisabled,
+            pressed && PRESSED_STYLE,
           ]}
           onPress={handleAdd}
           disabled={!desc.trim() || !price.trim()}
         >
           <Text style={styles.addButtonText}>{t('actions.add')}</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );

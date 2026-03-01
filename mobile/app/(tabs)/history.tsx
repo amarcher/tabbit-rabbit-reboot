@@ -4,7 +4,7 @@ import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
@@ -12,6 +12,8 @@ import { useRouter } from 'expo-router';
 import { useBillCache } from '@/src/hooks/useBillCache';
 import { formatAmount } from '@/src/utils/currency';
 import { colors, fonts } from '@/src/utils/theme';
+
+const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 export default function BillHistoryScreen() {
   const { t } = useTranslation();
@@ -43,8 +45,8 @@ export default function BillHistoryScreen() {
       onRefresh={refresh}
       refreshing={loading}
       renderItem={({ item }) => (
-        <TouchableOpacity
-          style={styles.row}
+        <Pressable
+          style={({ pressed }) => [styles.row, pressed && PRESSED_STYLE]}
           onPress={() => router.push(`/bill/${item.shareToken}`)}
         >
           <View style={styles.rowInfo}>
@@ -61,7 +63,7 @@ export default function BillHistoryScreen() {
             </Text>
           </View>
           <Text style={styles.total}>{formatAmount(item.totalCents, item.currencyCode || 'USD')}</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
       contentContainerStyle={styles.list}
     />

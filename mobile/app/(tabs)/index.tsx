@@ -4,7 +4,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   FlatList,
   StyleSheet,
 } from 'react-native';
@@ -20,6 +20,8 @@ import { colors, fonts } from '@/src/utils/theme';
 import { TabListSkeleton } from '@/src/components/Skeleton';
 import { homeTour } from '@/src/utils/onboardingTour';
 import type { Tab, Item, Rabbit } from '@/src/types';
+
+const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 const TabRow = React.memo(function TabRow({
   tab,
@@ -45,21 +47,21 @@ const TabRow = React.memo(function TabRow({
 
   const renderRightActions = () => (
     <View style={styles.swipeActions}>
-      <TouchableOpacity
-        style={styles.deleteAction}
+      <Pressable
+        style={({ pressed }) => [styles.deleteAction, pressed && PRESSED_STYLE]}
         onPress={() => {
           swipeableRef.current?.close();
           onDelete(tab.id);
         }}
       >
         <Text style={styles.actionText}>{t('actions.delete')}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.cancelAction}
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [styles.cancelAction, pressed && PRESSED_STYLE]}
         onPress={() => swipeableRef.current?.close()}
       >
         <Text style={styles.actionText}>{t('actions.cancel')}</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 
@@ -70,7 +72,10 @@ const TabRow = React.memo(function TabRow({
       overshootRight={false}
       rightThreshold={40}
     >
-      <TouchableOpacity style={styles.tabRow} onPress={() => onPress(tab.id)}>
+      <Pressable
+        style={({ pressed }) => [styles.tabRow, pressed && PRESSED_STYLE]}
+        onPress={() => onPress(tab.id)}
+      >
         {/* Row 1: Name + Total */}
         <View style={styles.tableRow}>
           <Text style={styles.tabName} numberOfLines={1}>{tab.name}</Text>
@@ -104,7 +109,7 @@ const TabRow = React.memo(function TabRow({
             {new Date(tab.created_at).toLocaleDateString()}
           </Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </Swipeable>
   );
 });
@@ -186,10 +191,11 @@ export default function DashboardScreen() {
             returnKeyType="done"
             onSubmitEditing={handleCreate}
           />
-          <TouchableOpacity
-            style={[
+          <Pressable
+            style={({ pressed }) => [
               styles.createButton,
               (creating || !newName.trim()) && styles.createButtonDisabled,
+              pressed && PRESSED_STYLE,
             ]}
             onPress={handleCreate}
             disabled={creating || !newName.trim()}
@@ -197,7 +203,7 @@ export default function DashboardScreen() {
             <Text style={styles.createButtonText}>
               {creating ? t('actions.creating') : t('actions.newTab')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <TabListSkeleton />
       </View>
@@ -221,10 +227,11 @@ export default function DashboardScreen() {
             returnKeyType="done"
             onSubmitEditing={handleCreate}
           />
-          <TouchableOpacity
-            style={[
+          <Pressable
+            style={({ pressed }) => [
               styles.createButton,
               (creating || !newName.trim()) && styles.createButtonDisabled,
+              pressed && PRESSED_STYLE,
             ]}
             onPress={handleCreate}
             disabled={creating || !newName.trim()}
@@ -232,7 +239,7 @@ export default function DashboardScreen() {
             <Text style={styles.createButtonText}>
               {creating ? t('actions.creating') : t('actions.newTab')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </CoachmarkAnchor>
 

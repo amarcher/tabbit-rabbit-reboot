@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
 import type { Rabbit } from '../types';
 import { venmoChargeLink, cashAppLink, paypalLink } from '../utils/payments';
 import { fonts } from '../utils/theme';
@@ -9,6 +9,8 @@ interface PaymentLinksProps {
   amount: number;
   note: string;
 }
+
+const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 export default function PaymentLinks({ rabbit, amount, note }: PaymentLinksProps) {
   const profile = rabbit.profile;
@@ -26,28 +28,28 @@ export default function PaymentLinks({ rabbit, amount, note }: PaymentLinksProps
   return (
     <View style={styles.container}>
       {profile.venmo_username && (
-        <TouchableOpacity
-          style={[styles.button, styles.venmo]}
+        <Pressable
+          style={({ pressed }) => [styles.button, styles.venmo, pressed && PRESSED_STYLE]}
           onPress={() => openLink(venmoChargeLink(profile.venmo_username!, amount, note))}
         >
           <Text style={[styles.buttonText, styles.venmoText]}>Venmo</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
       {profile.cashapp_cashtag && (
-        <TouchableOpacity
-          style={[styles.button, styles.cashapp]}
+        <Pressable
+          style={({ pressed }) => [styles.button, styles.cashapp, pressed && PRESSED_STYLE]}
           onPress={() => openLink(cashAppLink(profile.cashapp_cashtag!, amount))}
         >
           <Text style={[styles.buttonText, styles.cashappText]}>Cash App</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
       {profile.paypal_username && (
-        <TouchableOpacity
-          style={[styles.button, styles.paypal]}
+        <Pressable
+          style={({ pressed }) => [styles.button, styles.paypal, pressed && PRESSED_STYLE]}
           onPress={() => openLink(paypalLink(profile.paypal_username!, amount))}
         >
           <Text style={[styles.buttonText, styles.paypalText]}>PayPal</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
     </View>
   );

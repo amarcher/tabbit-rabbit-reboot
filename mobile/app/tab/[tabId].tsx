@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   StyleSheet,
   ActivityIndicator,
@@ -41,6 +41,8 @@ import Confetti from '@/src/components/Confetti';
 import { editorTour } from '@/src/utils/onboardingTour';
 import type { RabbitColor, Profile, Tab } from '@/src/types';
 
+const PRESSED_STYLE = { opacity: 0.7 } as const;
+
 function ActionBar({
   onScanReceipt,
   onShareBill,
@@ -62,10 +64,11 @@ function ActionBar({
 
   return (
     <View style={styles.actionBar}>
-      <TouchableOpacity
-        style={[
+      <Pressable
+        style={({ pressed }) => [
           scanIsPrimary ? styles.actionButtonFilled : styles.actionButtonOutline,
           !showShare && { flex: 1 },
+          pressed && PRESSED_STYLE,
         ]}
         onPress={onScanReceipt}
         disabled={scanning}
@@ -79,17 +82,17 @@ function ActionBar({
         >
           {scanning ? t('actions.scanning') : t('actions.scanReceipt')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
       {showShare && (
-        <TouchableOpacity
-          style={styles.actionButtonOutline}
+        <Pressable
+          style={({ pressed }) => [styles.actionButtonOutline, pressed && PRESSED_STYLE]}
           onPress={onShareBill}
           disabled={sharing}
         >
           <Text style={styles.actionButtonOutlineText}>
             {sharing ? t('actions.sharing') : t('actions.shareBill')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
     </View>
   );
@@ -435,9 +438,12 @@ export default function TabEditorScreen() {
     </ScrollView>
     {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}
     <Animated.View style={[styles.scrollTopButton, scrollTopStyle]}>
-      <TouchableOpacity onPress={scrollToTop} activeOpacity={0.8}>
+      <Pressable
+        style={({ pressed }) => [pressed && PRESSED_STYLE]}
+        onPress={scrollToTop}
+      >
         <Text style={styles.scrollTopText}>↑</Text>
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
     </View>
   );

@@ -4,7 +4,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Modal,
   StyleSheet,
   KeyboardAvoidingView,
@@ -29,6 +29,8 @@ interface AddRabbitModalProps {
   onRemoveSavedRabbit?: (id: string) => void;
   currencyCode?: string;
 }
+
+const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 export default function AddRabbitModal({
   visible,
@@ -158,11 +160,12 @@ export default function AddRabbitModal({
                   contentContainerStyle={styles.savedRow}
                 >
                   {savedRabbits.map((saved) => (
-                    <TouchableOpacity
+                    <Pressable
                       key={saved.id}
-                      style={[
+                      style={({ pressed }) => [
                         styles.savedChip,
                         { borderColor: BUTTON_COLORS[saved.color].bg },
+                        pressed && PRESSED_STYLE,
                       ]}
                       onPress={() => handleQuickAdd(saved)}
                       onLongPress={() => handleLongPressSaved(saved)}
@@ -177,7 +180,7 @@ export default function AddRabbitModal({
                       {(saved.venmo_username || saved.cashapp_cashtag || saved.paypal_username) && (
                         <Text style={styles.chipPayment}>$</Text>
                       )}
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                 </ScrollView>
 
@@ -217,12 +220,12 @@ export default function AddRabbitModal({
             {isPro && (
               <>
                 {!showPaymentFields ? (
-                  <TouchableOpacity
-                    style={styles.expandButton}
+                  <Pressable
+                    style={({ pressed }) => [styles.expandButton, pressed && PRESSED_STYLE]}
                     onPress={() => setShowPaymentFields(true)}
                   >
                     <Text style={styles.expandButtonText}>{t('actions.addPaymentInfo')}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ) : (
                   <View style={styles.paymentFields}>
                     <Text style={styles.paymentLabel}>{t('labels.paymentInfoOptional')}</Text>
@@ -265,16 +268,23 @@ export default function AddRabbitModal({
 
             {/* Buttons */}
             <View style={styles.buttons}>
-              <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
+              <Pressable
+                style={({ pressed }) => [styles.cancelButton, pressed && PRESSED_STYLE]}
+                onPress={handleClose}
+              >
                 <Text style={styles.cancelText}>{t('actions.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.addButton, !name.trim() && styles.addButtonDisabled]}
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.addButton,
+                  !name.trim() && styles.addButtonDisabled,
+                  pressed && PRESSED_STYLE,
+                ]}
                 onPress={handleSubmit}
                 disabled={!name.trim()}
               >
                 <Text style={styles.addButtonText}>{t('actions.add')}</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </ScrollView>
         </View>

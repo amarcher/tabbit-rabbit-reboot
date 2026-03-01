@@ -4,7 +4,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Linking,
   Animated,
@@ -17,6 +17,8 @@ import { COLOR_HEX } from '../types';
 import { colors, fonts, timing } from '../utils/theme';
 import PaymentLinks from './PaymentLinks';
 import AnimatedNumber from './AnimatedNumber';
+
+const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 function getTipLabelKey(tip: number): string | null {
   if (tip >= 25) return 'tipLabels.wow';
@@ -326,8 +328,8 @@ export default function TotalsView({
                   )}
                 />
                 {rabbit.profile?.venmo_username && total > 0 && (
-                  <TouchableOpacity
-                    style={styles.chargeButton}
+                  <Pressable
+                    style={({ pressed }) => [styles.chargeButton, pressed && PRESSED_STYLE]}
                     onPress={() => Linking.openURL(venmoChargeLink(rabbit.profile!.venmo_username!, amountToDecimal(total, currencyCode), buildChargeNote(tab.name, rabbit.name,
                       assignments
                         .filter((a) => a.rabbit_id === rabbit.id)
@@ -338,7 +340,7 @@ export default function TotalsView({
                     )))}
                   >
                     <Text style={styles.chargeButtonText}>{t('actions.requestViaVenmo')}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 )}
               </View>
             </View>
