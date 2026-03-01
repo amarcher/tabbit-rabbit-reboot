@@ -95,7 +95,7 @@ function ToastCard({
   }, []);
 
   const progressStyle = useAnimatedStyle(() => ({
-    width: `${progress.value * 100}%`,
+    transform: [{ scaleX: progress.value }],
   }));
 
   return (
@@ -210,7 +210,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   progressBar: {
+    width: '100%',
     height: '100%',
     borderRadius: 1.5,
+    transformOrigin: 'left center',
   },
 });
