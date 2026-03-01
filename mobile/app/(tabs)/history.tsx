@@ -15,6 +15,9 @@ import { colors, fonts } from '@/src/utils/theme';
 
 const PRESSED_STYLE = { opacity: 0.7 } as const;
 
+const dateFormatter = new Intl.DateTimeFormat(undefined, { month: 'numeric', day: 'numeric', year: 'numeric' });
+const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
+
 export default function BillHistoryScreen() {
   const { t } = useTranslation();
   const { cachedBills, loading, refresh } = useBillCache();
@@ -55,11 +58,8 @@ export default function BillHistoryScreen() {
               <Text style={styles.ownerName}>{t('messages.sharedBy', { name: item.ownerName })}</Text>
             )}
             <Text style={styles.viewedDate}>
-              {new Date(item.viewedAt).toLocaleDateString()} at{' '}
-              {new Date(item.viewedAt).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+              {dateFormatter.format(new Date(item.viewedAt))} at{' '}
+              {timeFormatter.format(new Date(item.viewedAt))}
             </Text>
           </View>
           <Text style={styles.total}>{formatAmount(item.totalCents, item.currencyCode || 'USD')}</Text>
