@@ -10,6 +10,7 @@ interface CachedBillEntry {
   tabName: string;
   ownerName: string | null;
   totalCents: number;
+  currencyCode: string;
   viewedAt: string;
 }
 
@@ -47,6 +48,7 @@ export function useBillCache() {
       tabName: data.tab.name,
       ownerName: data.ownerProfile.display_name,
       totalCents: subtotal + taxAmount + tipAmount,
+      currencyCode: data.tab.currency_code || 'USD',
       viewedAt: new Date().toISOString(),
     };
 

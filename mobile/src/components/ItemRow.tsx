@@ -1,9 +1,10 @@
 import React, { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Item, Rabbit, ItemRabbit } from '../types';
-import { formatCents } from '../utils/currency';
+import { formatAmount } from '../utils/currency';
 import { getGradientColors } from '../utils/colors';
 import { colors as theme, fonts } from '../utils/theme';
 
@@ -12,6 +13,7 @@ interface ItemRowProps {
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
   selectedRabbitId: string | null;
+  currencyCode: string;
   onToggle: (itemId: string, rabbitId: string) => void;
   onDelete: (itemId: string) => void;
 }
@@ -21,9 +23,11 @@ export default function ItemRow({
   rabbits,
   assignments,
   selectedRabbitId,
+  currencyCode,
   onToggle,
   onDelete,
 }: ItemRowProps) {
+  const { t } = useTranslation();
   const swipeableRef = useRef<Swipeable>(null);
 
   const itemRabbitIds = assignments
@@ -52,13 +56,13 @@ export default function ItemRow({
           onDelete(item.id);
         }}
       >
-        <Text style={styles.actionText}>Delete</Text>
+        <Text style={styles.actionText}>{t('actions.delete')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.cancelButton}
         onPress={() => swipeableRef.current?.close()}
       >
-        <Text style={styles.actionText}>Cancel</Text>
+        <Text style={styles.actionText}>{t('actions.cancel')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -87,7 +91,7 @@ export default function ItemRow({
           <Text style={styles.description} numberOfLines={1}>
             {item.description}
           </Text>
-          <Text style={styles.price}>{formatCents(item.price_cents)}</Text>
+          <Text style={styles.price}>{formatAmount(item.price_cents, currencyCode)}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </Swipeable>

@@ -23,6 +23,7 @@ export interface ReceiptResult {
   tip?: number;
   tip_unit?: 'currency' | 'percent';
   total?: number;
+  currency_code?: string;
 }
 
 /**

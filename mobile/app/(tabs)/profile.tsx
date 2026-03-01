@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -17,9 +18,18 @@ import { useSavedRabbits } from '@/src/hooks/useSavedRabbits';
 import { remainingFreeScans, FREE_SCAN_LIMIT } from '@/src/utils/scanCounter';
 import { BUTTON_COLORS } from '@/src/utils/colors';
 import { colors, fonts } from '@/src/utils/theme';
+import { CURRENCIES } from '@/src/utils/currency';
+import i18n from '@/src/i18n/i18n';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { SavedRabbit } from '@/src/types';
 
+const LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Español' },
+];
+
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const { profile, updateProfile } = useAuth();
   const { isPro, product, purchasing, purchasePro, restorePurchases } = useProStatus();
   const { savedRabbits, refresh: refreshSavedRabbits, removeSaved, updateSaved } = useSavedRabbits();
@@ -35,6 +45,10 @@ export default function ProfileScreen() {
   const [editVenmo, setEditVenmo] = useState('');
   const [editCashapp, setEditCashapp] = useState('');
   const [editPaypal, setEditPaypal] = useState('');
+  const [currencyCode, setCurrencyCode] = useState('USD');
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+  const [language, setLanguage] = useState(i18n.language || 'en');
   const [venmo, setVenmo] = useState('');
   const [cashapp, setCashapp] = useState('');
   const [paypal, setPaypal] = useState('');
@@ -44,6 +58,7 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || '');
+      setCurrencyCode(profile.currency_code || 'USD');
       setVenmo(profile.venmo_username || '');
       setCashapp(profile.cashapp_cashtag || '');
       setPaypal(profile.paypal_username || '');
@@ -74,11 +89,11 @@ export default function ProfileScreen() {
 
   const confirmDeleteRabbit = (rabbit: SavedRabbit) => {
     Alert.alert(
-      'Remove Saved Rabbit',
-      `Remove ${rabbit.name} from your saved rabbits?`,
+      t('messages.removeSavedRabbitTitle'),
+      t('messages.confirmRemoveSavedRabbit', { name: rabbit.name }),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => removeSaved(rabbit.id) },
+        { text: t('actions.cancel'), style: 'cancel' },
+        { text: t('actions.remove'), style: 'destructive', onPress: () => removeSaved(rabbit.id) },
       ]
     );
   };
@@ -88,13 +103,14 @@ export default function ProfileScreen() {
     try {
       await updateProfile({
         display_name: displayName.trim() || null,
+        currency_code: currencyCode,
         venmo_username: stripPrefix(venmo.trim()) || null,
         cashapp_cashtag: stripPrefix(cashapp.trim()) || null,
         paypal_username: stripPrefix(paypal.trim()) || null,
       });
-      showToast('Profile updated successfully.', 'success');
+      showToast(t('messages.profileUpdated'), 'success');
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to save profile.');
+      Alert.alert(t('messages.error'), err.message || t('messages.profileSaveFailed'));
     } finally {
       setSaving(false);
     }
@@ -103,15 +119,97 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.field}>
-        <Text style={styles.label}>Display Name</Text>
+        <Text style={styles.label}>{t('labels.displayName')}</Text>
         <TextInput
           style={styles.input}
           value={displayName}
           onChangeText={setDisplayName}
-          placeholder="Your name"
+          placeholder={t('placeholders.yourName')}
           placeholderTextColor={colors.placeholder}
           autoCapitalize="words"
         />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>{t('labels.defaultCurrency')}</Text>
+        <TouchableOpacity
+          style={styles.currencyPicker}
+          onPress={() => setShowCurrencyPicker(!showCurrencyPicker)}
+        >
+          <Text style={styles.currencyPickerText}>
+            {CURRENCIES.find((c) => c.code === currencyCode)?.symbol || ''}{' '}
+            {currencyCode}
+          </Text>
+          <Text style={styles.currencyPickerArrow}>{showCurrencyPicker ? '▲' : '▼'}</Text>
+        </TouchableOpacity>
+        {showCurrencyPicker && (
+          <View style={styles.currencyList}>
+            {CURRENCIES.map((c) => (
+              <TouchableOpacity
+                key={c.code}
+                style={[
+                  styles.currencyOption,
+                  c.code === currencyCode && styles.currencyOptionSelected,
+                ]}
+                onPress={() => {
+                  setCurrencyCode(c.code);
+                  setShowCurrencyPicker(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.currencyOptionText,
+                    c.code === currencyCode && styles.currencyOptionTextSelected,
+                  ]}
+                >
+                  {c.symbol} {c.code} — {c.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        <Text style={styles.currencyHint}>{t('messages.currencyHint')}</Text>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>{t('profile.languageLabel', 'Language')}</Text>
+        <TouchableOpacity
+          style={styles.currencyPicker}
+          onPress={() => setShowLanguagePicker(!showLanguagePicker)}
+        >
+          <Text style={styles.currencyPickerText}>
+            {LANGUAGES.find((l) => l.code === language)?.name || 'English'}
+          </Text>
+          <Text style={styles.currencyPickerArrow}>{showLanguagePicker ? '▲' : '▼'}</Text>
+        </TouchableOpacity>
+        {showLanguagePicker && (
+          <View style={styles.currencyList}>
+            {LANGUAGES.map((l) => (
+              <TouchableOpacity
+                key={l.code}
+                style={[
+                  styles.currencyOption,
+                  l.code === language && styles.currencyOptionSelected,
+                ]}
+                onPress={() => {
+                  setLanguage(l.code);
+                  i18n.changeLanguage(l.code);
+                  AsyncStorage.setItem('tabbitrabbit:language', l.code);
+                  setShowLanguagePicker(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.currencyOptionText,
+                    l.code === language && styles.currencyOptionTextSelected,
+                  ]}
+                >
+                  {l.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
 
       <View style={styles.field}>
@@ -120,7 +218,7 @@ export default function ProfileScreen() {
           style={styles.input}
           value={venmo}
           onChangeText={setVenmo}
-          placeholder="username"
+          placeholder={t('placeholders.username')}
           placeholderTextColor={colors.placeholder}
           autoCapitalize="none"
           autoCorrect={false}
@@ -133,7 +231,7 @@ export default function ProfileScreen() {
           style={styles.input}
           value={cashapp}
           onChangeText={setCashapp}
-          placeholder="cashtag"
+          placeholder={t('placeholders.cashtag')}
           placeholderTextColor={colors.placeholder}
           autoCapitalize="none"
           autoCorrect={false}
@@ -146,7 +244,7 @@ export default function ProfileScreen() {
           style={styles.input}
           value={paypal}
           onChangeText={setPaypal}
-          placeholder="username"
+          placeholder={t('placeholders.username')}
           placeholderTextColor={colors.placeholder}
           autoCapitalize="none"
           autoCorrect={false}
@@ -159,27 +257,27 @@ export default function ProfileScreen() {
         disabled={saving}
       >
         <Text style={styles.saveButtonText}>
-          {saving ? 'Saving...' : 'Save Profile'}
+          {saving ? t('actions.saving') : t('actions.saveProfile')}
         </Text>
       </TouchableOpacity>
 
       {/* Tabbit Pro Section */}
       <View style={styles.proSection}>
-        <Text style={styles.proTitle}>Tabbit Pro</Text>
+        <Text style={styles.proTitle}>{t('labels.tabbitPro')}</Text>
         {isPro ? (
           <View style={styles.proBadgeRow}>
             <View style={styles.proBadge}>
               <Text style={styles.proBadgeText}>PRO</Text>
             </View>
-            <Text style={styles.proBadgeLabel}>Unlimited receipt scans</Text>
+            <Text style={styles.proBadgeLabel}>{t('messages.unlimitedScans')}</Text>
           </View>
         ) : (
           <View>
             <Text style={styles.proDescription}>
-              Unlock unlimited receipt scans with a one-time purchase.
+              {t('messages.unlimitedScansDesc')}
             </Text>
             <Text style={styles.scanCountHint}>
-              {freeScansLeft} of {FREE_SCAN_LIMIT} free scans remaining this month.
+              {t('messages.freeScansRemaining', { remaining: freeScansLeft, limit: FREE_SCAN_LIMIT })}
             </Text>
             <TouchableOpacity
               style={[styles.proButton, purchasing && styles.saveButtonDisabled]}
@@ -190,7 +288,7 @@ export default function ProfileScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.proButtonText}>
-                  Upgrade — {product?.displayPrice ?? '$4.99'}
+                  {t('messages.upgradePrice', { price: product?.displayPrice ?? '$4.99' })}
                 </Text>
               )}
             </TouchableOpacity>
@@ -199,15 +297,15 @@ export default function ProfileScreen() {
               onPress={async () => {
                 const restored = await restorePurchases();
                 Alert.alert(
-                  restored ? 'Restored' : 'Not Found',
+                  restored ? t('messages.restored') : t('messages.notFound'),
                   restored
-                    ? 'Tabbit Pro has been restored.'
-                    : 'No previous purchase found.',
+                    ? t('messages.proRestored')
+                    : t('messages.noPurchaseFound'),
                 );
               }}
               disabled={purchasing}
             >
-              <Text style={styles.linkText}>Restore Purchases</Text>
+              <Text style={styles.linkText}>{t('actions.restorePurchases')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -216,10 +314,10 @@ export default function ProfileScreen() {
       {/* Saved Rabbits Section (Pro only) */}
       {isPro && (
         <View style={styles.proSection}>
-          <Text style={styles.proTitle}>Saved Rabbits</Text>
+          <Text style={styles.proTitle}>{t('labels.savedRabbits')}</Text>
           {savedRabbits.length === 0 ? (
             <Text style={styles.proDescription}>
-              Rabbits you add with payment info will appear here.
+              {t('messages.noSavedRabbits')}
             </Text>
           ) : (
             <View style={styles.savedRabbitsList}>
@@ -257,11 +355,11 @@ export default function ProfileScreen() {
                           : startEditingRabbit(rabbit)
                       }>
                         <Text style={styles.linkText}>
-                          {editingRabbitId === rabbit.id ? 'Cancel' : 'Edit'}
+                          {editingRabbitId === rabbit.id ? t('actions.cancel') : t('actions.edit')}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => confirmDeleteRabbit(rabbit)}>
-                        <Text style={styles.deleteText}>Delete</Text>
+                        <Text style={styles.deleteText}>{t('actions.delete')}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -272,7 +370,7 @@ export default function ProfileScreen() {
                         style={styles.input}
                         value={editVenmo}
                         onChangeText={setEditVenmo}
-                        placeholder="Venmo username"
+                        placeholder={t('placeholders.venmoUsername')}
                         placeholderTextColor={colors.placeholder}
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -281,7 +379,7 @@ export default function ProfileScreen() {
                         style={styles.input}
                         value={editCashapp}
                         onChangeText={setEditCashapp}
-                        placeholder="Cash App $cashtag"
+                        placeholder={t('placeholders.cashAppCashtag')}
                         placeholderTextColor={colors.placeholder}
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -290,7 +388,7 @@ export default function ProfileScreen() {
                         style={styles.input}
                         value={editPaypal}
                         onChangeText={setEditPaypal}
-                        placeholder="PayPal username"
+                        placeholder={t('placeholders.paypalUsername')}
                         placeholderTextColor={colors.placeholder}
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -299,7 +397,7 @@ export default function ProfileScreen() {
                         style={styles.saveEditButton}
                         onPress={() => saveRabbitEdit(rabbit.id)}
                       >
-                        <Text style={styles.saveEditButtonText}>Save</Text>
+                        <Text style={styles.saveEditButtonText}>{t('actions.save')}</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -339,6 +437,58 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: colors.inputBg,
     color: colors.text,
+    fontFamily: fonts.body,
+  },
+  currencyPicker: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: colors.inputBg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  currencyPickerText: {
+    fontSize: 16,
+    color: colors.text,
+    fontFamily: fonts.body,
+  },
+  currencyPickerArrow: {
+    fontSize: 12,
+    color: colors.muted,
+  },
+  currencyList: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    marginTop: 4,
+    maxHeight: 200,
+    backgroundColor: colors.surface,
+  },
+  currencyOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  currencyOptionSelected: {
+    backgroundColor: colors.accent + '18',
+  },
+  currencyOptionText: {
+    fontSize: 14,
+    color: colors.text,
+    fontFamily: fonts.body,
+  },
+  currencyOptionTextSelected: {
+    color: colors.accent,
+    fontFamily: fonts.bodySemiBold,
+  },
+  currencyHint: {
+    fontSize: 12,
+    color: colors.muted,
+    marginTop: 4,
     fontFamily: fonts.body,
   },
   saveButton: {

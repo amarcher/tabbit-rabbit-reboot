@@ -1,4 +1,5 @@
 import { createTour } from '@edwardloopez/react-native-coachmark';
+import i18n from '../i18n/i18n';
 
 /**
  * Home screen tour — shown when the user has no tabs (first launch).
@@ -9,9 +10,8 @@ export const homeTour = createTour(
   [
     {
       id: 'create-tab',
-      title: 'Create a Tab',
-      description:
-        'Start by typing a name for your bill (like "Friday Dinner") and tap New Tab.',
+      title: i18n.t('tour.createTabTitle'),
+      description: i18n.t('tour.createTabDesc'),
       placement: 'bottom',
       shape: 'rect',
       padding: 8,
@@ -29,26 +29,24 @@ export const editorTour = createTour(
   [
     {
       id: 'scan-receipt',
-      title: 'Add Items',
-      description:
-        'Scan a receipt with your camera, or add items manually below.',
+      title: i18n.t('tour.addItemsTitle'),
+      description: i18n.t('tour.addItemsDesc'),
       placement: 'bottom',
       shape: 'rect',
       padding: 8,
     },
     {
       id: 'add-rabbit',
-      title: 'Add People',
-      description: 'Tap here to add people who are splitting the bill.',
+      title: i18n.t('tour.addPeopleTitle'),
+      description: i18n.t('tour.addPeopleDesc'),
       placement: 'bottom',
       shape: 'pill',
       padding: 4,
     },
     {
       id: 'rabbit-bar',
-      title: 'Assign & Share',
-      description:
-        'Tap a person, then tap items to assign them. When done, adjust tax & tip and share the bill!',
+      title: i18n.t('tour.assignShareTitle'),
+      description: i18n.t('tour.assignShareDesc'),
       placement: 'bottom',
       shape: 'rect',
       padding: 4,

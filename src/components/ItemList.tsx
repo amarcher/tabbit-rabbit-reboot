@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ListGroup, Form, InputGroup, Button } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import type { Item, Rabbit, ItemRabbit } from '../types';
-import { parseDollars } from '../utils/currency';
+import { parseAmount, getPricePlaceholder } from '../utils/currency';
 import ItemRow from './ItemRow';
 
 interface ItemListProps {
@@ -9,6 +10,7 @@ interface ItemListProps {
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
   selectedRabbitId: string | null;
+  currencyCode: string;
   onToggle: (itemId: string, rabbitId: string) => void;
   onAddItem: (description: string, priceCents: number) => void;
   onDeleteItem: (itemId: string) => void;
@@ -19,17 +21,19 @@ export default function ItemList({
   rabbits,
   assignments,
   selectedRabbitId,
+  currencyCode,
   onToggle,
   onAddItem,
   onDeleteItem,
 }: ItemListProps) {
+  const { t } = useTranslation();
   const [desc, setDesc] = useState('');
   const [price, setPrice] = useState('');
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!desc.trim() || !price.trim()) return;
-    onAddItem(desc.trim(), parseDollars(price));
+    onAddItem(desc.trim(), parseAmount(price, currencyCode));
     setDesc('');
     setPrice('');
   };
@@ -44,6 +48,7 @@ export default function ItemList({
             rabbits={rabbits}
             assignments={assignments}
             selectedRabbitId={selectedRabbitId}
+            currencyCode={currencyCode}
             onToggle={onToggle}
             onDelete={onDeleteItem}
           />
@@ -54,19 +59,19 @@ export default function ItemList({
         <InputGroup>
           <Form.Control
             type="text"
-            placeholder="Item name"
+            placeholder={t('itemList.itemNamePlaceholder')}
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
           />
           <Form.Control
             type="text"
-            placeholder="$0.00"
+            placeholder={getPricePlaceholder(currencyCode)}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             style={{ maxWidth: 100 }}
           />
           <Button variant="success" type="submit" disabled={!desc.trim() || !price.trim()}>
-            Add
+            {t('itemList.addButton')}
           </Button>
         </InputGroup>
       </Form>

@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { tStatic } from '../i18n/i18n';
 
 export interface NuxTarget {
   selector: string;
@@ -20,7 +21,7 @@ const NUX_STEPS: NuxStepDef[] = [
     targets: [
       {
         selector: '[data-nux="create-tab-input"]',
-        message: 'Give your tab a name and hit **New Tab** to start splitting a bill!',
+        message: tStatic('nux.steps.createTab'),
         placement: 'bottom',
       },
     ],
@@ -32,12 +33,12 @@ const NUX_STEPS: NuxStepDef[] = [
     targets: [
       {
         selector: '[data-nux="scan-receipt-btn"]',
-        message: 'Snap a photo of your receipt to auto-import items',
+        message: tStatic('nux.steps.scanReceipt'),
         placement: 'bottom',
       },
       {
         selector: '[data-nux="add-item-form"]',
-        message: 'Or type items in manually',
+        message: tStatic('nux.steps.addItemManually'),
         placement: 'top',
       },
     ],
@@ -49,7 +50,7 @@ const NUX_STEPS: NuxStepDef[] = [
     targets: [
       {
         selector: '[data-nux="add-rabbit-btn"]',
-        message: "Add the people splitting this bill. You can include their Venmo, Cash App, or PayPal too!",
+        message: tStatic('nux.steps.addRabbit'),
         placement: 'bottom',
       },
     ],
@@ -61,7 +62,7 @@ const NUX_STEPS: NuxStepDef[] = [
     targets: [
       {
         selector: '[data-nux="rabbit-bar"]',
-        message: 'Click a person above, then tap their items.',
+        message: tStatic('nux.steps.assignItems'),
         placement: 'bottom',
       },
     ],
@@ -73,7 +74,7 @@ const NUX_STEPS: NuxStepDef[] = [
     targets: [
       {
         selector: '[data-nux="tax-tip-sliders"]',
-        message: "Adjust tax and tip — they apply proportionally to each person's share.",
+        message: tStatic('nux.steps.taxTip'),
         placement: 'top',
       },
     ],
@@ -85,7 +86,7 @@ const NUX_STEPS: NuxStepDef[] = [
     targets: [
       {
         selector: '[data-nux="nav-profile-link"]',
-        message: 'Set up your profile with payment handles to send payment requests and share bills.',
+        message: tStatic('nux.steps.profile'),
         placement: 'bottom',
       },
     ],

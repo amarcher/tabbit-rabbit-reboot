@@ -23,6 +23,7 @@ export interface ReceiptResult {
   tip?: number;
   tip_unit?: 'currency' | 'percent';
   total?: number;
+  currency_code?: string;
 }
 
 /**
@@ -53,13 +54,16 @@ export function receiptValueToPercent(
 }
 
 // KEEP IN SYNC with api/parse-receipt.js
-const RECEIPT_PROMPT =
-  'Extract line items from this receipt image. Return ONLY valid JSON: { "items": [{ "description": "Chicken Sandwich", "price": 12.99 }], "subtotal": 25.98, "tax": 9.5, "tax_unit": "percent", "tip": 4.00, "tip_unit": "currency", "total": 31.45 }. Rules: (1) Prices are in dollars, not cents. Each price is the line total — if "2 x Coffee $8.00", price is 8.00. (2) subtotal is the pre-tax/pre-tip sum regardless of label (may say "Food", "Merchandise", etc.). (3) Only include tax/tip if ACTUALLY CHARGED — ignore policy notices like "18% gratuity for parties of 8+", suggested tip options, or unselected tip lines. (4) Always pair tax with tax_unit and tip with tip_unit. Use "currency" for dollar amounts, "percent" for percentages. If both are shown (e.g. "Tax 8.5% $4.25"), return the percent value with tax_unit "percent". (5) Completely omit tax, tip, and total fields if not present — do not include them as null or 0. (6) Exclude tax, tip, discounts, and voided items from the items array. Skip unreadable items.';
+export function buildReceiptPrompt(currencyCode: string = 'USD'): string {
+  const currencyName = currencyCode === 'USD' ? 'dollars' : currencyCode;
+  return `Extract line items from this receipt image. Return ONLY valid JSON: { "items": [{ "description": "Chicken Sandwich", "price": 12.99 }], "subtotal": 25.98, "tax": 9.5, "tax_unit": "percent", "tip": 4.00, "tip_unit": "currency", "total": 31.45, "currency_code": "${currencyCode}" }. Rules: (1) Prices are in ${currencyName}, not smallest units. Each price is the line total — if "2 x Coffee $8.00", price is 8.00. (2) subtotal is the pre-tax/pre-tip sum regardless of label (may say "Food", "Merchandise", etc.). (3) Only include tax/tip if ACTUALLY CHARGED — ignore policy notices like "18% gratuity for parties of 8+", suggested tip options, or unselected tip lines. (4) Always pair tax with tax_unit and tip with tip_unit. Use "currency" for monetary amounts, "percent" for percentages. If both are shown (e.g. "Tax 8.5% $4.25"), return the percent value with tax_unit "percent". (5) Completely omit tax, tip, and total fields if not present — do not include them as null or 0. (6) Exclude tax, tip, discounts, and voided items from the items array. Skip unreadable items. (7) Set currency_code to the ISO 4217 code of the currency on the receipt (expected: ${currencyCode}). If the receipt is in a different currency, return that currency's code instead.`;
+}
 
 export async function scanReceiptDirect(
   apiKey: string,
   imageBase64: string,
-  mediaType: string
+  mediaType: string,
+  currencyCode: string = 'USD'
 ): Promise<ReceiptResult> {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   const normalizedType = allowedTypes.includes(mediaType) ? mediaType : 'image/jpeg';
@@ -87,7 +91,7 @@ export async function scanReceiptDirect(
                 data: imageBase64,
               },
             },
-            { type: 'text', text: RECEIPT_PROMPT },
+            { type: 'text', text: buildReceiptPrompt(currencyCode) },
           ],
         },
       ],

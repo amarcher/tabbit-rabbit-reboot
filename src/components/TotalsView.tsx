@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Card, Form, InputGroup, ListGroup, Modal, Row, Col } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import type { Item, Rabbit, ItemRabbit, Tab, Profile } from '../types';
-import { formatCents } from '../utils/currency';
+import { formatAmount, amountToDecimal } from '../utils/currency';
 import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
 import PaymentLinks from './PaymentLinks';
@@ -26,16 +27,12 @@ interface RabbitTotal {
   total: number;
 }
 
-function getTipLabel(tip: number): string | null {
-  if (tip >= 25) return 'Wow!';
-  if (tip >= 20) return 'Generous!';
-  if (tip >= 18) return 'Nice!';
-  if (tip >= 15) return 'Standard';
+function getTipLabelKey(tip: number): string | null {
+  if (tip >= 25) return 'totals.tipLabels.wow';
+  if (tip >= 20) return 'totals.tipLabels.generous';
+  if (tip >= 18) return 'totals.tipLabels.nice';
+  if (tip >= 15) return 'totals.tipLabels.standard';
   return null;
-}
-
-function formatCentsAnimated(cents: number): string {
-  return formatCents(Math.round(cents));
 }
 
 export default function TotalsView({
@@ -46,6 +43,13 @@ export default function TotalsView({
   onUpdateTab,
   currentUserProfile,
 }: TotalsViewProps) {
+  const { t } = useTranslation();
+  const currencyCode = tab.currency_code || 'USD';
+
+  const formatCentsAnimated = useCallback(
+    (cents: number): string => formatAmount(Math.round(cents), currencyCode),
+    [currencyCode]
+  );
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 7);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
 
@@ -136,7 +140,7 @@ export default function TotalsView({
     const { rabbit, total } = chargeTarget;
     const url = venmoChargeLink(
       venmoHandle.trim().replace(/^@/, ''),
-      total / 100,
+      amountToDecimal(total, currencyCode),
       buildChargeNote(tab.name, rabbit.name,
         assignments
           .filter((a) => a.rabbit_id === rabbit.id)
@@ -148,20 +152,20 @@ export default function TotalsView({
     );
     setChargeTarget(null);
     window.open(url, '_blank', 'noopener');
-  }, [chargeTarget, venmoHandle, tab.name, items, assignments]);
+  }, [chargeTarget, venmoHandle, tab.name, items, assignments, currencyCode]);
 
-  const tipLabel = getTipLabel(tipPercent);
+  const tipLabelKey = getTipLabelKey(tipPercent);
 
   if (items.length === 0) return null;
 
   return (
     <div>
-      <h5 className="mb-3">Totals</h5>
+      <h5 className="mb-3">{t('totals.heading')}</h5>
 
       <Row className="mb-3" data-nux="tax-tip-sliders">
         <Col xs={6}>
           <Form.Group>
-            <Form.Label className="small text-muted mb-1">Tax %</Form.Label>
+            <Form.Label className="small text-muted mb-1">{t('totals.tax')}</Form.Label>
             <Form.Range
               min={0}
               max={15}
@@ -190,7 +194,7 @@ export default function TotalsView({
         </Col>
         <Col xs={6}>
           <Form.Group>
-            <Form.Label className="small text-muted mb-1">Tip %</Form.Label>
+            <Form.Label className="small text-muted mb-1">{t('totals.tip')}</Form.Label>
             <Form.Range
               min={0}
               max={30}
@@ -207,16 +211,16 @@ export default function TotalsView({
                 />
                 %
                 <AnimatePresence mode="wait">
-                  {tipLabel && (
+                  {tipLabelKey && (
                     <motion.span
-                      key={tipLabel}
+                      key={tipLabelKey}
                       className="tr-tip-label"
                       initial={{ opacity: 0, y: -4, scale: 0.85 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 4, scale: 0.85 }}
                       transition={{ duration: 0.22, ease: 'easeOut' }}
                     >
-                      {tipLabel}
+                      {t(tipLabelKey)}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -255,9 +259,9 @@ export default function TotalsView({
                       <AnimatedNumber value={subtotal} format={formatCentsAnimated} duration={0.3} />{' '}
                       +{' '}
                       <AnimatedNumber value={tax} format={formatCentsAnimated} duration={0.3} />{' '}
-                      tax +{' '}
+                      {t('totals.taxWord')} +{' '}
                       <AnimatedNumber value={tip} format={formatCentsAnimated} duration={0.3} />{' '}
-                      tip
+                      {t('totals.tipWord')}
                     </small>
                   </div>
                   <strong className="fs-5 tr-mono">
@@ -267,7 +271,7 @@ export default function TotalsView({
                 <div className="d-flex justify-content-end gap-2 mt-1">
                   <PaymentLinks
                     rabbit={rabbit}
-                    amount={total / 100}
+                    amount={amountToDecimal(total, currencyCode)}
                     note={buildChargeNote(tab.name, rabbit.name,
                       assignments
                         .filter((a) => a.rabbit_id === rabbit.id)
@@ -283,7 +287,7 @@ export default function TotalsView({
                       size="sm"
                       onClick={() => openChargeModal(rabbit, total)}
                     >
-                      Request via Venmo
+                      {t('totals.requestViaVenmo')}
                     </Button>
                   )}
                 </div>
@@ -295,8 +299,7 @@ export default function TotalsView({
 
       {unassignedItems.length > 0 && rabbits.length > 0 && (
         <Alert variant="warning" className="py-2 small mb-3">
-          {unassignedItems.length} item{unassignedItems.length > 1 ? 's' : ''} not
-          assigned to anyone yet.
+          {t('totals.unassignedWarning', { count: unassignedItems.length })}
         </Alert>
       )}
 
@@ -309,16 +312,14 @@ export default function TotalsView({
         <Card className="tr-receipt-card">
           <Card.Body>
             <div className="d-flex justify-content-between small mb-1">
-              <span>Subtotal</span>
+              <span>{t('totals.subtotal')}</span>
               <span className="tr-mono">
                 <AnimatedNumber value={itemsSubtotal} format={formatCentsAnimated} duration={0.35} />
               </span>
             </div>
             <div className="d-flex justify-content-between small mb-1">
               <span>
-                Tax (
-                <AnimatedNumber value={taxPercent} decimals={1} duration={0.25} />
-                %)
+                {t('totals.taxWithPercent', { percent: taxPercent.toFixed(1) })}
               </span>
               <span className="tr-mono">
                 <AnimatedNumber value={taxAmount} format={formatCentsAnimated} duration={0.3} />
@@ -326,9 +327,7 @@ export default function TotalsView({
             </div>
             <div className="d-flex justify-content-between small mb-1">
               <span>
-                Tip (
-                <AnimatedNumber value={tipPercent} decimals={1} duration={0.25} />
-                %)
+                {t('totals.tipWithPercent', { percent: tipPercent.toFixed(1) })}
               </span>
               <span className="tr-mono">
                 <AnimatedNumber value={tipAmount} format={formatCentsAnimated} duration={0.3} />
@@ -336,7 +335,7 @@ export default function TotalsView({
             </div>
             <hr className="tr-receipt-divider" />
             <div className="d-flex justify-content-between tr-grand-total">
-              <strong>Grand Total</strong>
+              <strong>{t('totals.grandTotal')}</strong>
               <strong className="tr-mono">
                 <AnimatedNumber value={grandTotal} format={formatCentsAnimated} duration={0.4} />
               </strong>
@@ -357,17 +356,17 @@ export default function TotalsView({
             >
               <Modal.Header closeButton>
                 <Modal.Title as="h6">
-                  Request from {chargeTarget?.rabbit.name} via Venmo
+                  {t('totals.venmoModal.title', { name: chargeTarget?.rabbit.name })}
                 </Modal.Title>
               </Modal.Header>
               <Modal.Body>
                 <Form onSubmit={(e) => { e.preventDefault(); submitCharge(); }}>
-                  <Form.Label className="small text-muted mb-1">Venmo username</Form.Label>
+                  <Form.Label className="small text-muted mb-1">{t('totals.venmoModal.usernameLabel')}</Form.Label>
                   <InputGroup>
                     <InputGroup.Text>@</InputGroup.Text>
                     <Form.Control
                       type="text"
-                      placeholder="username"
+                      placeholder={t('totals.venmoModal.usernamePlaceholder')}
                       value={venmoHandle}
                       onChange={(e) => setVenmoHandle(e.target.value)}
                       autoFocus
@@ -377,10 +376,10 @@ export default function TotalsView({
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="outline-secondary" size="sm" onClick={() => setChargeTarget(null)}>
-                  Cancel
+                  {t('totals.venmoModal.cancel')}
                 </Button>
                 <Button variant="warning" size="sm" onClick={submitCharge} disabled={!venmoHandle.trim()}>
-                  Send Request
+                  {t('totals.venmoModal.sendRequest')}
                 </Button>
               </Modal.Footer>
             </motion.div>

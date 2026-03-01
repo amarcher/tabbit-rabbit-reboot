@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import NavBar from './NavBar';
 import NuxOverlay from './NuxOverlay';
 
@@ -9,6 +10,7 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const { t } = useTranslation();
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
@@ -44,8 +46,8 @@ export default function Layout({ children }: LayoutProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.6, y: 16 }}
             transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-            aria-label="Scroll to top"
-            title="Back to top"
+            aria-label={t('layout.scrollToTop')}
+            title={t('layout.backToTop')}
           >
             &#8593;
           </motion.button>

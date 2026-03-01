@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import './Skeleton.css';
 
 interface SkeletonProps {
@@ -36,6 +37,7 @@ export function Skeleton({ width, height, variant = 'text', className = '', styl
 
 /* Skeleton rows for the tab list */
 export function TabListSkeleton() {
+  const { t } = useTranslation();
   const rows = [
     { nameWidth: '55%', dateWidth: '15%', delay: 0 },
     { nameWidth: '40%', dateWidth: '15%', delay: 0.06 },
@@ -44,7 +46,7 @@ export function TabListSkeleton() {
   ];
 
   return (
-    <div className="list-group" role="status" aria-label="Loading tabs">
+    <div className="list-group" role="status" aria-label={t('common.loadingTabs')}>
       {rows.map((row, i) => (
         <motion.div
           key={i}
@@ -66,6 +68,7 @@ export function TabListSkeleton() {
 
 /* Skeleton rows for the item list in TabEditor */
 export function ItemListSkeleton() {
+  const { t } = useTranslation();
   const rows = [
     { nameWidth: '60%', delay: 0 },
     { nameWidth: '45%', delay: 0.05 },
@@ -74,7 +77,7 @@ export function ItemListSkeleton() {
   ];
 
   return (
-    <div className="list-group" role="status" aria-label="Loading items">
+    <div className="list-group" role="status" aria-label={t('common.loadingItems')}>
       {rows.map((row, i) => (
         <motion.div
           key={i}

@@ -2,9 +2,10 @@ import React, { forwardRef, useEffect, useRef, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Badge, Button, Dropdown, ListGroup, Form, InputGroup, Modal } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { Tab, Item, Rabbit, ItemRabbit } from '../types';
 import { COLOR_HEX } from '../types';
-import { formatCents } from '../utils/currency';
+import { formatAmount } from '../utils/currency';
 import { shareBill } from '../utils/billEncoder';
 import { useAuth } from '../hooks/useAuth';
 import { TabListSkeleton } from './Skeleton';
@@ -15,22 +16,24 @@ import './TabList.css';
 interface TabListProps {
   tabs: Tab[];
   loading: boolean;
-  onCreate: (name: string) => Promise<Tab | null>;
+  onCreate: (name: string, currencyCode?: string) => Promise<Tab | null>;
   onDelete: (tabId: string) => Promise<void>;
 }
 
 interface TabSummary {
   total: number;
   rabbits: Rabbit[];
+  currencyCode: string;
 }
 
 function getTabSummary(tabId: string): TabSummary | null {
   try {
     const raw = localStorage.getItem('tabbitrabbit:tab:' + tabId);
     if (!raw) return null;
-    const data: { items: Item[]; rabbits: Rabbit[]; assignments: ItemRabbit[] } = JSON.parse(raw);
+    const data: { tab?: Tab; items: Item[]; rabbits: Rabbit[]; assignments: ItemRabbit[] } = JSON.parse(raw);
     const total = data.items.reduce((sum, item) => sum + item.price_cents, 0);
-    return { total, rabbits: data.rabbits || [] };
+    const currencyCode = data.tab?.currency_code || 'USD';
+    return { total, rabbits: data.rabbits || [], currencyCode };
   } catch {
     return null;
   }
@@ -52,20 +55,23 @@ function getTabData(tabId: string) {
 }
 
 const MoreToggle = forwardRef<HTMLButtonElement, { onClick: (e: React.MouseEvent) => void }>(
-  ({ onClick }, ref) => (
-    <button
-      ref={ref}
-      type="button"
-      className="tr-more-toggle"
-      onClick={(e) => {
-        e.preventDefault();
-        onClick(e);
-      }}
-      aria-label="More options"
-    >
-      &#8942;
-    </button>
-  )
+  ({ onClick }, ref) => {
+    const { t } = useTranslation();
+    return (
+      <button
+        ref={ref}
+        type="button"
+        className="tr-more-toggle"
+        onClick={(e) => {
+          e.preventDefault();
+          onClick(e);
+        }}
+        aria-label={t('common.moreOptions')}
+      >
+        &#8942;
+      </button>
+    );
+  }
 );
 
 interface ToastData {
@@ -119,6 +125,7 @@ function AnimatedToast({ toast, onClose, duration = 3000 }: AnimatedToastProps) 
 }
 
 export default function TabList({ tabs, loading, onCreate, onDelete }: TabListProps) {
+  const { t } = useTranslation();
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -141,7 +148,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
     if (!newName.trim()) return;
     setCreating(true);
     try {
-      const tab = await onCreate(newName.trim());
+      const tab = await onCreate(newName.trim(), profile?.currency_code || 'USD');
       setNewName('');
       if (tab) {
         completeAction('create-tab');
@@ -174,12 +181,12 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
         await navigator.share({ title: data.tab.name, url });
       } else {
         await navigator.clipboard.writeText(url);
-        setToast({ message: 'Share link copied to clipboard!', variant: 'success' });
+        setToast({ message: t('tabList.toast.copySuccess'), variant: 'success' });
       }
     } catch (err) {
       // User dismissing the share sheet throws AbortError — not a real failure
       if (err instanceof DOMException && err.name === 'AbortError') return;
-      setToast({ message: 'Failed to share bill. Please try again.', variant: 'danger' });
+      setToast({ message: t('tabList.toast.shareFailed'), variant: 'danger' });
     } finally {
       setSharingId(null);
     }
@@ -197,11 +204,11 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
         <div className="text-center text-md-start">
           <img src="/tblogo.png" alt="Tabbit Rabbit" style={{ maxWidth: 220 }} className="mb-3" />
           <p className="text-muted small" style={{ maxWidth: 220 }}>
-            Split bills with friends. Add items, assign people, and send payment requests.
+            {t('tabList.tagline')}
           </p>
         </div>
         <div>
-          <h5 className="mb-3">My Tabs</h5>
+          <h5 className="mb-3">{t('tabList.heading')}</h5>
           <TabListSkeleton />
         </div>
       </div>
@@ -216,9 +223,9 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
 
       <div>
         <div className="d-flex align-items-baseline gap-3 mb-3">
-          <h5 className="mb-0">My Tabs</h5>
+          <h5 className="mb-0">{t('tabList.heading')}</h5>
           {tabs.length === 0 && !nuxActive && (
-            <HintArrow>Create a tab to start splitting a bill.</HintArrow>
+            <HintArrow>{t('tabList.hintCreate')}</HintArrow>
           )}
         </div>
 
@@ -226,7 +233,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
           <InputGroup data-nux="create-tab-input">
             <Form.Control
               type="text"
-              placeholder={tabs.length === 0 ? 'Type a tab name to create one' : 'New tab name (e.g. Friday Dinner)'}
+              placeholder={tabs.length === 0 ? t('tabList.placeholderEmpty') : t('tabList.placeholderDefault')}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
             />
@@ -236,7 +243,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
               disabled={creating || !newName.trim()}
               className={!newName.trim() ? 'tr-btn-disabled-muted' : ''}
             >
-              {creating ? 'Creating...' : 'New Tab'}
+              {creating ? t('tabList.creating') : t('tabList.newTab')}
             </Button>
           </InputGroup>
         </Form>
@@ -255,7 +262,7 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
                       <strong className="text-truncate">{tab.name}</strong>
                       {summary && (
                         <span className="text-muted small ms-2 flex-shrink-0 tr-mono">
-                          {formatCents(summary.total)}
+                          {formatAmount(summary.total, summary.currencyCode)}
                         </span>
                       )}
                     </div>
@@ -289,14 +296,14 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
                         onClick={() => handleShare(tab.id)}
                         disabled={sharingId === tab.id}
                       >
-                        {sharingId === tab.id ? 'Sharing...' : 'Share Bill'}
+                        {sharingId === tab.id ? t('tabList.sharing') : t('tabList.shareBill')}
                       </Dropdown.Item>
                       <Dropdown.Divider />
                       <Dropdown.Item
                         className="text-danger"
                         onClick={() => setDeleteTarget(tab)}
                       >
-                        Delete
+                        {t('tabList.delete')}
                       </Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
@@ -310,15 +317,15 @@ export default function TabList({ tabs, loading, onCreate, onDelete }: TabListPr
       {/* Delete confirmation modal */}
       <Modal show={!!deleteTarget} onHide={() => setDeleteTarget(null)} centered size="sm">
         <Modal.Body className="text-center py-4">
-          <p className="mb-1">Delete <strong>{deleteTarget?.name}</strong>?</p>
-          <p className="text-muted small mb-0">This can't be undone.</p>
+          <p className="mb-1">{t('tabList.deleteModal.confirm', { name: deleteTarget?.name })}</p>
+          <p className="text-muted small mb-0">{t('tabList.deleteModal.cannotUndo')}</p>
         </Modal.Body>
         <Modal.Footer className="justify-content-center border-0 pt-0">
           <Button variant="secondary" size="sm" onClick={() => setDeleteTarget(null)}>
-            Cancel
+            {t('tabList.deleteModal.cancel')}
           </Button>
           <Button variant="danger" size="sm" onClick={handleConfirmDelete}>
-            Delete
+            {t('tabList.deleteModal.delete')}
           </Button>
         </Modal.Footer>
       </Modal>

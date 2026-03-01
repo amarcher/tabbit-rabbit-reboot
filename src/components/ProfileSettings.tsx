@@ -1,9 +1,12 @@
 import React, { forwardRef, useState, useEffect } from 'react';
 import { Form, Button, Card, Alert, Container, Dropdown, InputGroup } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import type { LocalProfile } from '../hooks/useAuth';
 import { useSavedRabbits } from '../hooks/useSavedRabbits';
 import { getStoredApiKey, setStoredApiKey, removeStoredApiKey } from '../utils/anthropic';
 import { remainingFreeScans, FREE_SCAN_LIMIT } from '../utils/scanCounter';
+import { CURRENCIES } from '../utils/currency';
+import i18n from '../i18n/i18n';
 import { COLOR_HEX } from '../types';
 import type { SavedRabbit } from '../types';
 
@@ -33,10 +36,13 @@ const MoreToggle = forwardRef<HTMLButtonElement, { onClick: (e: React.MouseEvent
 );
 
 export default function ProfileSettings({ profile, updateProfile }: ProfileSettingsProps) {
+  const { t } = useTranslation();
   const [displayName, setDisplayName] = useState('');
   const [venmoUsername, setVenmoUsername] = useState('');
   const [cashappCashtag, setCashappCashtag] = useState('');
   const [paypalUsername, setPaypalUsername] = useState('');
+  const [currencyCode, setCurrencyCode] = useState('USD');
+  const [language, setLanguage] = useState(i18n.language || 'en');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 
@@ -57,6 +63,7 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
       setVenmoUsername(profile.venmo_username || '');
       setCashappCashtag(profile.cashapp_cashtag || '');
       setPaypalUsername(profile.paypal_username || '');
+      setCurrencyCode(profile.currency_code || 'USD');
     }
   }, [profile]);
 
@@ -80,8 +87,9 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
         venmo_username: venmoUsername.trim().replace(/^@/, '') || null,
         cashapp_cashtag: cashappCashtag.trim().replace(/^\$/, '') || null,
         paypal_username: paypalUsername.trim().replace(/^@/, '') || null,
+        currency_code: currencyCode || 'USD',
       });
-      setMessage({ type: 'success', text: 'Profile saved!' });
+      setMessage({ type: 'success', text: t('profile.savedSuccess') });
     } catch (err: any) {
       setMessage({ type: 'danger', text: err.message || 'Failed to save.' });
     }
@@ -92,65 +100,98 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
     <Container className="d-flex justify-content-center" style={{ paddingTop: '20px' }}>
       <Card style={{ maxWidth: 500, width: '100%' }}>
         <Card.Body>
-          <h4 className="mb-3">Profile Settings</h4>
+          <h4 className="mb-3">{t('profile.title')}</h4>
           {message && <Alert variant={message.type}>{message.text}</Alert>}
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
-              <Form.Label>Display Name</Form.Label>
+              <Form.Label>{t('profile.displayNameLabel')}</Form.Label>
               <Form.Control
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your name"
+                placeholder={t('profile.displayNamePlaceholder')}
               />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>{t('profile.defaultCurrencyLabel', 'Default Currency')}</Form.Label>
+              <Form.Select
+                value={currencyCode}
+                onChange={(e) => setCurrencyCode(e.target.value)}
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.symbol} {c.name} ({c.code})
+                  </option>
+                ))}
+              </Form.Select>
+              <Form.Text className="text-muted">
+                {t('profile.currencyHint', 'New tabs will use this currency by default.')}
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>{t('profile.languageLabel', 'Language')}</Form.Label>
+              <Form.Select
+                value={language}
+                onChange={(e) => {
+                  const lng = e.target.value;
+                  setLanguage(lng);
+                  i18n.changeLanguage(lng);
+                  localStorage.setItem('tabbitrabbit:language', lng);
+                }}
+              >
+                <option value="en">English</option>
+                <option value="es">Español</option>
+              </Form.Select>
             </Form.Group>
 
             <hr />
             <p className="text-muted small mb-3">
-              Set your payment usernames so people can pay you when you share a bill.
+              {t('profile.paymentHint')}
             </p>
 
             <Form.Group className="mb-3">
-              <Form.Label>Venmo Username</Form.Label>
+              <Form.Label>{t('profile.venmoLabel')}</Form.Label>
               <Form.Control
                 type="text"
                 value={venmoUsername}
                 onChange={(e) => setVenmoUsername(e.target.value)}
-                placeholder="e.g. john-doe-42"
+                placeholder={t('profile.venmoPlaceholder')}
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Cash App $Cashtag</Form.Label>
+              <Form.Label>{t('profile.cashappLabel')}</Form.Label>
               <Form.Control
                 type="text"
                 value={cashappCashtag}
                 onChange={(e) => setCashappCashtag(e.target.value)}
-                placeholder="e.g. johndoe"
+                placeholder={t('profile.cashappPlaceholder')}
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>PayPal Username</Form.Label>
+              <Form.Label>{t('profile.paypalLabel')}</Form.Label>
               <Form.Control
                 type="text"
                 value={paypalUsername}
                 onChange={(e) => setPaypalUsername(e.target.value)}
-                placeholder="e.g. johndoe"
+                placeholder={t('profile.paypalPlaceholder')}
               />
             </Form.Group>
 
             <Button variant="success" type="submit" className="w-100" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Profile'}
+              {saving ? t('profile.saving') : t('profile.saveProfile')}
             </Button>
           </Form>
 
           {/* Saved Rabbits */}
           <hr className="mt-4" />
-          <h6>Saved Rabbits</h6>
+          <h6>{t('profile.savedRabbits.heading')}</h6>
           {savedRabbits.length === 0 ? (
             <p className="text-muted small">
-              No saved rabbits yet. Add payment info when adding someone to a tab and they'll appear here.
+              {t('profile.savedRabbits.empty')}
             </p>
           ) : (
             <div className="mb-2">
@@ -172,7 +213,7 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                         type="text"
                         size="sm"
                         className="mb-1"
-                        placeholder="Name"
+                        placeholder={t('profile.savedRabbits.namePlaceholder')}
                         value={editForm.name ?? ''}
                         onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
                       />
@@ -180,7 +221,7 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                         <InputGroup.Text style={{ fontSize: '0.8em', width: 76, justifyContent: 'center' }}>Venmo</InputGroup.Text>
                         <Form.Control
                           type="text"
-                          placeholder="@username"
+                          placeholder={t('profile.savedRabbits.venmoPlaceholder')}
                           value={editForm.venmo_username ?? ''}
                           onChange={(e) => setEditForm((f) => ({ ...f, venmo_username: e.target.value }))}
                         />
@@ -189,7 +230,7 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                         <InputGroup.Text style={{ fontSize: '0.8em', width: 76, justifyContent: 'center' }}>Cash App</InputGroup.Text>
                         <Form.Control
                           type="text"
-                          placeholder="$cashtag"
+                          placeholder={t('profile.savedRabbits.cashappPlaceholder')}
                           value={editForm.cashapp_cashtag ?? ''}
                           onChange={(e) => setEditForm((f) => ({ ...f, cashapp_cashtag: e.target.value }))}
                         />
@@ -198,7 +239,7 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                         <InputGroup.Text style={{ fontSize: '0.8em', width: 76, justifyContent: 'center' }}>PayPal</InputGroup.Text>
                         <Form.Control
                           type="text"
-                          placeholder="username"
+                          placeholder={t('profile.savedRabbits.paypalPlaceholder')}
                           value={editForm.paypal_username ?? ''}
                           onChange={(e) => setEditForm((f) => ({ ...f, paypal_username: e.target.value }))}
                         />
@@ -218,14 +259,14 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                             setEditingRabbitId(null);
                           }}
                         >
-                          Save
+                          {t('profile.savedRabbits.save')}
                         </Button>
                         <Button
                           variant="outline-secondary"
                           size="sm"
                           onClick={() => setEditingRabbitId(null)}
                         >
-                          Cancel
+                          {t('profile.savedRabbits.cancel')}
                         </Button>
                       </div>
                     </div>
@@ -268,18 +309,18 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                               });
                             }}
                           >
-                            Edit
+                            {t('profile.savedRabbits.edit')}
                           </Dropdown.Item>
                           <Dropdown.Divider />
                           <Dropdown.Item
                             className="text-danger"
                             onClick={() => {
-                              if (window.confirm(`Remove ${saved.name} from saved rabbits?`)) {
+                              if (window.confirm(t('profile.savedRabbits.removeConfirm', { name: saved.name }))) {
                                 removeSaved(saved.id);
                               }
                             }}
                           >
-                            Remove
+                            {t('profile.savedRabbits.remove')}
                           </Dropdown.Item>
                         </Dropdown.Menu>
                       </Dropdown>
@@ -291,14 +332,14 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
           )}
 
           <hr className="mt-4" />
-          <h6>Advanced</h6>
+          <h6>{t('profile.advanced.heading')}</h6>
           <p className="text-muted small">
-            {freeScansLeft} of {FREE_SCAN_LIMIT} free receipt scans remaining this month.
+            {t('profile.advanced.freeScansRemaining', { remaining: freeScansLeft, limit: FREE_SCAN_LIMIT })}
           </p>
 
           {hasStoredKey ? (
             <div>
-              <Form.Label>Anthropic API Key</Form.Label>
+              <Form.Label>{t('profile.advanced.apiKeyLabel')}</Form.Label>
               <div className="d-flex align-items-center gap-2 mb-1">
                 <code>{storedKeyPreview}</code>
                 <Button
@@ -310,23 +351,23 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                     setStoredKeyPreview('');
                   }}
                 >
-                  Remove
+                  {t('profile.advanced.removeKey')}
                 </Button>
               </div>
-              <p className="text-muted small">Using your own key — unlimited scans.</p>
+              <p className="text-muted small">{t('profile.advanced.usingOwnKey')}</p>
             </div>
           ) : (
             <div>
               <Form.Group className="mb-2">
-                <Form.Label>Anthropic API Key</Form.Label>
+                <Form.Label>{t('profile.advanced.apiKeyLabel')}</Form.Label>
                 <Form.Control
                   type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="sk-ant-..."
+                  placeholder={t('profile.advanced.apiKeyPlaceholder')}
                 />
                 <Form.Text className="text-muted">
-                  Use your own API key for unlimited scans. Stored in your browser only.
+                  {t('profile.advanced.apiKeyHint')}
                 </Form.Text>
               </Form.Group>
               <Button
@@ -341,7 +382,7 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                   setApiKey('');
                 }}
               >
-                Save API Key
+                {t('profile.advanced.saveApiKey')}
               </Button>
               <br />
               <a
@@ -350,7 +391,7 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                 rel="noopener noreferrer"
                 className="small"
               >
-                Get a key at console.anthropic.com
+                {t('profile.advanced.getKeyLink')}
               </a>
             </div>
           )}

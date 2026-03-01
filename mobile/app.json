@@ -49,7 +49,10 @@
               "pathPrefix": "/bill"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -61,7 +64,8 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "react-native-iap"
+      "react-native-iap",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -11,22 +12,25 @@ import {
 import Slider from '@react-native-community/slider';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { venmoChargeLink, buildChargeNote } from '../utils/payments';
+import { amountToDecimal } from '../utils/currency';
 import { COLOR_HEX } from '../types';
 import { colors, fonts, timing } from '../utils/theme';
 import PaymentLinks from './PaymentLinks';
 import AnimatedNumber from './AnimatedNumber';
 
-function getTipLabel(tip: number): string | null {
-  if (tip >= 25) return 'Wow!';
-  if (tip >= 20) return 'Generous!';
-  if (tip >= 18) return 'Nice!';
-  if (tip >= 15) return 'Standard';
+function getTipLabelKey(tip: number): string | null {
+  if (tip >= 25) return 'tipLabels.wow';
+  if (tip >= 20) return 'tipLabels.generous';
+  if (tip >= 18) return 'tipLabels.nice';
+  if (tip >= 15) return 'tipLabels.standard';
   return null;
 }
 
 /** Animated tip feedback badge */
 function TipFeedback({ tipPercent }: { tipPercent: number }) {
-  const label = getTipLabel(tipPercent);
+  const { t } = useTranslation();
+  const labelKey = getTipLabelKey(tipPercent);
+  const label = labelKey ? t(labelKey) : null;
   const opacity = useRef(new Animated.Value(label ? 1 : 0)).current;
   const translateY = useRef(new Animated.Value(label ? 0 : -4)).current;
   const prevLabel = useRef<string | null>(label);
@@ -103,6 +107,8 @@ export default function TotalsView({
   assignments,
   onUpdateTab,
 }: TotalsViewProps) {
+  const { t } = useTranslation();
+  const currencyCode = tab.currency_code || 'USD';
   const [taxPercent, setTaxPercent] = useState(tab.tax_percent || 7);
   const [tipPercent, setTipPercent] = useState(tab.tip_percent || 18);
 
@@ -218,12 +224,12 @@ export default function TotalsView({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Totals</Text>
+      <Text style={styles.sectionTitle}>{t('labels.totals')}</Text>
 
       {/* Tax Slider */}
       <View style={styles.sliderGroup}>
         <View style={styles.sliderRow}>
-          <Text style={styles.sliderLabel}>Tax %</Text>
+          <Text style={styles.sliderLabel}>{t('labels.taxPercent')}</Text>
           <Slider
             style={styles.slider}
             minimumValue={0}
@@ -234,7 +240,7 @@ export default function TotalsView({
             minimumTrackTintColor={colors.accent}
             maximumTrackTintColor={colors.border}
             thumbTintColor={colors.accent}
-            accessibilityLabel="Tax percentage"
+            accessibilityLabel={t('accessibility.taxPercentage')}
           />
           <TextInput
             style={styles.sliderInput}
@@ -244,16 +250,16 @@ export default function TotalsView({
             onBlur={handleTaxInputBlur}
             selectTextOnFocus
             returnKeyType="done"
-            accessibilityLabel="Tax percentage input"
+            accessibilityLabel={t('accessibility.taxPercentageInput')}
           />
         </View>
-        <AnimatedNumber value={taxAmount} style={styles.sliderAmount} />
+        <AnimatedNumber value={taxAmount} currencyCode={currencyCode} style={styles.sliderAmount} />
       </View>
 
       {/* Tip Slider */}
       <View style={styles.sliderGroup}>
         <View style={styles.sliderRow}>
-          <Text style={styles.sliderLabel}>Tip %</Text>
+          <Text style={styles.sliderLabel}>{t('labels.tipPercent')}</Text>
           <Slider
             style={styles.slider}
             minimumValue={0}
@@ -264,7 +270,7 @@ export default function TotalsView({
             minimumTrackTintColor={colors.accent}
             maximumTrackTintColor={colors.border}
             thumbTintColor={colors.accent}
-            accessibilityLabel="Tip percentage"
+            accessibilityLabel={t('accessibility.tipPercentage')}
           />
           <TextInput
             style={styles.sliderInput}
@@ -274,12 +280,12 @@ export default function TotalsView({
             onBlur={handleTipInputBlur}
             selectTextOnFocus
             returnKeyType="done"
-            accessibilityLabel="Tip percentage input"
+            accessibilityLabel={t('accessibility.tipPercentageInput')}
           />
         </View>
         <View style={styles.tipAmountRow}>
           <TipFeedback tipPercent={tipPercent} />
-          <AnimatedNumber value={tipAmount} style={styles.sliderAmount} />
+          <AnimatedNumber value={tipAmount} currencyCode={currencyCode} style={styles.sliderAmount} />
         </View>
       </View>
 
@@ -297,19 +303,19 @@ export default function TotalsView({
               <View style={styles.breakdownLeft}>
                 <Text style={styles.rabbitName}>{rabbit.name}</Text>
                 <View style={styles.breakdownDetailRow}>
-                  <AnimatedNumber value={subtotal} style={styles.breakdownDetail} />
+                  <AnimatedNumber value={subtotal} currencyCode={currencyCode} style={styles.breakdownDetail} />
                   <Text style={styles.breakdownDetail}> + </Text>
-                  <AnimatedNumber value={tax} style={styles.breakdownDetail} />
-                  <Text style={styles.breakdownDetail}> tax + </Text>
-                  <AnimatedNumber value={tip} style={styles.breakdownDetail} />
-                  <Text style={styles.breakdownDetail}> tip</Text>
+                  <AnimatedNumber value={tax} currencyCode={currencyCode} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> {t('breakdown.tax')} + </Text>
+                  <AnimatedNumber value={tip} currencyCode={currencyCode} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> {t('breakdown.tip')}</Text>
                 </View>
               </View>
               <View style={styles.breakdownRight}>
-                <AnimatedNumber value={total} style={styles.rabbitTotal} />
+                <AnimatedNumber value={total} currencyCode={currencyCode} style={styles.rabbitTotal} />
                 <PaymentLinks
                   rabbit={rabbit}
-                  amount={total / 100}
+                  amount={amountToDecimal(total, currencyCode)}
                   note={buildChargeNote(tab.name, rabbit.name,
                     assignments
                       .filter((a) => a.rabbit_id === rabbit.id)
@@ -322,7 +328,7 @@ export default function TotalsView({
                 {rabbit.profile?.venmo_username && total > 0 && (
                   <TouchableOpacity
                     style={styles.chargeButton}
-                    onPress={() => Linking.openURL(venmoChargeLink(rabbit.profile!.venmo_username!, total / 100, buildChargeNote(tab.name, rabbit.name,
+                    onPress={() => Linking.openURL(venmoChargeLink(rabbit.profile!.venmo_username!, amountToDecimal(total, currencyCode), buildChargeNote(tab.name, rabbit.name,
                       assignments
                         .filter((a) => a.rabbit_id === rabbit.id)
                         .map((a) => ({
@@ -331,7 +337,7 @@ export default function TotalsView({
                         }))
                     )))}
                   >
-                    <Text style={styles.chargeButtonText}>Request via Venmo</Text>
+                    <Text style={styles.chargeButtonText}>{t('actions.requestViaVenmo')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -344,7 +350,7 @@ export default function TotalsView({
       {unassignedCount > 0 && rabbits.length > 0 && (
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
-            {unassignedCount} item{unassignedCount > 1 ? 's' : ''} not assigned to anyone yet.
+            {t('messages.unassignedItems', { count: unassignedCount })}
           </Text>
         </View>
       )}
@@ -352,21 +358,21 @@ export default function TotalsView({
       {/* Grand total card */}
       <View style={styles.totalCard}>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Subtotal</Text>
-          <AnimatedNumber value={itemsSubtotal} style={styles.totalValue} />
+          <Text style={styles.totalLabel}>{t('labels.subtotal')}</Text>
+          <AnimatedNumber value={itemsSubtotal} currencyCode={currencyCode} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Tax ({taxPercent}%)</Text>
-          <AnimatedNumber value={taxAmount} style={styles.totalValue} />
+          <Text style={styles.totalLabel}>{t('labels.taxWithPercent', { percent: taxPercent })}</Text>
+          <AnimatedNumber value={taxAmount} currencyCode={currencyCode} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Tip ({tipPercent}%)</Text>
-          <AnimatedNumber value={tipAmount} style={styles.totalValue} />
+          <Text style={styles.totalLabel}>{t('labels.tipWithPercent', { percent: tipPercent })}</Text>
+          <AnimatedNumber value={tipAmount} currencyCode={currencyCode} style={styles.totalValue} />
         </View>
         <View style={styles.divider} />
         <View style={styles.totalRow}>
-          <Text style={styles.grandLabel}>Grand Total</Text>
-          <AnimatedNumber value={grandTotal} style={styles.grandValue} />
+          <Text style={styles.grandLabel}>{t('labels.grandTotal')}</Text>
+          <AnimatedNumber value={grandTotal} currencyCode={currencyCode} style={styles.grandValue} />
         </View>
       </View>
 

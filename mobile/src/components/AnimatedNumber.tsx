@@ -7,39 +7,37 @@ import {
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
+import { formatAmount } from '../utils/currency';
 
 interface AnimatedNumberProps {
-  /** The numeric value to display, in cents */
+  /** The numeric value to display, in minor currency units (cents) */
   value: number;
-  /** Prefix shown before the number (default "$") */
-  prefix?: string;
+  /** ISO 4217 currency code (default 'USD') */
+  currencyCode?: string;
   /** Pass-through style for the text */
   style?: StyleProp<TextStyle>;
   /** Animation duration in milliseconds (default 400) */
   duration?: number;
 }
 
-function formatCentsValue(cents: number): string {
-  return (cents / 100).toFixed(2);
-}
-
 /**
  * Smoothly animates between numeric currency values using react-native-reanimated.
- * Displays cents as a formatted dollar string (e.g. 1250 -> "12.50").
+ * Formats minor units (cents) into a locale-aware currency string.
+ * Formatting runs on the JS thread via runOnJS — never inside the worklet.
  */
 export default function AnimatedNumber({
   value,
-  prefix = '$',
+  currencyCode = 'USD',
   style,
   duration = 400,
 }: AnimatedNumberProps) {
   const animatedValue = useSharedValue(value);
-  const [displayText, setDisplayText] = useState(formatCentsValue(value));
+  const [displayText, setDisplayText] = useState(formatAmount(value, currencyCode));
 
-  // Format on JS thread — avoids calling .toFixed() in the worklet context
-  const updateDisplay = useCallback((cents: number) => {
-    setDisplayText(formatCentsValue(cents));
-  }, []);
+  // Format on JS thread — avoids calling toFixed() or Intl methods in the worklet context
+  const updateDisplay = useCallback((minorUnits: number) => {
+    setDisplayText(formatAmount(minorUnits, currencyCode));
+  }, [currencyCode]);
 
   useEffect(() => {
     animatedValue.value = withTiming(value, {
@@ -56,8 +54,8 @@ export default function AnimatedNumber({
   );
 
   return (
-    <Text style={style} accessibilityLabel={`${prefix}${formatCentsValue(value)}`}>
-      {prefix}{displayText}
+    <Text style={style} accessibilityLabel={formatAmount(value, currencyCode)}>
+      {displayText}
     </Text>
   );
 }

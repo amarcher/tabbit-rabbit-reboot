@@ -1,15 +1,17 @@
 import React, { useState, useCallback } from 'react';
 import { ButtonGroup, Button, Dropdown } from 'react-bootstrap';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import type { Rabbit } from '../types';
 import { COLOR_HEX } from '../types';
-import { formatCents } from '../utils/currency';
+import { formatAmount } from '../utils/currency';
 import './RabbitBar.css';
 
 interface RabbitBarProps {
   rabbits: Rabbit[];
   selectedRabbitId: string | null;
   subtotals: Record<string, number>;
+  currencyCode: string;
   onSelect: (rabbitId: string) => void;
   onRemove: (rabbitId: string) => void;
   onAddClick: () => void;
@@ -25,10 +27,12 @@ export default function RabbitBar({
   rabbits,
   selectedRabbitId,
   subtotals,
+  currencyCode,
   onSelect,
   onRemove,
   onAddClick,
 }: RabbitBarProps) {
+  const { t } = useTranslation();
   const [activePing, setActivePing] = useState<PingState | null>(null);
 
   const handleSelect = useCallback(
@@ -85,7 +89,7 @@ export default function RabbitBar({
                 >
                   {rabbit.name}{' '}
                   <span className="ms-1 badge bg-light text-dark tr-mono">
-                    {formatCents(subtotals[rabbit.id] || 0)}
+                    {formatAmount(subtotals[rabbit.id] || 0, currencyCode)}
                   </span>
                 </Button>
               </motion.div>
@@ -98,19 +102,19 @@ export default function RabbitBar({
             <Dropdown.Menu>
               <Dropdown.Item
                 onClick={() => {
-                  if (window.confirm(`Remove ${rabbit.name}?`)) {
+                  if (window.confirm(t('rabbitBar.removeConfirm', { name: rabbit.name }))) {
                     onRemove(rabbit.id);
                   }
                 }}
               >
-                Remove
+                {t('rabbitBar.remove')}
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
         );
       })}
       <Button data-nux="add-rabbit-btn" variant="outline-secondary" onClick={onAddClick}>
-        + Add Someone
+        {t('rabbitBar.addSomeone')}
       </Button>
     </div>
   );

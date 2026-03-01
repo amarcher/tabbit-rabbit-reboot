@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -12,7 +13,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { CoachmarkAnchor, useCoachmark } from '@edwardloopez/react-native-coachmark';
 import { useTabs } from '@/src/hooks/useTab';
-import { formatCents } from '@/src/utils/currency';
+import { useAuth } from '@/src/hooks/useAuth';
+import { formatAmount } from '@/src/utils/currency';
 import { BUTTON_COLORS } from '@/src/utils/colors';
 import { colors, fonts } from '@/src/utils/theme';
 import { TabListSkeleton } from '@/src/components/Skeleton';
@@ -32,8 +34,10 @@ function TabRow({
   onPress: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const swipeableRef = useRef<Swipeable>(null);
 
+  const currencyCode = tab.currency_code || 'USD';
   const subtotalCents = items.reduce((sum, i) => sum + i.price_cents, 0);
   const totalCents = Math.round(
     subtotalCents * (1 + tab.tax_percent / 100 + tab.tip_percent / 100)
@@ -48,13 +52,13 @@ function TabRow({
           onDelete();
         }}
       >
-        <Text style={styles.actionText}>Delete</Text>
+        <Text style={styles.actionText}>{t('actions.delete')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.cancelAction}
         onPress={() => swipeableRef.current?.close()}
       >
-        <Text style={styles.actionText}>Cancel</Text>
+        <Text style={styles.actionText}>{t('actions.cancel')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -71,7 +75,7 @@ function TabRow({
         <View style={styles.tableRow}>
           <Text style={styles.tabName} numberOfLines={1}>{tab.name}</Text>
           {totalCents > 0 && (
-            <Text style={styles.tabTotal}>{formatCents(totalCents)}</Text>
+            <Text style={styles.tabTotal}>{formatAmount(totalCents, currencyCode)}</Text>
           )}
         </View>
         {/* Row 2: Rabbits + Date */}
@@ -106,7 +110,9 @@ function TabRow({
 }
 
 export default function DashboardScreen() {
+  const { t } = useTranslation();
   const { tabs, loading, createTab, deleteTab } = useTabs();
+  const { profile } = useAuth();
   const router = useRouter();
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -149,7 +155,7 @@ export default function DashboardScreen() {
     if (!newName.trim()) return;
     setCreating(true);
     try {
-      const tab = await createTab(newName.trim());
+      const tab = await createTab(newName.trim(), profile?.currency_code || 'USD');
       setNewName('');
       if (tab) {
         router.push(`/tab/${tab.id}`);
@@ -165,7 +171,7 @@ export default function DashboardScreen() {
         <View style={styles.createForm}>
           <TextInput
             style={styles.createInput}
-            placeholder="New tab name (e.g. Friday Dinner)"
+            placeholder={t('placeholders.tabNameHasTabs')}
             placeholderTextColor={colors.placeholder}
             value={newName}
             onChangeText={setNewName}
@@ -181,7 +187,7 @@ export default function DashboardScreen() {
             disabled={creating || !newName.trim()}
           >
             <Text style={styles.createButtonText}>
-              {creating ? 'Creating...' : 'New Tab'}
+              {creating ? t('actions.creating') : t('actions.newTab')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -198,8 +204,8 @@ export default function DashboardScreen() {
             style={styles.createInput}
             placeholder={
               tabs.length === 0
-                ? 'Type a tab name to create one'
-                : 'New tab name (e.g. Friday Dinner)'
+                ? t('placeholders.tabNameEmpty')
+                : t('placeholders.tabNameHasTabs')
             }
             placeholderTextColor={colors.placeholder}
             value={newName}
@@ -216,7 +222,7 @@ export default function DashboardScreen() {
             disabled={creating || !newName.trim()}
           >
             <Text style={styles.createButtonText}>
-              {creating ? 'Creating...' : 'New Tab'}
+              {creating ? t('actions.creating') : t('actions.newTab')}
             </Text>
           </TouchableOpacity>
         </View>

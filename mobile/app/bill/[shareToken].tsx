@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -12,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
 import { useSharedTab } from '@/src/hooks/useSharedTab';
 import { useBillCache } from '@/src/hooks/useBillCache';
-import { formatCents } from '@/src/utils/currency';
+import { formatAmount, amountToDecimal } from '@/src/utils/currency';
 import { getGradientColors } from '@/src/utils/colors';
 import { venmoLink, cashAppLink, paypalLink, buildPaymentNote } from '@/src/utils/payments';
 import { colors, fonts } from '@/src/utils/theme';
@@ -20,6 +21,7 @@ import { COLOR_HEX, RabbitColor } from '@/src/types';
 import AnimatedNumber from '@/src/components/AnimatedNumber';
 
 export default function SharedBillScreen() {
+  const { t } = useTranslation();
   const { shareToken } = useLocalSearchParams<{ shareToken: string }>();
   const { data, loading, error } = useSharedTab(shareToken);
   const { cacheBill } = useBillCache();
@@ -74,12 +76,13 @@ export default function SharedBillScreen() {
   if (error || !data) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>{error || 'Bill not found'}</Text>
+        <Text style={styles.errorText}>{error || t('messages.billNotFound')}</Text>
       </View>
     );
   }
 
   const { tab, items, rabbits, assignments, ownerProfile } = data;
+  const currencyCode = tab.currency_code || 'USD';
   const subtotalCents = items.reduce((sum, i) => sum + i.price_cents, 0);
   const taxAmount = Math.round(subtotalCents * (tab.tax_percent / 100));
   const tipAmount = Math.round(subtotalCents * (tab.tip_percent / 100));
@@ -89,7 +92,7 @@ export default function SharedBillScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.tabName}>{tab.name}</Text>
       {ownerProfile.display_name && (
-        <Text style={styles.ownerName}>by {ownerProfile.display_name}</Text>
+        <Text style={styles.ownerName}>{t('messages.sharedBy', { name: ownerProfile.display_name })}</Text>
       )}
 
       {/* Items */}
@@ -112,7 +115,7 @@ export default function SharedBillScreen() {
               style={styles.itemRow}
             >
               <Text style={styles.itemDesc} numberOfLines={1}>{item.description}</Text>
-              <Text style={styles.itemPrice}>{formatCents(item.price_cents)}</Text>
+              <Text style={styles.itemPrice}>{formatAmount(item.price_cents, currencyCode)}</Text>
             </LinearGradient>
           );
         })}
@@ -132,16 +135,16 @@ export default function SharedBillScreen() {
               <View style={styles.breakdownLeft}>
                 <Text style={styles.rabbitName}>{rabbit.name}</Text>
                 <View style={styles.breakdownDetailRow}>
-                  <AnimatedNumber value={subtotal} style={styles.breakdownDetail} />
+                  <AnimatedNumber value={subtotal} currencyCode={currencyCode} style={styles.breakdownDetail} />
                   <Text style={styles.breakdownDetail}> + </Text>
-                  <AnimatedNumber value={tax} style={styles.breakdownDetail} />
-                  <Text style={styles.breakdownDetail}> tax + </Text>
-                  <AnimatedNumber value={tip} style={styles.breakdownDetail} />
-                  <Text style={styles.breakdownDetail}> tip</Text>
+                  <AnimatedNumber value={tax} currencyCode={currencyCode} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> {t('breakdown.tax')} + </Text>
+                  <AnimatedNumber value={tip} currencyCode={currencyCode} style={styles.breakdownDetail} />
+                  <Text style={styles.breakdownDetail}> {t('breakdown.tip')}</Text>
                 </View>
               </View>
               <View style={styles.breakdownRight}>
-                <AnimatedNumber value={total} style={styles.rabbitTotal} />
+                <AnimatedNumber value={total} currencyCode={currencyCode} style={styles.rabbitTotal} />
                 {/* Payment buttons using owner's profile */}
                 <View style={styles.paymentButtons}>
                   {ownerProfile.venmo_username && (
@@ -151,7 +154,7 @@ export default function SharedBillScreen() {
                         Linking.openURL(
                           venmoLink(
                             ownerProfile.venmo_username!,
-                            total / 100,
+                            amountToDecimal(total, currencyCode),
                             buildPaymentNote(tab.name, rabbit.name,
                               assignments
                                 .filter((a) => a.rabbit_id === rabbit.id)
@@ -171,7 +174,7 @@ export default function SharedBillScreen() {
                     <TouchableOpacity
                       style={[styles.payBtn, styles.cashappBtn]}
                       onPress={() =>
-                        Linking.openURL(cashAppLink(ownerProfile.cashapp_cashtag!, total / 100))
+                        Linking.openURL(cashAppLink(ownerProfile.cashapp_cashtag!, amountToDecimal(total, currencyCode)))
                       }
                     >
                       <Text style={styles.cashappText}>Cash App</Text>
@@ -181,7 +184,7 @@ export default function SharedBillScreen() {
                     <TouchableOpacity
                       style={[styles.payBtn, styles.paypalBtn]}
                       onPress={() =>
-                        Linking.openURL(paypalLink(ownerProfile.paypal_username!, total / 100))
+                        Linking.openURL(paypalLink(ownerProfile.paypal_username!, amountToDecimal(total, currencyCode)))
                       }
                     >
                       <Text style={styles.paypalText}>PayPal</Text>
@@ -197,21 +200,21 @@ export default function SharedBillScreen() {
       {/* Grand total */}
       <View style={styles.totalCard}>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Subtotal</Text>
-          <AnimatedNumber value={subtotalCents} style={styles.totalValue} />
+          <Text style={styles.totalLabel}>{t('labels.subtotal')}</Text>
+          <AnimatedNumber value={subtotalCents} currencyCode={currencyCode} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Tax ({tab.tax_percent}%)</Text>
-          <AnimatedNumber value={taxAmount} style={styles.totalValue} />
+          <Text style={styles.totalLabel}>{t('labels.taxWithPercent', { percent: tab.tax_percent })}</Text>
+          <AnimatedNumber value={taxAmount} currencyCode={currencyCode} style={styles.totalValue} />
         </View>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Tip ({tab.tip_percent}%)</Text>
-          <AnimatedNumber value={tipAmount} style={styles.totalValue} />
+          <Text style={styles.totalLabel}>{t('labels.tipWithPercent', { percent: tab.tip_percent })}</Text>
+          <AnimatedNumber value={tipAmount} currencyCode={currencyCode} style={styles.totalValue} />
         </View>
         <View style={styles.divider} />
         <View style={styles.totalRow}>
-          <Text style={styles.grandLabel}>Grand Total</Text>
-          <AnimatedNumber value={grandTotal} style={styles.grandValue} />
+          <Text style={styles.grandLabel}>{t('labels.grandTotal')}</Text>
+          <AnimatedNumber value={grandTotal} currencyCode={currencyCode} style={styles.grandValue} />
         </View>
       </View>
 
