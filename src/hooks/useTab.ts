@@ -2,6 +2,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Tab, Item, Rabbit, ItemRabbit, Profile } from '../types';
 import { getDefaultTaxTip } from '../utils/currency';
 
+// Safari does not support requestIdleCallback — fall back to a 1ms setTimeout
+const scheduleIdle =
+  typeof requestIdleCallback === 'function'
+    ? requestIdleCallback
+    : (cb: () => void) => setTimeout(cb, 1) as unknown as number;
+const cancelIdle =
+  typeof cancelIdleCallback === 'function'
+    ? cancelIdleCallback
+    : (id: number) => clearTimeout(id);
+
 const TABS_INDEX_KEY = 'tabbitrabbit:tabs';
 const TAB_PREFIX = 'tabbitrabbit:tab:';
 
@@ -84,6 +94,11 @@ export function useTab(tabId: string | undefined) {
   const [loading, setLoading] = useState(true);
 
   const loaded = useRef(false);
+  const persistTimer = useRef<number>(0);
+
+  // Always tracks the latest state so the unmount flush can read correct values
+  const latestRef = useRef({ tab, items, rabbits, assignments });
+  latestRef.current = { tab, items, rabbits, assignments };
 
   // --- Load from localStorage ---
 
@@ -112,21 +127,64 @@ export function useTab(tabId: string | undefined) {
   }, [fetchTab]);
 
   // --- Persist to localStorage on every change ---
+  // Batched via requestIdleCallback so rapid state changes (e.g. toggling many
+  // assignments in one frame) are coalesced into a single serialization pass.
 
   useEffect(() => {
     if (!tabId || !tab || !loaded.current) return;
 
-    const data: TabData = { tab, items, rabbits, assignments };
-    localStorage.setItem(TAB_PREFIX + tabId, JSON.stringify(data));
-
-    // Also update the tab in the index
-    const raw = localStorage.getItem(TABS_INDEX_KEY);
-    if (raw) {
-      let tabsList: Tab[] = JSON.parse(raw);
-      tabsList = tabsList.map((t) => (t.id === tabId ? tab : t));
-      localStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
+    // Cancel any pending idle persist before scheduling a new one
+    if (persistTimer.current) {
+      cancelIdle(persistTimer.current);
     }
-  }, [tabId, tab, items, rabbits, assignments]);
+
+    persistTimer.current = scheduleIdle(() => {
+      const { tab: t, items: i, rabbits: r, assignments: a } = latestRef.current;
+      if (!t) return;
+
+      const data: TabData = { tab: t, items: i, rabbits: r, assignments: a };
+      localStorage.setItem(TAB_PREFIX + tabId, JSON.stringify(data));
+
+      // Also update the tab in the index
+      const raw = localStorage.getItem(TABS_INDEX_KEY);
+      if (raw) {
+        let tabsList: Tab[] = JSON.parse(raw);
+        tabsList = tabsList.map((entry) => (entry.id === tabId ? t : entry));
+        localStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
+      }
+    });
+
+    return () => {
+      if (persistTimer.current) {
+        cancelIdle(persistTimer.current);
+      }
+    };
+  }, [tabId, tab, items, rabbits, assignments]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // --- Flush pending persist on unmount ---
+  // The idle callback may not have fired yet when the user navigates away.
+  // Cancel it and write synchronously so no data is lost.
+
+  useEffect(() => {
+    return () => {
+      if (persistTimer.current) {
+        cancelIdle(persistTimer.current);
+        persistTimer.current = 0;
+      }
+      const { tab: t, items: i, rabbits: r, assignments: a } = latestRef.current;
+      if (tabId && t && loaded.current) {
+        const data: TabData = { tab: t, items: i, rabbits: r, assignments: a };
+        localStorage.setItem(TAB_PREFIX + tabId, JSON.stringify(data));
+
+        const raw = localStorage.getItem(TABS_INDEX_KEY);
+        if (raw) {
+          let tabsList: Tab[] = JSON.parse(raw);
+          tabsList = tabsList.map((entry) => (entry.id === tabId ? t : entry));
+          localStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
+        }
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Local-first mutations ---
 
