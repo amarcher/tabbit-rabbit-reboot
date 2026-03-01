@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { Rabbit } from '../types';
@@ -30,7 +30,7 @@ export default function RabbitBar({
 }: RabbitBarProps) {
   const { t } = useTranslation();
 
-  const handleLongPress = (rabbit: Rabbit) => {
+  const handleLongPress = useCallback((rabbit: Rabbit) => {
     Alert.alert(
       t('messages.confirmRemoveRabbit', { name: rabbit.name }),
       t('messages.removeFromAllItems'),
@@ -39,7 +39,7 @@ export default function RabbitBar({
         { text: t('actions.remove'), style: 'destructive', onPress: () => onRemove(rabbit.id) },
       ]
     );
-  };
+  }, [t, onRemove]);
 
   return (
     <ScrollView

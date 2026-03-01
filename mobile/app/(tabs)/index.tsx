@@ -31,8 +31,8 @@ const TabRow = React.memo(function TabRow({
   tab: Tab;
   items: Item[];
   rabbits: Rabbit[];
-  onPress: () => void;
-  onDelete: () => void;
+  onPress: (tabId: string) => void;
+  onDelete: (tabId: string) => void;
 }) {
   const { t } = useTranslation();
   const swipeableRef = useRef<Swipeable>(null);
@@ -49,7 +49,7 @@ const TabRow = React.memo(function TabRow({
         style={styles.deleteAction}
         onPress={() => {
           swipeableRef.current?.close();
-          onDelete();
+          onDelete(tab.id);
         }}
       >
         <Text style={styles.actionText}>{t('actions.delete')}</Text>
@@ -70,7 +70,7 @@ const TabRow = React.memo(function TabRow({
       overshootRight={false}
       rightThreshold={40}
     >
-      <TouchableOpacity style={styles.tabRow} onPress={onPress}>
+      <TouchableOpacity style={styles.tabRow} onPress={() => onPress(tab.id)}>
         {/* Row 1: Name + Total */}
         <View style={styles.tableRow}>
           <Text style={styles.tabName} numberOfLines={1}>{tab.name}</Text>
@@ -150,6 +150,14 @@ export default function DashboardScreen() {
       loadTabData();
     }, [loadTabData])
   );
+
+  const handleTabPress = useCallback((tabId: string) => {
+    router.push(`/tab/${tabId}`);
+  }, [router]);
+
+  const handleTabDelete = useCallback((tabId: string) => {
+    deleteTab(tabId);
+  }, [deleteTab]);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -239,8 +247,8 @@ export default function DashboardScreen() {
               tab={item}
               items={tabDataMap[item.id]?.items ?? []}
               rabbits={tabDataMap[item.id]?.rabbits ?? []}
-              onPress={() => router.push(`/tab/${item.id}`)}
-              onDelete={() => deleteTab(item.id)}
+              onPress={handleTabPress}
+              onDelete={handleTabDelete}
             />
           )}
           contentContainerStyle={styles.list}
