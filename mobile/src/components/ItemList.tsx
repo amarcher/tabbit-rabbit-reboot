@@ -50,18 +50,22 @@ export default function ItemList({
   return (
     <View style={styles.container}>
       <View style={styles.listContainer}>
-        {items.map((item) => (
-          <ItemRow
-            key={item.id}
-            item={item}
-            rabbits={rabbits}
-            assignments={assignments}
-            selectedRabbitId={selectedRabbitId}
-            currencyCode={currencyCode}
-            onToggle={onToggle}
-            onDelete={onDeleteItem}
-          />
-        ))}
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          scrollEnabled={false}
+          renderItem={({ item }) => (
+            <ItemRow
+              item={item}
+              rabbits={rabbits}
+              assignments={assignments}
+              selectedRabbitId={selectedRabbitId}
+              currencyCode={currencyCode}
+              onToggle={onToggle}
+              onDelete={onDeleteItem}
+            />
+          )}
+        />
       </View>
 
       <View style={styles.addForm}>
