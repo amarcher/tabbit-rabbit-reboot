@@ -10,6 +10,7 @@
     "postinstall": "npx patch-package"
   },
   "dependencies": {
+    "@tabbit/shared": "file:../packages/shared",
     "@edwardloopez/react-native-coachmark": "^0.5.2",
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo-google-fonts/nunito": "^0.4.2",
