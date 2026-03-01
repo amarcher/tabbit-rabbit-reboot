@@ -97,8 +97,8 @@ export function useTab(tabId: string | undefined) {
   const persistTimer = useRef<number>(0);
 
   // Always tracks the latest state so the unmount flush can read correct values
-  const latestRef = useRef({ tab, items, rabbits, assignments });
-  latestRef.current = { tab, items, rabbits, assignments };
+  const latestRef = useRef({ tabId, tab, items, rabbits, assignments });
+  latestRef.current = { tabId, tab, items, rabbits, assignments };
 
   // --- Load from localStorage ---
 
@@ -171,21 +171,19 @@ export function useTab(tabId: string | undefined) {
         cancelIdle(persistTimer.current);
         persistTimer.current = 0;
       }
-      const { tab: t, items: i, rabbits: r, assignments: a } = latestRef.current;
-      if (tabId && t && loaded.current) {
+      const { tabId: id, tab: t, items: i, rabbits: r, assignments: a } = latestRef.current;
+      if (id && t && loaded.current) {
         const data: TabData = { tab: t, items: i, rabbits: r, assignments: a };
-        localStorage.setItem(TAB_PREFIX + tabId, JSON.stringify(data));
+        localStorage.setItem(TAB_PREFIX + id, JSON.stringify(data));
 
         const raw = localStorage.getItem(TABS_INDEX_KEY);
         if (raw) {
           let tabsList: Tab[] = JSON.parse(raw);
-          tabsList = tabsList.map((entry) => (entry.id === tabId ? t : entry));
+          tabsList = tabsList.map((entry) => (entry.id === id ? t : entry));
           localStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
         }
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally empty: latestRef
-    // provides access to current state without adding deps that would re-run this effect
   }, []);
 
   // --- Local-first mutations ---
