@@ -159,7 +159,7 @@ export function useTab(tabId: string | undefined) {
         cancelIdle(persistTimer.current);
       }
     };
-  }, [tabId, tab, items, rabbits, assignments]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tabId, tab, items, rabbits, assignments]);
 
   // --- Flush pending persist on unmount ---
   // The idle callback may not have fired yet when the user navigates away.
@@ -184,7 +184,9 @@ export function useTab(tabId: string | undefined) {
         }
       }
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally empty: latestRef
+    // provides access to current state without adding deps that would re-run this effect
+  }, []);
 
   // --- Local-first mutations ---
 

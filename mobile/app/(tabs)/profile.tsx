@@ -305,7 +305,7 @@ export default function ProfileScreen() {
               )}
             </Pressable>
             <Pressable
-              style={({ pressed }) => [{ marginTop: 10, alignItems: 'center' as const }, pressed && PRESSED_STYLE]}
+              style={({ pressed }) => [styles.restoreButton, pressed && PRESSED_STYLE]}
               onPress={async () => {
                 const restored = await restorePurchases();
                 Alert.alert(
@@ -579,6 +579,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.muted,
     fontFamily: fonts.body,
+  },
+  restoreButton: {
+    marginTop: 10,
+    alignItems: 'center' as const,
   },
   linkText: {
     color: colors.link,

@@ -56,6 +56,7 @@ export default function ItemList({
           data={items}
           keyExtractor={(item) => item.id}
           scrollEnabled={false}
+          removeClippedSubviews
           renderItem={({ item }) => (
             <ItemRow
               item={item}

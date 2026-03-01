@@ -79,7 +79,7 @@ function ItemRow({
       <Pressable
         onPress={handlePress}
         disabled={!selectedRabbitId}
-        style={({ pressed }) => [pressed && selectedRabbitId ? PRESSED_STYLE : undefined]}
+        style={({ pressed }) => [(pressed && selectedRabbitId) ? PRESSED_STYLE : null]}
       >
         <LinearGradient
           colors={gradientColors}

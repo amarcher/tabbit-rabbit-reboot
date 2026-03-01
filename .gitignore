@@ -30,3 +30,6 @@ mobile/dist
 mobile/ios
 mobile/android
 mobile/.env
+
+# shared package build artifacts
+packages/shared/dist

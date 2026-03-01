@@ -53,7 +53,7 @@ function TipFeedback({ tipPercent }: { tipPercent: number }) {
       opacity.value = withTiming(0, { duration: timing.fast });
       translateY.value = withTiming(4, { duration: timing.fast });
     }
-  }, [label]);
+  }, [label, opacity, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
