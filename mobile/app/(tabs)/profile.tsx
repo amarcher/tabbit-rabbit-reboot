@@ -4,7 +4,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Alert,
   ScrollView,
@@ -22,6 +22,8 @@ import { CURRENCIES } from '@/src/utils/currency';
 import i18n from '@/src/i18n/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { SavedRabbit } from '@/src/types';
+
+const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -132,8 +134,8 @@ export default function ProfileScreen() {
 
       <View style={styles.field}>
         <Text style={styles.label}>{t('labels.defaultCurrency')}</Text>
-        <TouchableOpacity
-          style={styles.currencyPicker}
+        <Pressable
+          style={({ pressed }) => [styles.currencyPicker, pressed && PRESSED_STYLE]}
           onPress={() => setShowCurrencyPicker(!showCurrencyPicker)}
         >
           <Text style={styles.currencyPickerText}>
@@ -141,15 +143,16 @@ export default function ProfileScreen() {
             {currencyCode}
           </Text>
           <Text style={styles.currencyPickerArrow}>{showCurrencyPicker ? '▲' : '▼'}</Text>
-        </TouchableOpacity>
+        </Pressable>
         {showCurrencyPicker && (
           <View style={styles.currencyList}>
             {CURRENCIES.map((c) => (
-              <TouchableOpacity
+              <Pressable
                 key={c.code}
-                style={[
+                style={({ pressed }) => [
                   styles.currencyOption,
                   c.code === currencyCode && styles.currencyOptionSelected,
+                  pressed && PRESSED_STYLE,
                 ]}
                 onPress={() => {
                   setCurrencyCode(c.code);
@@ -164,7 +167,7 @@ export default function ProfileScreen() {
                 >
                   {c.symbol} {c.code} — {c.name}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
         )}
@@ -173,23 +176,24 @@ export default function ProfileScreen() {
 
       <View style={styles.field}>
         <Text style={styles.label}>{t('profile.languageLabel', 'Language')}</Text>
-        <TouchableOpacity
-          style={styles.currencyPicker}
+        <Pressable
+          style={({ pressed }) => [styles.currencyPicker, pressed && PRESSED_STYLE]}
           onPress={() => setShowLanguagePicker(!showLanguagePicker)}
         >
           <Text style={styles.currencyPickerText}>
             {LANGUAGES.find((l) => l.code === language)?.name || 'English'}
           </Text>
           <Text style={styles.currencyPickerArrow}>{showLanguagePicker ? '▲' : '▼'}</Text>
-        </TouchableOpacity>
+        </Pressable>
         {showLanguagePicker && (
           <View style={styles.currencyList}>
             {LANGUAGES.map((l) => (
-              <TouchableOpacity
+              <Pressable
                 key={l.code}
-                style={[
+                style={({ pressed }) => [
                   styles.currencyOption,
                   l.code === language && styles.currencyOptionSelected,
+                  pressed && PRESSED_STYLE,
                 ]}
                 onPress={() => {
                   setLanguage(l.code);
@@ -206,7 +210,7 @@ export default function ProfileScreen() {
                 >
                   {l.name}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
         )}
@@ -251,15 +255,19 @@ export default function ProfileScreen() {
         />
       </View>
 
-      <TouchableOpacity
-        style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+      <Pressable
+        style={({ pressed }) => [
+          styles.saveButton,
+          saving && styles.saveButtonDisabled,
+          pressed && PRESSED_STYLE,
+        ]}
         onPress={handleSave}
         disabled={saving}
       >
         <Text style={styles.saveButtonText}>
           {saving ? t('actions.saving') : t('actions.saveProfile')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
 
       {/* Tabbit Pro Section */}
       <View style={styles.proSection}>
@@ -279,8 +287,12 @@ export default function ProfileScreen() {
             <Text style={styles.scanCountHint}>
               {t('messages.freeScansRemaining', { remaining: freeScansLeft, limit: FREE_SCAN_LIMIT })}
             </Text>
-            <TouchableOpacity
-              style={[styles.proButton, purchasing && styles.saveButtonDisabled]}
+            <Pressable
+              style={({ pressed }) => [
+                styles.proButton,
+                purchasing && styles.saveButtonDisabled,
+                pressed && PRESSED_STYLE,
+              ]}
               onPress={purchasePro}
               disabled={purchasing}
             >
@@ -291,9 +303,9 @@ export default function ProfileScreen() {
                   {t('messages.upgradePrice', { price: product?.displayPrice ?? '$4.99' })}
                 </Text>
               )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{ marginTop: 10, alignItems: 'center' }}
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.restoreButton, pressed && PRESSED_STYLE]}
               onPress={async () => {
                 const restored = await restorePurchases();
                 Alert.alert(
@@ -306,7 +318,7 @@ export default function ProfileScreen() {
               disabled={purchasing}
             >
               <Text style={styles.linkText}>{t('actions.restorePurchases')}</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
       </View>
@@ -349,18 +361,24 @@ export default function ProfileScreen() {
                       )}
                     </View>
                     <View style={styles.savedRabbitActions}>
-                      <TouchableOpacity onPress={() =>
-                        editingRabbitId === rabbit.id
-                          ? setEditingRabbitId(null)
-                          : startEditingRabbit(rabbit)
-                      }>
+                      <Pressable
+                        style={({ pressed }) => [pressed && PRESSED_STYLE]}
+                        onPress={() =>
+                          editingRabbitId === rabbit.id
+                            ? setEditingRabbitId(null)
+                            : startEditingRabbit(rabbit)
+                        }
+                      >
                         <Text style={styles.linkText}>
                           {editingRabbitId === rabbit.id ? t('actions.cancel') : t('actions.edit')}
                         </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => confirmDeleteRabbit(rabbit)}>
+                      </Pressable>
+                      <Pressable
+                        style={({ pressed }) => [pressed && PRESSED_STYLE]}
+                        onPress={() => confirmDeleteRabbit(rabbit)}
+                      >
                         <Text style={styles.deleteText}>{t('actions.delete')}</Text>
-                      </TouchableOpacity>
+                      </Pressable>
                     </View>
                   </View>
 
@@ -393,12 +411,12 @@ export default function ProfileScreen() {
                         autoCapitalize="none"
                         autoCorrect={false}
                       />
-                      <TouchableOpacity
-                        style={styles.saveEditButton}
+                      <Pressable
+                        style={({ pressed }) => [styles.saveEditButton, pressed && PRESSED_STYLE]}
                         onPress={() => saveRabbitEdit(rabbit.id)}
                       >
                         <Text style={styles.saveEditButtonText}>{t('actions.save')}</Text>
-                      </TouchableOpacity>
+                      </Pressable>
                     </View>
                   )}
                 </View>
@@ -561,6 +579,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.muted,
     fontFamily: fonts.body,
+  },
+  restoreButton: {
+    marginTop: 10,
+    alignItems: 'center' as const,
   },
   linkText: {
     color: colors.link,

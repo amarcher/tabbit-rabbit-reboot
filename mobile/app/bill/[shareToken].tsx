@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Linking,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
@@ -19,6 +19,8 @@ import { venmoLink, cashAppLink, paypalLink, buildPaymentNote } from '@/src/util
 import { colors, fonts } from '@/src/utils/theme';
 import { COLOR_HEX, RabbitColor } from '@/src/types';
 import AnimatedNumber from '@/src/components/AnimatedNumber';
+
+const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 export default function SharedBillScreen() {
   const { t } = useTranslation();
@@ -148,8 +150,8 @@ export default function SharedBillScreen() {
                 {/* Payment buttons using owner's profile */}
                 <View style={styles.paymentButtons}>
                   {ownerProfile.venmo_username && (
-                    <TouchableOpacity
-                      style={[styles.payBtn, styles.venmoBtn]}
+                    <Pressable
+                      style={({ pressed }) => [styles.payBtn, styles.venmoBtn, pressed && PRESSED_STYLE]}
                       onPress={() =>
                         Linking.openURL(
                           venmoLink(
@@ -168,27 +170,27 @@ export default function SharedBillScreen() {
                       }
                     >
                       <Text style={styles.venmoText}>Venmo</Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   )}
                   {ownerProfile.cashapp_cashtag && (
-                    <TouchableOpacity
-                      style={[styles.payBtn, styles.cashappBtn]}
+                    <Pressable
+                      style={({ pressed }) => [styles.payBtn, styles.cashappBtn, pressed && PRESSED_STYLE]}
                       onPress={() =>
                         Linking.openURL(cashAppLink(ownerProfile.cashapp_cashtag!, amountToDecimal(total, currencyCode)))
                       }
                     >
                       <Text style={styles.cashappText}>Cash App</Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   )}
                   {ownerProfile.paypal_username && (
-                    <TouchableOpacity
-                      style={[styles.payBtn, styles.paypalBtn]}
+                    <Pressable
+                      style={({ pressed }) => [styles.payBtn, styles.paypalBtn, pressed && PRESSED_STYLE]}
                       onPress={() =>
                         Linking.openURL(paypalLink(ownerProfile.paypal_username!, amountToDecimal(total, currencyCode)))
                       }
                     >
                       <Text style={styles.paypalText}>PayPal</Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   )}
                 </View>
               </View>

@@ -1,14 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Linking,
-  Animated,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  withTiming,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import Slider from '@react-native-community/slider';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
 import { venmoChargeLink, buildChargeNote } from '../utils/payments';
@@ -17,6 +21,8 @@ import { COLOR_HEX } from '../types';
 import { colors, fonts, timing } from '../utils/theme';
 import PaymentLinks from './PaymentLinks';
 import AnimatedNumber from './AnimatedNumber';
+
+const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 function getTipLabelKey(tip: number): string | null {
   if (tip >= 25) return 'tipLabels.wow';
@@ -31,54 +37,33 @@ function TipFeedback({ tipPercent }: { tipPercent: number }) {
   const { t } = useTranslation();
   const labelKey = getTipLabelKey(tipPercent);
   const label = labelKey ? t(labelKey) : null;
-  const opacity = useRef(new Animated.Value(label ? 1 : 0)).current;
-  const translateY = useRef(new Animated.Value(label ? 0 : -4)).current;
-  const prevLabel = useRef<string | null>(label);
+
+  const opacity = useSharedValue(label ? 1 : 0);
+  const translateY = useSharedValue(label ? 0 : -4);
 
   useEffect(() => {
-    if (label && label !== prevLabel.current) {
-      // New label appearing or changing
-      opacity.setValue(0);
-      translateY.setValue(-4);
-      Animated.parallel([
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: timing.fast,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: timing.fast,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else if (!label && prevLabel.current) {
-      // Label disappearing
-      Animated.parallel([
-        Animated.timing(opacity, {
-          toValue: 0,
-          duration: timing.fast,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: 4,
-          duration: timing.fast,
-          useNativeDriver: true,
-        }),
-      ]).start();
+    if (label) {
+      // New label appearing or changing: snap to hidden then animate in
+      opacity.value = 0;
+      translateY.value = -4;
+      opacity.value = withTiming(1, { duration: timing.fast });
+      translateY.value = withTiming(0, { duration: timing.fast });
+    } else {
+      // Label disappearing: animate out
+      opacity.value = withTiming(0, { duration: timing.fast });
+      translateY.value = withTiming(4, { duration: timing.fast });
     }
-    prevLabel.current = label;
   }, [label, opacity, translateY]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
 
   if (!label) return null;
 
   return (
-    <Animated.Text
-      style={[
-        styles.tipFeedback,
-        { opacity, transform: [{ translateY }] },
-      ]}
-    >
+    <Animated.Text style={[styles.tipFeedback, animatedStyle]}>
       {label}
     </Animated.Text>
   );
@@ -326,8 +311,8 @@ export default function TotalsView({
                   )}
                 />
                 {rabbit.profile?.venmo_username && total > 0 && (
-                  <TouchableOpacity
-                    style={styles.chargeButton}
+                  <Pressable
+                    style={({ pressed }) => [styles.chargeButton, pressed && PRESSED_STYLE]}
                     onPress={() => Linking.openURL(venmoChargeLink(rabbit.profile!.venmo_username!, amountToDecimal(total, currencyCode), buildChargeNote(tab.name, rabbit.name,
                       assignments
                         .filter((a) => a.rabbit_id === rabbit.id)
@@ -338,7 +323,7 @@ export default function TotalsView({
                     )))}
                   >
                     <Text style={styles.chargeButtonText}>{t('actions.requestViaVenmo')}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 )}
               </View>
             </View>

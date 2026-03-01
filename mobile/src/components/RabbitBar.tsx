@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { Rabbit } from '../types';
 import { formatAmount } from '../utils/currency';
@@ -18,6 +18,8 @@ interface RabbitBarProps {
   wrapAddChip?: (chip: React.ReactElement) => React.ReactElement;
 }
 
+const PRESSED_STYLE = { opacity: 0.7 } as const;
+
 export default function RabbitBar({
   rabbits,
   selectedRabbitId,
@@ -30,7 +32,7 @@ export default function RabbitBar({
 }: RabbitBarProps) {
   const { t } = useTranslation();
 
-  const handleLongPress = (rabbit: Rabbit) => {
+  const handleLongPress = useCallback((rabbit: Rabbit) => {
     Alert.alert(
       t('messages.confirmRemoveRabbit', { name: rabbit.name }),
       t('messages.removeFromAllItems'),
@@ -39,7 +41,7 @@ export default function RabbitBar({
         { text: t('actions.remove'), style: 'destructive', onPress: () => onRemove(rabbit.id) },
       ]
     );
-  };
+  }, [t, onRemove]);
 
   return (
     <ScrollView
@@ -54,14 +56,15 @@ export default function RabbitBar({
           : BUTTON_OUTLINE_COLORS[rabbit.color];
 
         return (
-          <TouchableOpacity
+          <Pressable
             key={rabbit.id}
-            style={[
+            style={({ pressed }) => [
               styles.chip,
               {
                 backgroundColor: colorSet.bg,
                 borderColor: colorSet.border,
               },
+              pressed && PRESSED_STYLE,
             ]}
             onPress={() => onSelect(rabbit.id)}
             onLongPress={() => handleLongPress(rabbit)}
@@ -74,14 +77,17 @@ export default function RabbitBar({
                 {formatAmount(subtotals[rabbit.id] || 0, currencyCode)}
               </Text>
             </View>
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
       {(() => {
         const chip = (
-          <TouchableOpacity style={styles.addChip} onPress={onAddClick}>
+          <Pressable
+            style={({ pressed }) => [styles.addChip, pressed && PRESSED_STYLE]}
+            onPress={onAddClick}
+          >
             <Text style={styles.addChipText}>{t('actions.addSomeone')}</Text>
-          </TouchableOpacity>
+          </Pressable>
         );
         return wrapAddChip ? wrapAddChip(chip) : chip;
       })()}

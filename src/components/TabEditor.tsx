@@ -61,6 +61,14 @@ export default function TabEditor() {
   const [confettiOrigin, setConfettiOrigin] = useState({ x: 0, y: 0 });
   const shareBtnRef = useRef<HTMLButtonElement>(null);
 
+  const [isFirstTab] = useState(() => {
+    try {
+      const raw = localStorage.getItem('tabbitrabbit:tabs');
+      const list = raw ? JSON.parse(raw) : [];
+      return list.length <= 1;
+    } catch { return true; }
+  });
+
   const subtotals = useMemo(() => {
     const result: Record<string, number> = {};
     for (const rabbit of rabbits) {
@@ -225,13 +233,6 @@ export default function TabEditor() {
 
   const hasItems = items.length > 0;
   const hasRabbits = rabbits.length > 0;
-  const isFirstTab = (() => {
-    try {
-      const raw = localStorage.getItem('tabbitrabbit:tabs');
-      const list = raw ? JSON.parse(raw) : [];
-      return list.length <= 1;
-    } catch { return true; }
-  })();
 
   const actionBar = (
     <div className="my-3">

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Item, Rabbit, ItemRabbit } from '../types';
@@ -18,7 +18,9 @@ interface ItemRowProps {
   onDelete: (itemId: string) => void;
 }
 
-export default function ItemRow({
+const PRESSED_STYLE = { opacity: 0.7 } as const;
+
+function ItemRow({
   item,
   rabbits,
   assignments,
@@ -49,21 +51,21 @@ export default function ItemRow({
 
   const renderRightActions = () => (
     <View style={styles.swipeActions}>
-      <TouchableOpacity
-        style={styles.confirmButton}
+      <Pressable
+        style={({ pressed }) => [styles.confirmButton, pressed && PRESSED_STYLE]}
         onPress={() => {
           swipeableRef.current?.close();
           onDelete(item.id);
         }}
       >
         <Text style={styles.actionText}>{t('actions.delete')}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.cancelButton}
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [styles.cancelButton, pressed && PRESSED_STYLE]}
         onPress={() => swipeableRef.current?.close()}
       >
         <Text style={styles.actionText}>{t('actions.cancel')}</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 
@@ -74,10 +76,10 @@ export default function ItemRow({
       overshootRight={false}
       rightThreshold={40}
     >
-      <TouchableOpacity
+      <Pressable
         onPress={handlePress}
         disabled={!selectedRabbitId}
-        activeOpacity={selectedRabbitId ? 0.7 : 1}
+        style={({ pressed }) => [(pressed && selectedRabbitId) ? PRESSED_STYLE : null]}
       >
         <LinearGradient
           colors={gradientColors}
@@ -93,10 +95,12 @@ export default function ItemRow({
           </Text>
           <Text style={styles.price}>{formatAmount(item.price_cents, currencyCode)}</Text>
         </LinearGradient>
-      </TouchableOpacity>
+      </Pressable>
     </Swipeable>
   );
 }
+
+export default React.memo(ItemRow);
 
 const styles = StyleSheet.create({
   row: {
