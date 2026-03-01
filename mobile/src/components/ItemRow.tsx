@@ -18,7 +18,7 @@ interface ItemRowProps {
   onDelete: (itemId: string) => void;
 }
 
-export default function ItemRow({
+function ItemRow({
   item,
   rabbits,
   assignments,
@@ -97,6 +97,8 @@ export default function ItemRow({
     </Swipeable>
   );
 }
+
+export default React.memo(ItemRow);
 
 const styles = StyleSheet.create({
   row: {

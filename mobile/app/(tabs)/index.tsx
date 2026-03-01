@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -21,7 +21,7 @@ import { TabListSkeleton } from '@/src/components/Skeleton';
 import { homeTour } from '@/src/utils/onboardingTour';
 import type { Tab, Item, Rabbit } from '@/src/types';
 
-function TabRow({
+const TabRow = React.memo(function TabRow({
   tab,
   items,
   rabbits,
@@ -107,7 +107,7 @@ function TabRow({
       </TouchableOpacity>
     </Swipeable>
   );
-}
+});
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
