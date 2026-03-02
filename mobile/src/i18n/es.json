@@ -144,6 +144,27 @@
     "usernameLabel": "Usuario de Venmo",
     "usernamePlaceholder": "usuario"
   },
+  "voiceAssignment": {
+    "title": "Asignación por Voz",
+    "buttonLabel": "Asignar",
+    "instructions": "Di quién pidió qué — ej. \"Alex pidió la sopa y la mitad del sándwich, Jamie pidió la ensalada.\"",
+    "tapToSpeak": "Toca para hablar",
+    "listening": "Escuchando...",
+    "processTranscript": "Procesar",
+    "or": "o",
+    "textInputLabel": "O escribe quién pidió qué",
+    "textPlaceholder": "ej. Alex pidió la sopa, Jamie pidió la ensalada",
+    "processText": "Procesar",
+    "processing": "Identificando artículos y personas...",
+    "reviewAssignments": "Revisa las asignaciones propuestas:",
+    "shareLabel": "parte: {{share}}",
+    "noAssignmentsFound": "No se pudieron hacer asignaciones. Intenta con otras palabras.",
+    "tryAgain": "Intentar de Nuevo",
+    "apply": "Aplicar {{count}} asignaciones",
+    "scanLimitReached": "Has usado tus {{limit}} acciones IA gratuitas este mes. Agrega tu propia clave API para uso ilimitado.",
+    "processingFailed": "Error al procesar la asignación por voz",
+    "permissionDenied": "Se necesitan permisos de micrófono y reconocimiento de voz."
+  },
   "profile": {
     "languageLabel": "Idioma"
   }

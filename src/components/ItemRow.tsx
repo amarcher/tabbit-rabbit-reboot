@@ -25,13 +25,13 @@ export default function ItemRow({
   onDelete,
 }: ItemRowProps) {
   const { t } = useTranslation();
-  const itemRabbitIds = assignments
-    .filter((a) => a.item_id === item.id)
-    .map((a) => a.rabbit_id);
+  const itemAssignments = assignments.filter((a) => a.item_id === item.id);
+  const itemRabbitIds = itemAssignments.map((a) => a.rabbit_id);
 
   const assignedRabbits = rabbits.filter((r) => itemRabbitIds.includes(r.id));
   const colors = assignedRabbits.map((r) => r.color);
-  const gradientStyle = getGradientStyle(colors);
+  const shares = assignedRabbits.map((r) => itemAssignments.find((a) => a.rabbit_id === r.id)?.share ?? 1);
+  const gradientStyle = getGradientStyle(colors, shares);
 
   const isSelectedRabbitAssigned =
     selectedRabbitId != null && itemRabbitIds.includes(selectedRabbitId);

@@ -239,6 +239,26 @@ export function useTab(tabId: string | undefined) {
     []
   );
 
+  const applyAssignments = useCallback(
+    (newAssignments: ItemRabbit[]) => {
+      setAssignments((prev) => {
+        const result = [...prev];
+        for (const na of newAssignments) {
+          const idx = result.findIndex(
+            (a) => a.item_id === na.item_id && a.rabbit_id === na.rabbit_id
+          );
+          if (idx >= 0) {
+            result[idx] = na;
+          } else {
+            result.push(na);
+          }
+        }
+        return result;
+      });
+    },
+    []
+  );
+
   return {
     tab,
     items,
@@ -253,5 +273,6 @@ export function useTab(tabId: string | undefined) {
     addRabbit,
     removeRabbit,
     toggleAssignment,
+    applyAssignments,
   };
 }

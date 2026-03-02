@@ -25,12 +25,55 @@ function sortColors(colors: RabbitColor[]): RabbitColor[] {
   );
 }
 
-/** Returns a tuple of hex color strings for use with expo-linear-gradient */
-export function getGradientColors(colors: RabbitColor[]): [string, string, ...string[]] {
-  if (colors.length === 0) return ['#ffffff', '#ffffff'];
-  if (colors.length === 1) return [GRADIENT_HEX[colors[0]], GRADIENT_HEX[colors[0]]];
-  const sorted = sortColors(colors).map((c) => GRADIENT_HEX[c]);
-  return [sorted[0], sorted[1], ...sorted.slice(2)];
+interface GradientResult {
+  colors: [string, string, ...string[]];
+  locations?: [number, number, ...number[]];
+}
+
+/** Returns gradient colors and optional locations for use with expo-linear-gradient.
+ *  When shares are provided, locations reflect proportional band widths. */
+export function getGradientColors(
+  colors: RabbitColor[],
+  shares?: number[],
+): GradientResult {
+  if (colors.length === 0) return { colors: ['#ffffff', '#ffffff'] };
+  if (colors.length === 1) return { colors: [GRADIENT_HEX[colors[0]], GRADIENT_HEX[colors[0]]] };
+
+  const entries = colors.map((c, i) => ({ color: c, share: shares?.[i] ?? 1 }));
+  const sorted = entries.sort(
+    (a, b) => COLOR_ORDER.indexOf(a.color) - COLOR_ORDER.indexOf(b.color)
+  );
+
+  const hasCustomShares = shares && shares.some((s) => s !== 1);
+
+  if (!hasCustomShares) {
+    // Equal shares — simple color list, no locations needed
+    const sortedColors = sorted.map((e) => GRADIENT_HEX[e.color]);
+    return { colors: [sortedColors[0], sortedColors[1], ...sortedColors.slice(2)] };
+  }
+
+  // Proportional shares — duplicate colors for hard stops with small blend
+  const totalShares = sorted.reduce((sum, e) => sum + e.share, 0);
+  const blend = 0.03; // 3% transition
+  const resultColors: string[] = [];
+  const locs: number[] = [];
+  let cursor = 0;
+
+  sorted.forEach((entry, i) => {
+    const bandSize = entry.share / totalShares;
+    const start = cursor;
+    const end = cursor + bandSize;
+    resultColors.push(GRADIENT_HEX[entry.color]);
+    locs.push(Math.max(0, start + (i > 0 ? blend : 0)));
+    resultColors.push(GRADIENT_HEX[entry.color]);
+    locs.push(Math.min(1, end - (i < sorted.length - 1 ? blend : 0)));
+    cursor = end;
+  });
+
+  return {
+    colors: [resultColors[0], resultColors[1], ...resultColors.slice(2)] as [string, string, ...string[]],
+    locations: [locs[0], locs[1], ...locs.slice(2)] as [number, number, ...number[]],
+  };
 }
 
 /** Bootstrap-like color mapping for buttons/badges */

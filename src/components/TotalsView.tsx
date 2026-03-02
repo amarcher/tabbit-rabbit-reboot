@@ -85,10 +85,10 @@ export default function TotalsView({
       for (const itemId of rabbitItemIds) {
         const item = items.find((i) => i.id === itemId);
         if (!item) continue;
-        const numSplitters = assignments.filter(
-          (a) => a.item_id === itemId
-        ).length;
-        subtotal += item.price_cents / numSplitters;
+        const itemAssignments = assignments.filter((a) => a.item_id === itemId);
+        const totalShares = itemAssignments.reduce((sum, a) => sum + (a.share ?? 1), 0);
+        const myShare = itemAssignments.find((a) => a.rabbit_id === rabbit.id)?.share ?? 1;
+        subtotal += item.price_cents * (myShare / totalShares);
       }
 
       const tax = subtotal * (taxPercent / 100);

@@ -46,6 +46,7 @@ export interface Rabbit {
 export interface ItemRabbit {
   item_id: string;
   rabbit_id: string;
+  share?: number; // relative weight, defaults to 1; portion = myShare / totalSharesForItem
 }
 
 export type RabbitColor =

@@ -16,10 +16,11 @@ import AddRabbitModal from './AddRabbitModal';
 import TotalsView from './TotalsView';
 import LoadingSpinner from './LoadingSpinner';
 import Confetti from './Confetti';
+import VoiceAssignmentModal from './VoiceAssignmentModal';
 import HintArrow from './HintArrow';
 import { useNux } from '../contexts/NuxContext';
 import { isZeroDecimalCurrency } from '../utils/currency';
-import type { RabbitColor, Tab } from '../types';
+import type { RabbitColor, Tab, ItemRabbit } from '../types';
 
 export default function TabEditor() {
   const { t } = useTranslation();
@@ -40,6 +41,7 @@ export default function TabEditor() {
     addRabbit,
     removeRabbit,
     toggleAssignment,
+    applyAssignments,
   } = useTab(tabId);
 
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
@@ -55,6 +57,9 @@ export default function TabEditor() {
   // Share bill state
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
+
+  // Voice assignment state
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   // Confetti state
   const [confettiActive, setConfettiActive] = useState(false);
@@ -80,10 +85,10 @@ export default function TabEditor() {
       for (const itemId of rabbitItemIds) {
         const item = items.find((i) => i.id === itemId);
         if (!item) continue;
-        const splitCount = assignments.filter(
-          (a) => a.item_id === itemId
-        ).length;
-        total += item.price_cents / splitCount;
+        const itemAssignments = assignments.filter((a) => a.item_id === itemId);
+        const totalShares = itemAssignments.reduce((sum, a) => sum + (a.share ?? 1), 0);
+        const myShare = itemAssignments.find((a) => a.rabbit_id === rabbit.id)?.share ?? 1;
+        total += item.price_cents * (myShare / totalShares);
       }
       result[rabbit.id] = Math.round(total);
     }
@@ -260,6 +265,16 @@ export default function TabEditor() {
         </Button>
         {hasItems && hasRabbits && (
           <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={() => setShowVoiceModal(true)}
+            title={t('voiceAssignment.title')}
+          >
+            &#127908; {t('voiceAssignment.buttonLabel')}
+          </Button>
+        )}
+        {hasItems && hasRabbits && (
+          <Button
             ref={shareBtnRef}
             variant="outline-success"
             size="sm"
@@ -383,6 +398,16 @@ export default function TabEditor() {
           />
         </div>
       </div>
+
+      <VoiceAssignmentModal
+        show={showVoiceModal}
+        onHide={() => setShowVoiceModal(false)}
+        items={items}
+        rabbits={rabbits}
+        assignments={assignments}
+        currencyCode={currencyCode}
+        onApply={applyAssignments}
+      />
 
       <AddRabbitModal
         show={showAddRabbit}

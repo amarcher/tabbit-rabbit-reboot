@@ -9,7 +9,7 @@ interface CompactBill {
   cc?: string; // currency_code (omitted = USD for backward compat)
   i: [string, number][]; // items: [description, price_cents]
   r: [string, number][]; // rabbits: [name, colorIndex]
-  a: [number, number][]; // assignments: [itemIdx, rabbitIdx]
+  a: (readonly [number, number] | readonly [number, number, number])[]; // assignments: [itemIdx, rabbitIdx, share?]
   o: {
     d: string | null; // display_name
     v: string | null; // venmo_username
@@ -26,7 +26,7 @@ export interface SharedTabData {
   tab: { name: string; tax_percent: number; tip_percent: number; currency_code?: string };
   items: { id: string; description: string; price_cents: number }[];
   rabbits: { id: string; name: string; color: string }[];
-  assignments: { item_id: string; rabbit_id: string }[];
+  assignments: { item_id: string; rabbit_id: string; share?: number }[];
   ownerProfile: {
     display_name: string | null;
     venmo_username: string | null;
@@ -39,7 +39,7 @@ export function encodeBill(
   tab: { name: string; tax_percent: number; tip_percent: number; currency_code?: string },
   items: { id: string; description: string; price_cents: number }[],
   rabbits: { id: string; name: string; color: string }[],
-  assignments: { item_id: string; rabbit_id: string }[],
+  assignments: { item_id: string; rabbit_id: string; share?: number }[],
   ownerProfile: {
     display_name: string | null;
     venmo_username: string | null;
@@ -66,9 +66,12 @@ export function encodeBill(
         const itemIdx = itemIdToIdx.get(a.item_id);
         const rabbitIdx = rabbitIdToIdx.get(a.rabbit_id);
         if (itemIdx === undefined || rabbitIdx === undefined) return null;
-        return [itemIdx, rabbitIdx] as [number, number];
+        if (a.share && a.share !== 1) {
+          return [itemIdx, rabbitIdx, a.share] as const;
+        }
+        return [itemIdx, rabbitIdx] as const;
       })
-      .filter((a): a is [number, number] => a !== null),
+      .filter((a): a is NonNullable<typeof a> => a !== null),
     o: {
       d: ownerProfile.display_name,
       v: ownerProfile.venmo_username,
@@ -117,9 +120,10 @@ export function decodeBill(encoded: string): SharedTabData | null {
       color: COLOR_ORDER[colorIdx] || 'secondary',
     }));
 
-    const assignments = compact.a.map(([itemIdx, rabbitIdx]) => ({
-      item_id: `item-${itemIdx}`,
-      rabbit_id: `rabbit-${rabbitIdx}`,
+    const assignments = compact.a.map((entry) => ({
+      item_id: `item-${entry[0]}`,
+      rabbit_id: `rabbit-${entry[1]}`,
+      ...(entry[2] != null && entry[2] !== 1 ? { share: entry[2] } : {}),
     }));
 
     return {

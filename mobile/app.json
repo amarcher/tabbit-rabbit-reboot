@@ -21,6 +21,8 @@
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "NSSpeechRecognitionUsageDescription": "Tabbit Rabbit uses speech recognition to assign bill items by voice.",
+        "NSMicrophoneUsageDescription": "Tabbit Rabbit needs microphone access for voice-based item assignment.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
@@ -65,7 +67,8 @@
       "expo-router",
       "expo-secure-store",
       "react-native-iap",
-      "expo-localization"
+      "expo-localization",
+      "@jamsch/expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true

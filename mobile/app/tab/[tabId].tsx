@@ -38,14 +38,16 @@ import AddRabbitModal from '@/src/components/AddRabbitModal';
 import TotalsView from '@/src/components/TotalsView';
 import HintArrow from '@/src/components/HintArrow';
 import Confetti from '@/src/components/Confetti';
+import VoiceAssignmentModal from '@/src/components/VoiceAssignmentModal';
 import { editorTour } from '@/src/utils/onboardingTour';
-import type { RabbitColor, Profile, Tab } from '@/src/types';
+import type { RabbitColor, Profile, Tab, ItemRabbit } from '@/src/types';
 
 const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 function ActionBar({
   onScanReceipt,
   onShareBill,
+  onVoiceAssign,
   scanning,
   sharing,
   hasItems,
@@ -53,6 +55,7 @@ function ActionBar({
 }: {
   onScanReceipt: () => void;
   onShareBill: () => void;
+  onVoiceAssign?: () => void;
   scanning: boolean;
   sharing: boolean;
   hasItems: boolean;
@@ -60,6 +63,7 @@ function ActionBar({
 }) {
   const { t } = useTranslation();
   const showShare = hasItems && hasRabbits;
+  const showVoice = hasItems && hasRabbits;
   const scanIsPrimary = !hasItems;
 
   return (
@@ -67,7 +71,7 @@ function ActionBar({
       <Pressable
         style={({ pressed }) => [
           scanIsPrimary ? styles.actionButtonFilled : styles.actionButtonOutline,
-          !showShare && { flex: 1 },
+          !showShare && !showVoice && { flex: 1 },
           pressed && PRESSED_STYLE,
         ]}
         onPress={onScanReceipt}
@@ -83,6 +87,16 @@ function ActionBar({
           {scanning ? t('actions.scanning') : t('actions.scanReceipt')}
         </Text>
       </Pressable>
+      {showVoice && onVoiceAssign && (
+        <Pressable
+          style={({ pressed }) => [styles.actionButtonOutline, pressed && PRESSED_STYLE]}
+          onPress={onVoiceAssign}
+        >
+          <Text style={styles.actionButtonOutlineText}>
+            {'\uD83C\uDFA4'} {t('voiceAssignment.buttonLabel')}
+          </Text>
+        </Pressable>
+      )}
       {showShare && (
         <Pressable
           style={({ pressed }) => [styles.actionButtonOutline, pressed && PRESSED_STYLE]}
@@ -118,6 +132,7 @@ export default function TabEditorScreen() {
     addRabbit,
     removeRabbit,
     toggleAssignment,
+    applyAssignments,
   } = useTab(tabId);
 
   const { t } = useTranslation();
@@ -127,6 +142,7 @@ export default function TabEditorScreen() {
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Scroll-to-top button state
@@ -176,10 +192,10 @@ export default function TabEditorScreen() {
       for (const itemId of rabbitItemIds) {
         const item = items.find((i) => i.id === itemId);
         if (!item) continue;
-        const splitCount = assignments.filter(
-          (a) => a.item_id === itemId
-        ).length;
-        total += item.price_cents / splitCount;
+        const itemAssignments = assignments.filter((a) => a.item_id === itemId);
+        const totalShares = itemAssignments.reduce((sum, a) => sum + (a.share ?? 1), 0);
+        const myShare = itemAssignments.find((a) => a.rabbit_id === rabbit.id)?.share ?? 1;
+        total += item.price_cents * (myShare / totalShares);
       }
       result[rabbit.id] = Math.round(total);
     }
@@ -348,6 +364,7 @@ export default function TabEditorScreen() {
         <ActionBar
           onScanReceipt={handleScanReceipt}
           onShareBill={handleShareBill}
+          onVoiceAssign={() => setShowVoiceModal(true)}
           scanning={scanning}
           sharing={sharing}
           hasItems={hasItems}
@@ -414,12 +431,24 @@ export default function TabEditorScreen() {
         <ActionBar
           onScanReceipt={handleScanReceipt}
           onShareBill={handleShareBill}
+          onVoiceAssign={() => setShowVoiceModal(true)}
           scanning={scanning}
           sharing={sharing}
           hasItems={hasItems}
           hasRabbits={hasRabbits}
         />
       )}
+
+      {/* Voice Assignment Modal */}
+      <VoiceAssignmentModal
+        visible={showVoiceModal}
+        onClose={() => setShowVoiceModal(false)}
+        items={items}
+        rabbits={rabbits}
+        assignments={assignments}
+        currencyCode={currencyCode}
+        onApply={applyAssignments}
+      />
 
       {/* Add Rabbit Modal */}
       <AddRabbitModal
