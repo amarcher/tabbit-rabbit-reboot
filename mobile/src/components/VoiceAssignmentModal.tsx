@@ -13,7 +13,7 @@ import {
 import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
-} from '@jamsch/expo-speech-recognition';
+} from 'expo-speech-recognition';
 import type { Item, Rabbit, ItemRabbit } from '../types';
 import { COLOR_HEX } from '../types';
 import { formatAmount } from '../utils/currency';
@@ -60,7 +60,7 @@ export default function VoiceAssignmentModal({
   currencyCode,
   onApply,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [phase, setPhase] = useState<Phase>('input');
   const [recording, setRecording] = useState(false);
@@ -118,12 +118,13 @@ export default function VoiceAssignmentModal({
     recognizingRef.current = true;
     setRecording(true);
 
+    const speechLang = i18n.language === 'es' ? 'es-ES' : 'en-US';
     ExpoSpeechRecognitionModule.start({
-      lang: 'en-US',
+      lang: speechLang,
       interimResults: true,
       continuous: true,
     });
-  }, [t]);
+  }, [t, i18n.language]);
 
   const stopRecording = useCallback(() => {
     if (recognizingRef.current) {

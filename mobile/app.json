@@ -68,7 +68,7 @@
       "expo-secure-store",
       "react-native-iap",
       "expo-localization",
-      "@jamsch/expo-speech-recognition"
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true
