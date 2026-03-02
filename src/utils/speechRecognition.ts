@@ -34,6 +34,7 @@ export function startSpeechRecognition(options: SpeechOptions): SpeechSession {
   recognition.lang = options.lang || 'en-US';
 
   let finalTranscript = '';
+  let lastInterim = '';
 
   recognition.onresult = (event: any) => {
     let interim = '';
@@ -45,8 +46,9 @@ export function startSpeechRecognition(options: SpeechOptions): SpeechSession {
         interim += result[0].transcript;
       }
     }
+    lastInterim = finalTranscript + interim;
     if (options.onInterimResult) {
-      options.onInterimResult(finalTranscript + interim);
+      options.onInterimResult(lastInterim);
     }
   };
 
@@ -56,8 +58,11 @@ export function startSpeechRecognition(options: SpeechOptions): SpeechSession {
   };
 
   recognition.onend = () => {
-    if (finalTranscript.trim()) {
-      options.onFinalResult(finalTranscript.trim());
+    // Chrome often skips converting interim→final on stop(), so fall back
+    // to the last interim text if no final transcript was produced.
+    const text = finalTranscript.trim() || lastInterim.trim();
+    if (text) {
+      options.onFinalResult(text);
     }
     options.onEnd?.();
   };
