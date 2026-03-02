@@ -8,7 +8,6 @@ import { venmoChargeLink, buildChargeNote } from '../utils/payments';
 import { COLOR_HEX } from '../types';
 import PaymentLinks from './PaymentLinks';
 import AnimatedNumber from './AnimatedNumber';
-import { useScrollReveal } from '../hooks/useScrollReveal';
 
 interface TotalsViewProps {
   tab: Tab;
@@ -60,8 +59,6 @@ export default function TotalsView({
   const [chargeTarget, setChargeTarget] = useState<{ rabbit: Rabbit; total: number } | null>(null);
   const [venmoHandle, setVenmoHandle] = useState('');
 
-  const totalsReveal = useScrollReveal();
-  const grandTotalReveal = useScrollReveal();
 
   const itemsSubtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.price_cents, 0),
@@ -240,9 +237,8 @@ export default function TotalsView({
       {/* Per-rabbit breakdown */}
       {totals.length > 0 && (
         <motion.div
-          ref={totalsReveal.ref}
           initial={{ opacity: 0, y: 16 }}
-          animate={totalsReveal.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
         >
           <ListGroup className="mb-3">
@@ -304,9 +300,8 @@ export default function TotalsView({
       )}
 
       <motion.div
-        ref={grandTotalReveal.ref}
         initial={{ opacity: 0, y: 16 }}
-        animate={grandTotalReveal.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05, ease: [0.25, 0.1, 0.25, 1] }}
       >
         <Card className="tr-receipt-card">
