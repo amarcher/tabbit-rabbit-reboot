@@ -20,7 +20,7 @@ import VoiceAssignmentModal from './VoiceAssignmentModal';
 import HintArrow from './HintArrow';
 import { useNux } from '../contexts/NuxContext';
 import { isZeroDecimalCurrency } from '../utils/currency';
-import type { RabbitColor, Tab, ItemRabbit } from '../types';
+import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
   const { t } = useTranslation();
