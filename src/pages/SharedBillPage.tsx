@@ -30,8 +30,10 @@ export default function SharedBillPage() {
       for (const itemId of rabbitItemIds) {
         const item = items.find((i) => i.id === itemId);
         if (!item) continue;
-        const numSplitters = assignments.filter((a) => a.item_id === itemId).length;
-        subtotal += item.price_cents / numSplitters;
+        const itemAssignments = assignments.filter((a) => a.item_id === itemId);
+        const totalShares = itemAssignments.reduce((sum, a) => sum + (a.share ?? 1), 0);
+        const myShare = itemAssignments.find((a) => a.rabbit_id === rabbit.id)?.share ?? 1;
+        subtotal += item.price_cents * (myShare / totalShares);
       }
 
       const tax = subtotal * (tab.tax_percent / 100);
@@ -91,18 +93,19 @@ export default function SharedBillPage() {
       {/* Items */}
       <ListGroup className="mb-3">
         {items.map((item) => {
-          const itemRabbitColors = assignments
-            .filter((a) => a.item_id === item.id)
+          const itemAssignments = assignments.filter((a) => a.item_id === item.id);
+          const itemRabbitColors = itemAssignments
             .map((a) => {
               const rabbit = rabbits.find((r) => r.id === a.rabbit_id);
               return rabbit?.color as RabbitColor;
             })
             .filter(Boolean);
+          const itemShares = itemAssignments.map((a) => a.share ?? 1);
 
           return (
             <ListGroup.Item
               key={item.id}
-              style={getGradientStyle(itemRabbitColors)}
+              style={getGradientStyle(itemRabbitColors, itemShares)}
               className="d-flex justify-content-between"
             >
               <span>{item.description}</span>

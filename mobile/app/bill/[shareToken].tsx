@@ -48,10 +48,10 @@ export default function SharedBillScreen() {
       for (const itemId of rabbitItemIds) {
         const item = items.find((i) => i.id === itemId);
         if (!item) continue;
-        const numSplitters = assignments.filter(
-          (a) => a.item_id === itemId
-        ).length;
-        subtotal += item.price_cents / numSplitters;
+        const itemAssignments = assignments.filter((a) => a.item_id === itemId);
+        const totalShares = itemAssignments.reduce((sum, a) => sum + (a.share ?? 1), 0);
+        const myShare = itemAssignments.find((a) => a.rabbit_id === rabbit.id)?.share ?? 1;
+        subtotal += item.price_cents * (myShare / totalShares);
       }
 
       const tax = subtotal * (tab.tax_percent / 100);
@@ -100,18 +100,18 @@ export default function SharedBillScreen() {
       {/* Items */}
       <View style={styles.itemsList}>
         {items.map((item) => {
-          const itemRabbitIds = assignments
-            .filter((a) => a.item_id === item.id)
-            .map((a) => a.rabbit_id);
-          const assignedColors = rabbits
-            .filter((r) => itemRabbitIds.includes(r.id))
-            .map((r) => r.color as RabbitColor);
-          const gradientColors = getGradientColors(assignedColors);
+          const itemAssignments = assignments.filter((a) => a.item_id === item.id);
+          const itemRabbitIds = itemAssignments.map((a) => a.rabbit_id);
+          const assignedRabbits = rabbits.filter((r) => itemRabbitIds.includes(r.id));
+          const assignedColors = assignedRabbits.map((r) => r.color as RabbitColor);
+          const assignedShares = assignedRabbits.map((r) => itemAssignments.find((a) => a.rabbit_id === r.id)?.share ?? 1);
+          const gradient = getGradientColors(assignedColors, assignedShares);
 
           return (
             <LinearGradient
               key={item.id}
-              colors={gradientColors}
+              colors={gradient.colors}
+              locations={gradient.locations}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.itemRow}

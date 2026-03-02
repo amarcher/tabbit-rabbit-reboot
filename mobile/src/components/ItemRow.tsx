@@ -36,9 +36,11 @@ function ItemRow({
     .filter((a) => a.item_id === item.id)
     .map((a) => a.rabbit_id);
 
+  const itemAssignments = assignments.filter((a) => a.item_id === item.id);
   const assignedRabbits = rabbits.filter((r) => itemRabbitIds.includes(r.id));
   const rabbitColors = assignedRabbits.map((r) => r.color);
-  const gradientColors = getGradientColors(rabbitColors);
+  const rabbitShares = assignedRabbits.map((r) => itemAssignments.find((a) => a.rabbit_id === r.id)?.share ?? 1);
+  const gradient = getGradientColors(rabbitColors, rabbitShares);
 
   const isSelectedRabbitAssigned =
     selectedRabbitId != null && itemRabbitIds.includes(selectedRabbitId);
@@ -82,7 +84,8 @@ function ItemRow({
         style={({ pressed }) => [(pressed && selectedRabbitId) ? PRESSED_STYLE : null]}
       >
         <LinearGradient
-          colors={gradientColors}
+          colors={gradient.colors}
+          locations={gradient.locations}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={[

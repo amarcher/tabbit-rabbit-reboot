@@ -72,8 +72,10 @@ module.exports = async function handler(req, res) {
     for (const itemId of rabbitItemIds) {
       const item = items.find((i) => i.id === itemId);
       if (!item) continue;
-      const splitCount = assignments.filter((a) => a.item_id === itemId).length;
-      total += item.price_cents / splitCount;
+      const itemAssignments = assignments.filter((a) => a.item_id === itemId);
+      const totalShares = itemAssignments.reduce((sum, a) => sum + (a.share ?? 1), 0);
+      const myShare = itemAssignments.find((a) => a.rabbit_id === rabbit.id)?.share ?? 1;
+      total += item.price_cents * (myShare / totalShares);
     }
 
     const withTaxTip = total * (1 + tab.tax_percent / 100 + tab.tip_percent / 100);
