@@ -49,13 +49,17 @@ Return ONLY valid JSON with this exact structure:
 Rules:
 1. Match items by fuzzy name matching — "soup" matches "Tomato Soup", "sandwich" matches "Turkey Club Sandwich", etc.
 2. Match people by fuzzy name matching — "Tav" or "Otavio" both match a person named "Otavio".
-3. Parse fractional assignments: "half" = share of 1 when there are 2 people splitting, "a third" = share of 1 when 3 people splitting, "two thirds" = share of 2 when someone else has share of 1. Use the simplest integer shares that produce the right ratio.
+3. The "share" field is a relative integer weight. An item's cost is split proportionally among ALL people assigned to it: portion = myShare / sum(allShares). share must always be a positive integer (1 or greater, never a decimal like 0.5).
+   Examples:
+   - "Alice and Bob split the pizza" → Alice share=1, Bob share=1 (each pays 50%)
+   - "Alice had 2/3 of the nachos, Bob had 1/3" → Alice share=2, Bob share=1
+   - "Alice had half the soup" with Bob already assigned share=1 → Alice share=1 (now 50/50)
+   - "Alice had a third of the wings" with no one else assigned → Alice share=1, and add a warning that 2/3 is unassigned
 4. If the user says someone "had" an item without specifying a fraction, use share=1 (full assignment).
 5. If the user says "everyone had the appetizer" or "split the nachos", assign to ALL people with share=1 each.
 6. Only return NEW assignments. Do not repeat existing assignments unless the share is changing.
 7. If you cannot match an item or person, add a warning string to the "warnings" array explaining what couldn't be matched.
-8. share must always be a positive integer.
-9. If multiple items could match (e.g., two items with "chicken"), pick the best match. If truly ambiguous, add a warning.`;
+8. If multiple items could match (e.g., two items with "chicken"), pick the best match. If truly ambiguous, add a warning.`;
 }
 
 export function validateVoiceAssignmentResult(raw: unknown): VoiceAssignmentResult {
