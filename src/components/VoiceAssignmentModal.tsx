@@ -33,7 +33,7 @@ export default function VoiceAssignmentModal({
   currencyCode,
   onApply,
 }: VoiceAssignmentModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const speechSupported = isSpeechRecognitionSupported();
 
   const [phase, setPhase] = useState<Phase>('input');
@@ -71,7 +71,7 @@ export default function VoiceAssignmentModal({
     setRecording(true);
 
     sessionRef.current = startSpeechRecognition({
-      lang: document.documentElement.lang || 'en-US',
+      lang: i18n.language === 'es' ? 'es-ES' : 'en-US',
       onInterimResult: (text) => setInterimText(text),
       onFinalResult: (text) => {
         setTranscript(text);
@@ -83,7 +83,7 @@ export default function VoiceAssignmentModal({
       },
       onEnd: () => setRecording(false),
     });
-  }, []);
+  }, [i18n.language]);
 
   const stopRecording = useCallback(() => {
     sessionRef.current?.stop();
