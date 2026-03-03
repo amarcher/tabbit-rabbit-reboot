@@ -64,6 +64,7 @@ The only server-side components are:
 | `/api/share` | POST | Store bill in Vercel KV, return 6-char token |
 | `/api/bill/[token]` | GET | Fetch shared bill from KV (1hr cache header) |
 | `/api/parse-receipt` | POST | Server-side receipt OCR (Claude Haiku 4.5) |
+| `/api/parse-voice-assignment` | POST | Voice-to-assignment via Claude Haiku 4.5 |
 | `/api/bill-og` | GET | OG meta tags for social media crawlers |
 | `/api/bill-image` | GET | Dynamic OG image (React → PNG via `@vercel/og`) |
 | `/api/aasa` | GET | Apple App Site Association for deep links |
@@ -99,6 +100,19 @@ Receipt scanning logic lives inline in `mobile/app/tab/[tabId].tsx` (mobile) and
 **Bill sharing**: `shareBill()` POSTs full bill data to `/api/share` → stored in Vercel KV with 90-day TTL → returns 6-char base64 token. `useSharedTab()` fetches by token from `/api/bill/{token}`. Legacy LZ-string compressed tokens still supported via client-side decode.
 
 **Multi-rabbit gradients**: Items assigned to multiple rabbits show a gradient using each rabbit's color. This is the app's signature visual feature.
+
+**Voice assignment** (dual-path, like receipt OCR):
+Users speak or type who had what, and Claude AI fuzzy-matches items to people. Uses the same BYOK/free dual-path as receipt OCR.
+
+Architecture:
+- **Shared logic** (`packages/shared/src/voiceAssignment.ts`): `buildVoiceAssignmentPrompt()` constructs a structured LLM prompt with items, rabbits, existing assignments, and transcript. `validateVoiceAssignmentResult()` normalizes the LLM JSON response — filters invalid entries, clamps shares to positive integers (min 1), filters non-string warnings.
+- **Web wrapper** (`src/utils/voiceAssignment.ts`): `parseVoiceAssignmentDirect()` (BYOK, browser-to-Anthropic) and `parseVoiceAssignmentFree()` (POST to `/api/parse-voice-assignment`).
+- **API route** (`api/parse-voice-assignment.js`): Vercel serverless proxy for free-tier voice assignment.
+- **UI** (`src/components/VoiceAssignmentModal.tsx`): Three-phase modal (input → processing → confirm). Uses Web Speech API for speech recognition with language detection (en-US/es-ES). Falls back to textarea for manual transcript input.
+
+Share math: The `share` field is a relative integer weight. An item's cost is split proportionally: `portion = myShare / sum(allShares)`. E.g., Alice share=2 + Bob share=1 means Alice pays 2/3, Bob pays 1/3. The validator ensures shares are always positive integers >= 1 via `Math.max(1, Math.round(share))`.
+
+Speech recognition differences: Web uses the Web Speech API (`webkitSpeechRecognition`). Mobile uses `expo-speech-recognition`. Both detect language from the app's i18n setting (bare language code like "en" or "es", not locale like "en-US").
 
 **Venmo charge requests**: Tab owners can send Venmo charge requests to rabbits. Uses `venmoChargeLink()` which builds a `venmo://paycharge?txn=charge` URL (mobile) or `https://venmo.com/?txn=charge` URL (web desktop). `buildChargeNote()` produces a multiline note with item breakdown.
 
