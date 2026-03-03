@@ -8,8 +8,11 @@ A bill-splitting app for web, iOS, and Android. Create tabs, add items with pric
 
 - **Split bills easily** — add items, assign them to rabbits, and auto-calculate each person's share with tax and tip
 - **Receipt scanning** — snap a photo of a receipt and let Claude AI extract items and prices automatically
+- **Voice assignment** — speak who had what and let AI match items to people with fuzzy name matching
+- **Multi-currency** — supports 20 currencies with locale-appropriate tax/tip defaults and zero-decimal handling (JPY, KRW, etc.)
+- **Bilingual** — English and Spanish (i18n via i18next)
 - **Multi-rabbit items** — items shared between multiple people show a gradient of each person's color
-- **Payment links** — send Venmo charge requests, Cash App links, or PayPal links directly from the app
+- **Payment links** — send payments via Venmo, Cash App, PayPal, Revolut, or Wise with region-aware provider selection
 - **Bill sharing** — share a tab via link so others can see what they owe
 - **Fully local-first** — all data lives on your device, no account required
 - **iOS & Android apps** — native experience with swipe-to-delete, haptics, and deep links
@@ -31,17 +34,19 @@ A bill-splitting app for web, iOS, and Android. Create tabs, add items with pric
 │   ├── components/       # UI components (TabEditor, ItemList, PaymentLinks, etc.)
 │   ├── pages/            # Route pages (Dashboard, TabPage, SharedBillPage)
 │   ├── hooks/            # useTab, useAuth, useSharedTab
-│   ├── utils/            # payments, billEncoder, scanCounter, anthropic
+│   ├── utils/            # payments, billEncoder, scanCounter, anthropic, voiceAssignment
 │   ├── types/            # TypeScript types
 │   └── styles/           # CSS + gradients
 ├── mobile/               # Mobile app (Expo + React Native, iOS & Android)
 │   ├── app/              # File-based routing (expo-router)
 │   ├── src/              # Hooks, utils, types (mirrors web)
 │   └── components/       # Native UI components
+├── packages/shared/      # Shared logic (currency, voice assignment, types)
 ├── api/                  # Vercel serverless functions
 │   ├── share.js          # POST — store bill in KV, return share token
 │   ├── bill/[token].js   # GET — fetch shared bill by token
 │   ├── parse-receipt.js  # POST — server-side receipt OCR proxy
+│   ├── parse-voice-assignment.js  # POST — voice assignment via Claude AI
 │   ├── bill-og.js        # GET — OG meta tags for social link previews
 │   ├── bill-image.tsx    # GET — dynamic OG image generation
 │   └── aasa.js           # GET — Apple App Site Association for deep links
