@@ -70,8 +70,14 @@ export default function VoiceAssignmentModal({
     setInterimText('');
     setRecording(true);
 
+    const SPEECH_LANG_MAP: Record<string, string> = {
+      en: 'en-US', es: 'es-ES', hi: 'hi-IN', pt: 'pt-BR',
+      ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN', de: 'de-DE',
+      ru: 'ru-RU', fr: 'fr-FR', it: 'it-IT', vi: 'vi-VN',
+    };
+
     sessionRef.current = startSpeechRecognition({
-      lang: i18n.language === 'es' ? 'es-ES' : 'en-US',
+      lang: SPEECH_LANG_MAP[i18n.language] || 'en-US',
       onInterimResult: (text) => setInterimText(text),
       onFinalResult: (text) => {
         setTranscript(text);

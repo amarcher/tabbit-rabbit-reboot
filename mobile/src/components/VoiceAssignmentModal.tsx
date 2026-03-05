@@ -118,7 +118,12 @@ export default function VoiceAssignmentModal({
     recognizingRef.current = true;
     setRecording(true);
 
-    const speechLang = i18n.language === 'es' ? 'es-ES' : 'en-US';
+    const SPEECH_LANG_MAP: Record<string, string> = {
+      en: 'en-US', es: 'es-ES', hi: 'hi-IN', pt: 'pt-BR',
+      ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN', de: 'de-DE',
+      ru: 'ru-RU', fr: 'fr-FR', it: 'it-IT', vi: 'vi-VN',
+    };
+    const speechLang = SPEECH_LANG_MAP[i18n.language] || 'en-US';
     ExpoSpeechRecognitionModule.start({
       lang: speechLang,
       interimResults: true,

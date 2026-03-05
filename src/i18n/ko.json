@@ -1,0 +1,207 @@
+{
+  "nav": {
+    "myTabs": "내 탭",
+    "profile": "프로필"
+  },
+  "tabList": {
+    "heading": "내 탭",
+    "tagline": "친구들과 비용을 나눠보세요. 항목을 추가하고, 사람을 지정하고, 결제 요청을 보내세요.",
+    "placeholderEmpty": "탭 이름을 입력해 생성하세요",
+    "placeholderDefault": "탭 이름 (예: 금요일 저녁)",
+    "creating": "생성 중...",
+    "newTab": "새 탭",
+    "hintCreate": "탭을 만들어 비용 분할을 시작하세요.",
+    "sharing": "공유 중...",
+    "shareBill": "청구서 공유",
+    "delete": "삭제",
+    "deleteModal": {
+      "confirm": "{{name}}을(를) 삭제하시겠어요?",
+      "cannotUndo": "이 작업은 취소할 수 없습니다.",
+      "cancel": "취소",
+      "delete": "삭제"
+    },
+    "toast": {
+      "copySuccess": "공유 링크가 클립보드에 복사되었습니다!",
+      "shareFailed": "청구서 공유에 실패했습니다. 다시 시도해 주세요."
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "탭 불러오는 중...",
+    "hintScan": "영수증을 스캔하여 시작하세요",
+    "hintManual": "또는 항목을 직접 입력하세요",
+    "scanning": "스캔 중...",
+    "scanReceipt": "영수증 스캔",
+    "sharing": "공유 중...",
+    "copied": "복사됨!",
+    "shareBill": "청구서 공유",
+    "assignHint": "항목을 탭해 <strong>{{name}}</strong>에게 지정하세요",
+    "clickToEdit": "클릭하여 편집",
+    "scanError": {
+      "scanLimitReached": "이번 달 무료 스캔 {{limit}}회를 모두 사용했습니다. 무제한 스캔을 위해 프로필에서 API 키를 추가하세요.",
+      "noItemsFound": "영수증에서 항목을 찾을 수 없습니다. 더 선명한 사진으로 시도해 보세요.",
+      "failedToProcess": "영수증 처리에 실패했습니다",
+      "currencyMismatch": "참고: 영수증이 {{detected}} 통화로 보이지만, 이 탭은 {{expected}}을(를) 사용합니다. 항목이 {{expected}}으로 추가되었습니다."
+    }
+  },
+  "totals": {
+    "heading": "합계",
+    "tax": "세금 %",
+    "tip": "팁 %",
+    "taxWord": "세금",
+    "tipWord": "팁",
+    "tipLabels": {
+      "wow": "대단해요!",
+      "generous": "후하네요!",
+      "nice": "좋아요!",
+      "standard": "기본"
+    },
+    "subtotal": "소계",
+    "taxWithPercent": "세금 ({{percent}}%)",
+    "tipWithPercent": "팁 ({{percent}}%)",
+    "grandTotal": "총합계",
+    "unassignedWarning_one": "{{count}}개 항목이 아직 지정되지 않았습니다.",
+    "unassignedWarning_other": "{{count}}개 항목이 아직 지정되지 않았습니다.",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} 세금 + {{tip}} 팁",
+    "requestViaVenmo": "Venmo로 요청",
+    "venmoModal": {
+      "title": "Venmo로 {{name}}에게 요청",
+      "usernameLabel": "Venmo 사용자명",
+      "usernamePlaceholder": "사용자명",
+      "cancel": "취소",
+      "sendRequest": "요청 보내기"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ 사람 추가",
+    "remove": "삭제",
+    "removeConfirm": "{{name}}을(를) 삭제하시겠어요?"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "항목 이름",
+    "pricePlaceholder": "$0.00",
+    "addButton": "추가"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "항목 삭제"
+  },
+  "addRabbitModal": {
+    "title": "사람 추가",
+    "savedRabbits": "저장된 래빗",
+    "orAddNew": "또는 새로 추가",
+    "nameLabel": "이름",
+    "namePlaceholder": "예: 민수",
+    "colorLabel": "색상:",
+    "addPaymentInfo": "+ 결제 정보 추가",
+    "paymentInfoLabel": "결제 정보 (선택사항)",
+    "paymentHintSave": "결제 정보를 추가하면 이 래빗이 향후 탭에 저장됩니다.",
+    "venmoPlaeholder": "Venmo 사용자명",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "PayPal 사용자명",
+    "cancel": "취소",
+    "add": "추가"
+  },
+  "profile": {
+    "title": "프로필 설정",
+    "savedSuccess": "프로필이 저장되었습니다!",
+    "displayNameLabel": "표시 이름",
+    "displayNamePlaceholder": "내 이름",
+    "paymentHint": "청구서를 공유할 때 결제받을 수 있도록 결제 사용자명을 설정하세요.",
+    "venmoLabel": "Venmo 사용자명",
+    "venmoPlaceholder": "예: kim-minsu-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "예: kimminsu",
+    "paypalLabel": "PayPal 사용자명",
+    "paypalPlaceholder": "예: kimminsu",
+    "defaultCurrencyLabel": "기본 통화",
+    "currencyHint": "새 탭은 기본적으로 이 통화를 사용합니다.",
+    "languageLabel": "언어",
+    "saving": "저장 중...",
+    "saveProfile": "프로필 저장",
+    "savedRabbits": {
+      "heading": "저장된 래빗",
+      "empty": "아직 저장된 래빗이 없습니다. 탭에 누군가를 추가할 때 결제 정보를 입력하면 여기에 표시됩니다.",
+      "namePlaceholder": "이름",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "username",
+      "save": "저장",
+      "cancel": "취소",
+      "edit": "편집",
+      "remove": "삭제",
+      "removeConfirm": "저장된 래빗에서 {{name}}을(를) 삭제하시겠어요?"
+    },
+    "advanced": {
+      "heading": "고급 설정",
+      "freeScansRemaining": "이번 달 {{limit}}회 중 {{remaining}}회 무료 스캔이 남아 있습니다.",
+      "apiKeyLabel": "Anthropic API 키",
+      "usingOwnKey": "내 키 사용 중 — 무제한 스캔.",
+      "removeKey": "삭제",
+      "saveApiKey": "API 키 저장",
+      "apiKeyHint": "내 API 키를 사용하면 무제한 스캔이 가능합니다. 브라우저에만 저장됩니다.",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "console.anthropic.com에서 키를 받으세요"
+    }
+  },
+  "nux": {
+    "skipTour": "둘러보기 건너뛰기",
+    "gotIt": "알겠어요",
+    "stepOf": "{{current}} / {{total}}",
+    "steps": {
+      "createTab": "탭 이름을 입력하고 **새 탭** 버튼을 눌러 비용 분할을 시작해 보세요!",
+      "scanReceipt": "영수증 사진을 찍으면 항목이 자동으로 가져와집니다",
+      "addItemManually": "또는 항목을 직접 입력하세요",
+      "addRabbit": "이 청구서를 함께 나눌 사람들을 추가하세요. Venmo, Cash App, PayPal도 입력할 수 있어요!",
+      "assignItems": "위에서 사람을 클릭한 후 해당 항목을 탭하세요.",
+      "taxTip": "세금과 팁을 조정하세요 — 각 사람의 몫에 비례하여 적용됩니다.",
+      "profile": "결제 계정 정보로 프로필을 설정해 결제 요청을 보내고 청구서를 공유하세요."
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "청구서 불러오는 중...",
+    "billNotFound": "청구서를 찾을 수 없습니다",
+    "goToApp": "Tabbit Rabbit으로 이동",
+    "sharedBy": "{{name}}이(가) 공유함",
+    "whatEachPersonOwes": "각 사람이 내야 할 금액",
+    "subtotal": "소계",
+    "taxWithPercent": "세금 ({{percent}}%)",
+    "tipWithPercent": "팁 ({{percent}}%)",
+    "grandTotal": "총합계",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} 세금 + {{tip}} 팁",
+    "cta": {
+      "tagline": "친구들과 비용을 나눠보세요",
+      "tryApp": "Tabbit Rabbit 사용해보기"
+    }
+  },
+  "layout": {
+    "scrollToTop": "맨 위로 스크롤",
+    "backToTop": "맨 위로"
+  },
+  "voiceAssignment": {
+    "title": "음성 지정",
+    "buttonLabel": "지정",
+    "instructions": "누가 무엇을 먹었는지 말하세요 — 예: \"민수가 국수 먹고 샌드위치 반, 지영이가 샐러드 먹었어.\"",
+    "tapToSpeak": "탭하여 말하기",
+    "listening": "듣는 중...",
+    "processTranscript": "처리",
+    "or": "또는",
+    "textFallbackLabel": "또는 직접 입력",
+    "textInputLabel": "누가 무엇을 먹었는지 입력하세요",
+    "textPlaceholder": "예: 민수가 국수, 지영이가 샐러드",
+    "processText": "처리",
+    "processing": "항목과 사람을 매칭 중...",
+    "reviewAssignments": "제안된 지정 내용을 확인하세요:",
+    "shareLabel": "비율: {{share}}",
+    "noAssignmentsFound": "매칭된 지정이 없습니다. 다른 표현으로 다시 시도해 보세요.",
+    "tryAgain": "다시 시도",
+    "apply": "지정 {{count}}개 적용",
+    "cancel": "취소",
+    "scanLimitReached": "이번 달 무료 AI 기능 {{limit}}회를 모두 사용했습니다. 무제한 사용을 위해 프로필에서 API 키를 추가하세요.",
+    "processingFailed": "음성 지정 처리에 실패했습니다"
+  },
+  "common": {
+    "loading": "불러오는 중",
+    "loadingTabs": "탭 불러오는 중",
+    "loadingItems": "항목 불러오는 중",
+    "moreOptions": "더 보기"
+  }
+}

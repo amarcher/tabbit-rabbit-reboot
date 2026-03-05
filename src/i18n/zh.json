@@ -1,0 +1,207 @@
+{
+  "nav": {
+    "myTabs": "我的账单",
+    "profile": "个人资料"
+  },
+  "tabList": {
+    "heading": "我的账单",
+    "tagline": "与朋友分摊账单。添加项目、分配人员并发送付款请求。",
+    "placeholderEmpty": "输入账单名称以创建",
+    "placeholderDefault": "新账单名称（例如：周五聚餐）",
+    "creating": "创建中...",
+    "newTab": "新建账单",
+    "hintCreate": "创建账单以开始分摊。",
+    "sharing": "分享中...",
+    "shareBill": "分享账单",
+    "delete": "删除",
+    "deleteModal": {
+      "confirm": "删除 {{name}}？",
+      "cannotUndo": "此操作无法撤销。",
+      "cancel": "取消",
+      "delete": "删除"
+    },
+    "toast": {
+      "copySuccess": "分享链接已复制到剪贴板！",
+      "shareFailed": "分享账单失败，请重试。"
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "加载账单中...",
+    "hintScan": "扫描收据以开始",
+    "hintManual": "或手动输入项目",
+    "scanning": "扫描中...",
+    "scanReceipt": "扫描收据",
+    "sharing": "分享中...",
+    "copied": "已复制！",
+    "shareBill": "分享账单",
+    "assignHint": "点击项目以分配给 <strong>{{name}}</strong>",
+    "clickToEdit": "点击编辑",
+    "scanError": {
+      "scanLimitReached": "你本月已用完全部 {{limit}} 次免费扫描。在个人资料中添加你的 API 密钥可获得无限次扫描。",
+      "noItemsFound": "收据中未找到项目，请尝试更清晰的照片。",
+      "failedToProcess": "处理收据失败",
+      "currencyMismatch": "注意：收据似乎使用 {{detected}}，但此账单使用 {{expected}}。项目已按 {{expected}} 添加。"
+    }
+  },
+  "totals": {
+    "heading": "合计",
+    "tax": "税率 %",
+    "tip": "小费 %",
+    "taxWord": "税",
+    "tipWord": "小费",
+    "tipLabels": {
+      "wow": "太慷慨了！",
+      "generous": "很大方！",
+      "nice": "不错！",
+      "standard": "标准"
+    },
+    "subtotal": "小计",
+    "taxWithPercent": "税（{{percent}}%）",
+    "tipWithPercent": "小费（{{percent}}%）",
+    "grandTotal": "总计",
+    "unassignedWarning_one": "还有 {{count}} 个项目未分配。",
+    "unassignedWarning_other": "还有 {{count}} 个项目未分配。",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} 税 + {{tip}} 小费",
+    "requestViaVenmo": "通过 Venmo 请求付款",
+    "venmoModal": {
+      "title": "通过 Venmo 向 {{name}} 请求付款",
+      "usernameLabel": "Venmo 用户名",
+      "usernamePlaceholder": "用户名",
+      "cancel": "取消",
+      "sendRequest": "发送请求"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ 添加成员",
+    "remove": "移除",
+    "removeConfirm": "移除 {{name}}？"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "项目名称",
+    "pricePlaceholder": "$0.00",
+    "addButton": "添加"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "删除项目"
+  },
+  "addRabbitModal": {
+    "title": "添加成员",
+    "savedRabbits": "已保存成员",
+    "orAddNew": "或添加新成员",
+    "nameLabel": "姓名",
+    "namePlaceholder": "例如：小明",
+    "colorLabel": "颜色：",
+    "addPaymentInfo": "+ 添加付款信息",
+    "paymentInfoLabel": "付款信息（可选）",
+    "paymentHintSave": "添加付款信息后，此成员将保存供以后使用。",
+    "venmoPlaeholder": "Venmo 用户名",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "PayPal 用户名",
+    "cancel": "取消",
+    "add": "添加"
+  },
+  "profile": {
+    "title": "个人资料设置",
+    "savedSuccess": "个人资料已保存！",
+    "displayNameLabel": "显示名称",
+    "displayNamePlaceholder": "你的姓名",
+    "paymentHint": "设置你的付款用户名，以便在分享账单时收款。",
+    "venmoLabel": "Venmo 用户名",
+    "venmoPlaceholder": "例如：zhang-wei-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "例如：zhangwei",
+    "paypalLabel": "PayPal 用户名",
+    "paypalPlaceholder": "例如：zhangwei",
+    "defaultCurrencyLabel": "默认货币",
+    "currencyHint": "新账单将默认使用此货币。",
+    "languageLabel": "语言",
+    "saving": "保存中...",
+    "saveProfile": "保存个人资料",
+    "savedRabbits": {
+      "heading": "已保存成员",
+      "empty": "暂无已保存成员。添加成员时填写付款信息，他们将显示在此处。",
+      "namePlaceholder": "姓名",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "用户名",
+      "save": "保存",
+      "cancel": "取消",
+      "edit": "编辑",
+      "remove": "移除",
+      "removeConfirm": "从已保存成员中移除 {{name}}？"
+    },
+    "advanced": {
+      "heading": "高级设置",
+      "freeScansRemaining": "本月剩余免费扫描次数：{{remaining}} / {{limit}}。",
+      "apiKeyLabel": "Anthropic API 密钥",
+      "usingOwnKey": "正在使用你自己的密钥——无限次扫描。",
+      "removeKey": "移除",
+      "saveApiKey": "保存 API 密钥",
+      "apiKeyHint": "使用你自己的 API 密钥可获得无限次扫描，仅存储在你的浏览器中。",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "在 console.anthropic.com 获取密钥"
+    }
+  },
+  "nux": {
+    "skipTour": "跳过引导",
+    "gotIt": "明白了",
+    "stepOf": "{{current}} / {{total}}",
+    "steps": {
+      "createTab": "给账单起个名字，然后点击**新建账单**开始分摊！",
+      "scanReceipt": "拍摄收据照片，自动导入项目",
+      "addItemManually": "或手动输入项目",
+      "addRabbit": "添加参与分摊的成员，还可以填写他们的 Venmo、Cash App 或 PayPal！",
+      "assignItems": "点击上方的人，然后点击他们的项目。",
+      "taxTip": "调整税率和小费——按每人份额比例分配。",
+      "profile": "在个人资料中设置付款账号，以便发送付款请求和分享账单。"
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "加载账单中...",
+    "billNotFound": "账单未找到",
+    "goToApp": "前往 Tabbit Rabbit",
+    "sharedBy": "由 {{name}} 分享",
+    "whatEachPersonOwes": "每人应付金额",
+    "subtotal": "小计",
+    "taxWithPercent": "税（{{percent}}%）",
+    "tipWithPercent": "小费（{{percent}}%）",
+    "grandTotal": "总计",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} 税 + {{tip}} 小费",
+    "cta": {
+      "tagline": "与朋友分摊账单",
+      "tryApp": "试试 Tabbit Rabbit"
+    }
+  },
+  "layout": {
+    "scrollToTop": "滚动到顶部",
+    "backToTop": "返回顶部"
+  },
+  "voiceAssignment": {
+    "title": "语音分配",
+    "buttonLabel": "分配",
+    "instructions": "说出谁点了什么——例如：「小明点了汤和半份三明治，小红点了沙拉。」",
+    "tapToSpeak": "点击说话",
+    "listening": "聆听中...",
+    "processTranscript": "处理",
+    "or": "或",
+    "textFallbackLabel": "或手动输入",
+    "textInputLabel": "输入谁点了什么",
+    "textPlaceholder": "例如：小明点了汤，小红点了沙拉",
+    "processText": "处理",
+    "processing": "匹配项目和人员中...",
+    "reviewAssignments": "确认以下分配方案：",
+    "shareLabel": "份额：{{share}}",
+    "noAssignmentsFound": "无法匹配任何分配，请尝试换一种描述方式。",
+    "tryAgain": "重试",
+    "apply": "应用 {{count}} 个分配",
+    "cancel": "取消",
+    "scanLimitReached": "你本月已用完全部 {{limit}} 次免费 AI 操作。在个人资料中添加你的 API 密钥可无限使用。",
+    "processingFailed": "语音分配处理失败"
+  },
+  "common": {
+    "loading": "加载中",
+    "loadingTabs": "加载账单中",
+    "loadingItems": "加载项目中",
+    "moreOptions": "更多选项"
+  }
+}

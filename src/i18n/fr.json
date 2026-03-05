@@ -1,0 +1,207 @@
+{
+  "nav": {
+    "myTabs": "Mes Notes",
+    "profile": "Profil"
+  },
+  "tabList": {
+    "heading": "Mes Notes",
+    "tagline": "Partage les notes avec tes amis. Ajoute des articles, assigne des personnes et envoie des demandes de paiement.",
+    "placeholderEmpty": "Tape un nom pour créer une note",
+    "placeholderDefault": "Nom de la note (ex. Dîner du vendredi)",
+    "creating": "Création...",
+    "newTab": "Nouvelle Note",
+    "hintCreate": "Crée une note pour commencer à partager l'addition.",
+    "sharing": "Partage...",
+    "shareBill": "Partager l'addition",
+    "delete": "Supprimer",
+    "deleteModal": {
+      "confirm": "Supprimer {{name}} ?",
+      "cannotUndo": "Cette action est irréversible.",
+      "cancel": "Annuler",
+      "delete": "Supprimer"
+    },
+    "toast": {
+      "copySuccess": "Lien copié dans le presse-papiers !",
+      "shareFailed": "Impossible de partager l'addition. Réessaie."
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "Chargement de la note...",
+    "hintScan": "Scanne un reçu pour commencer",
+    "hintManual": "Ou saisis les articles manuellement",
+    "scanning": "Scan en cours...",
+    "scanReceipt": "Scanner le reçu",
+    "sharing": "Partage...",
+    "copied": "Copié !",
+    "shareBill": "Partager l'addition",
+    "assignHint": "Appuie sur les articles pour les assigner à <strong>{{name}}</strong>",
+    "clickToEdit": "Clique pour modifier",
+    "scanError": {
+      "scanLimitReached": "Tu as utilisé tous tes {{limit}} scans gratuits ce mois-ci. Ajoute ta propre clé API dans le Profil pour des scans illimités.",
+      "noItemsFound": "Aucun article trouvé dans le reçu. Essaie avec une photo plus nette.",
+      "failedToProcess": "Impossible de traiter le reçu",
+      "currencyMismatch": "Note : le reçu semble être en {{detected}}, mais cette note utilise {{expected}}. Les articles ont été ajoutés en {{expected}}."
+    }
+  },
+  "totals": {
+    "heading": "Totaux",
+    "tax": "Taxes %",
+    "tip": "Pourboire %",
+    "taxWord": "taxes",
+    "tipWord": "pourboire",
+    "tipLabels": {
+      "wow": "Waouh !",
+      "generous": "Généreux !",
+      "nice": "Sympa !",
+      "standard": "Standard"
+    },
+    "subtotal": "Sous-total",
+    "taxWithPercent": "Taxes ({{percent}}%)",
+    "tipWithPercent": "Pourboire ({{percent}}%)",
+    "grandTotal": "Total",
+    "unassignedWarning_one": "{{count}} article pas encore assigné.",
+    "unassignedWarning_other": "{{count}} articles pas encore assignés.",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} taxes + {{tip}} pourboire",
+    "requestViaVenmo": "Demander via Venmo",
+    "venmoModal": {
+      "title": "Demande à {{name}} via Venmo",
+      "usernameLabel": "Nom d'utilisateur Venmo",
+      "usernamePlaceholder": "nom d'utilisateur",
+      "cancel": "Annuler",
+      "sendRequest": "Envoyer la demande"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ Ajouter quelqu'un",
+    "remove": "Supprimer",
+    "removeConfirm": "Supprimer {{name}} ?"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "Nom de l'article",
+    "pricePlaceholder": "$0.00",
+    "addButton": "Ajouter"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "Supprimer l'article"
+  },
+  "addRabbitModal": {
+    "title": "Ajouter quelqu'un",
+    "savedRabbits": "Personnes sauvegardées",
+    "orAddNew": "ou ajouter nouveau",
+    "nameLabel": "Nom",
+    "namePlaceholder": "ex. Pierre",
+    "colorLabel": "Couleur :",
+    "addPaymentInfo": "+ Ajouter les infos de paiement",
+    "paymentInfoLabel": "Infos de paiement (optionnel)",
+    "paymentHintSave": "Ajouter des infos de paiement sauvegarde cette personne pour les notes futures.",
+    "venmoPlaeholder": "Nom d'utilisateur Venmo",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "Nom d'utilisateur PayPal",
+    "cancel": "Annuler",
+    "add": "Ajouter"
+  },
+  "profile": {
+    "title": "Paramètres du profil",
+    "savedSuccess": "Profil sauvegardé !",
+    "displayNameLabel": "Nom affiché",
+    "displayNamePlaceholder": "Ton nom",
+    "paymentHint": "Renseigne tes infos de paiement pour que les gens puissent te payer quand tu partages une addition.",
+    "venmoLabel": "Nom d'utilisateur Venmo",
+    "venmoPlaceholder": "ex. jean-dupont-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "ex. jeandupont",
+    "paypalLabel": "Nom d'utilisateur PayPal",
+    "paypalPlaceholder": "ex. jeandupont",
+    "defaultCurrencyLabel": "Devise par défaut",
+    "currencyHint": "Les nouvelles notes utiliseront cette devise par défaut.",
+    "languageLabel": "Langue",
+    "saving": "Sauvegarde...",
+    "saveProfile": "Sauvegarder le profil",
+    "savedRabbits": {
+      "heading": "Personnes sauvegardées",
+      "empty": "Pas encore de personnes sauvegardées. Ajoute des infos de paiement lors de l'ajout d'une personne et elles apparaîtront ici.",
+      "namePlaceholder": "Nom",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "username",
+      "save": "Sauvegarder",
+      "cancel": "Annuler",
+      "edit": "Modifier",
+      "remove": "Supprimer",
+      "removeConfirm": "Supprimer {{name}} des personnes sauvegardées ?"
+    },
+    "advanced": {
+      "heading": "Avancé",
+      "freeScansRemaining": "{{remaining}} sur {{limit}} scans gratuits restants ce mois-ci.",
+      "apiKeyLabel": "Clé API Anthropic",
+      "usingOwnKey": "Ta propre clé est utilisée — scans illimités.",
+      "removeKey": "Supprimer",
+      "saveApiKey": "Sauvegarder la clé API",
+      "apiKeyHint": "Utilise ta propre clé API pour des scans illimités. Stockée uniquement dans ton navigateur.",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "Obtiens une clé sur console.anthropic.com"
+    }
+  },
+  "nux": {
+    "skipTour": "Passer la visite",
+    "gotIt": "Compris",
+    "stepOf": "{{current}} sur {{total}}",
+    "steps": {
+      "createTab": "Donne un nom à ta note et appuie sur **Nouvelle Note** pour commencer à partager l'addition !",
+      "scanReceipt": "Prends en photo ton reçu pour importer les articles automatiquement",
+      "addItemManually": "Ou saisis les articles manuellement",
+      "addRabbit": "Ajoute les personnes qui partagent cette addition. Tu peux inclure leur Venmo, Cash App ou PayPal !",
+      "assignItems": "Clique sur une personne ci-dessus, puis appuie sur ses articles.",
+      "taxTip": "Ajuste les taxes et le pourboire — ils s'appliquent proportionnellement à la part de chaque personne.",
+      "profile": "Configure ton profil avec tes infos de paiement pour envoyer des demandes et partager des additions."
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "Chargement de l'addition...",
+    "billNotFound": "Addition introuvable",
+    "goToApp": "Aller sur Tabbit Rabbit",
+    "sharedBy": "Partagé par {{name}}",
+    "whatEachPersonOwes": "Ce que chacun doit",
+    "subtotal": "Sous-total",
+    "taxWithPercent": "Taxes ({{percent}}%)",
+    "tipWithPercent": "Pourboire ({{percent}}%)",
+    "grandTotal": "Total",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} taxes + {{tip}} pourboire",
+    "cta": {
+      "tagline": "Partage les additions avec tes amis",
+      "tryApp": "Essaie Tabbit Rabbit"
+    }
+  },
+  "layout": {
+    "scrollToTop": "Remonter",
+    "backToTop": "Retour en haut"
+  },
+  "voiceAssignment": {
+    "title": "Attribution vocale",
+    "buttonLabel": "Assigner",
+    "instructions": "Dis qui a pris quoi — ex. « Pierre a pris la soupe et la moitié du sandwich, Marie a pris la salade. »",
+    "tapToSpeak": "Appuie pour parler",
+    "listening": "Écoute...",
+    "processTranscript": "Traiter",
+    "or": "ou",
+    "textFallbackLabel": "Ou écris-le",
+    "textInputLabel": "Écris qui a pris quoi",
+    "textPlaceholder": "ex. Pierre a pris la soupe, Marie a pris la salade",
+    "processText": "Traiter",
+    "processing": "Association des articles et des personnes...",
+    "reviewAssignments": "Vérifie les attributions proposées :",
+    "shareLabel": "part : {{share}}",
+    "noAssignmentsFound": "Impossible de faire correspondre les attributions. Réessaie avec d'autres formulations.",
+    "tryAgain": "Réessayer",
+    "apply": "Appliquer {{count}} attributions",
+    "cancel": "Annuler",
+    "scanLimitReached": "Tu as utilisé toutes tes {{limit}} actions IA gratuites ce mois-ci. Ajoute ta propre clé API dans le Profil pour une utilisation illimitée.",
+    "processingFailed": "Impossible de traiter l'attribution vocale"
+  },
+  "common": {
+    "loading": "Chargement",
+    "loadingTabs": "Chargement des notes",
+    "loadingItems": "Chargement des articles",
+    "moreOptions": "Plus d'options"
+  }
+}

@@ -108,17 +108,38 @@ Architecture:
 - **Shared logic** (`packages/shared/src/voiceAssignment.ts`): `buildVoiceAssignmentPrompt()` constructs a structured LLM prompt with items, rabbits, existing assignments, and transcript. `validateVoiceAssignmentResult()` normalizes the LLM JSON response — filters invalid entries, clamps shares to positive integers (min 1), filters non-string warnings.
 - **Web wrapper** (`src/utils/voiceAssignment.ts`): `parseVoiceAssignmentDirect()` (BYOK, browser-to-Anthropic) and `parseVoiceAssignmentFree()` (POST to `/api/parse-voice-assignment`).
 - **API route** (`api/parse-voice-assignment.js`): Vercel serverless proxy for free-tier voice assignment.
-- **UI** (`src/components/VoiceAssignmentModal.tsx`): Three-phase modal (input → processing → confirm). Uses Web Speech API for speech recognition with language detection (en-US/es-ES). Falls back to textarea for manual transcript input.
+- **UI** (`src/components/VoiceAssignmentModal.tsx`): Three-phase modal (input → processing → confirm). Uses Web Speech API for speech recognition with `SPEECH_LANG_MAP` lookup for all 12 supported languages. Falls back to textarea for manual transcript input.
 
 Share math: The `share` field is a relative integer weight. An item's cost is split proportionally: `portion = myShare / sum(allShares)`. E.g., Alice share=2 + Bob share=1 means Alice pays 2/3, Bob pays 1/3. The validator ensures shares are always positive integers >= 1 via `Math.max(1, Math.round(share))`.
 
-Speech recognition differences: Web uses the Web Speech API (`webkitSpeechRecognition`). Mobile uses `expo-speech-recognition`. Both detect language from the app's i18n setting (bare language code like "en" or "es", not locale like "en-US").
+Speech recognition differences: Web uses the Web Speech API (`webkitSpeechRecognition`). Mobile uses `expo-speech-recognition`. Both use a `SPEECH_LANG_MAP` (defined inline in each VoiceAssignmentModal) to map bare i18n language codes to full speech locale codes (e.g., `en` → `en-US`, `ja` → `ja-JP`).
 
 **Venmo charge requests**: Tab owners can send Venmo charge requests to rabbits. Uses `venmoChargeLink()` which builds a `venmo://paycharge?txn=charge` URL (mobile) or `https://venmo.com/?txn=charge` URL (web desktop). `buildChargeNote()` produces a multiline note with item breakdown.
 
 **Swipe-to-delete** (mobile): Items and tabs use `react-native-gesture-handler` `Swipeable` with Delete/Cancel actions instead of delete buttons.
 
 **Deep linking**: iOS Universal Links intercept `tabbitrabbit.com/bill/*` via AASA file (served by `/api/aasa`). expo-router maps these to `app/bill/[shareToken].tsx`.
+
+**Internationalization (i18n)**: i18next + react-i18next on both platforms, expo-localization on mobile. 12 supported languages:
+
+| Code | Language | Script | Speech Code |
+|------|----------|--------|-------------|
+| en | English | Latin | en-US |
+| es | Español | Latin | es-ES |
+| de | Deutsch | Latin | de-DE |
+| fr | Français | Latin | fr-FR |
+| hi | हिन्दी | Devanagari | hi-IN |
+| it | Italiano | Latin | it-IT |
+| ja | 日本語 | CJK | ja-JP |
+| ko | 한국어 | Hangul | ko-KR |
+| pt | Português | Latin | pt-BR |
+| ru | Русский | Cyrillic | ru-RU |
+| vi | Tiếng Việt | Latin | vi-VN |
+| zh | 中文 | CJK | zh-CN |
+
+Web locale files: `src/i18n/{code}.json` (namespaced by component). Mobile locale files: `mobile/src/i18n/{code}.json` (namespaced by type). Language stored in `tabbitrabbit:language` (localStorage / AsyncStorage). Web/mobile have different key structures — they share concepts but not exact keys.
+
+Plural forms: Russian requires `_one`/`_few`/`_many`/`_other`. CJK languages (ja, ko, zh) and Vietnamese have no grammatical plural — `_one` and `_other` are identical. All other languages use standard `_one`/`_other`. An automated test (`src/i18n/i18n.test.ts`) validates key completeness and interpolation token preservation across all languages.
 
 **NUX onboarding** (mobile): Uses `@edwardloopez/react-native-coachmark` with two tours defined in `mobile/src/utils/onboardingTour.ts`:
 - `homeTour` — single step on the home screen for new users (no tabs)
