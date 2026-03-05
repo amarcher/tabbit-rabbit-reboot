@@ -22,6 +22,14 @@ import { CURRENCIES } from '@/src/utils/currency';
 import i18n from '@/src/i18n/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { SavedRabbit } from '@/src/types';
+import {
+  providersForRegion,
+  regionFromCurrency,
+  PAYMENT_PROVIDERS,
+  profileToHandles,
+  handlesToLegacyFields,
+  type PaymentHandle,
+} from '@/src/utils/paymentProviders';
 
 const PRESSED_STYLE = { opacity: 0.7 } as const;
 
@@ -52,28 +60,37 @@ export default function ProfileScreen() {
       refreshSavedRabbits();
     }, [refreshSavedRabbits])
   );
+
   const [displayName, setDisplayName] = useState('');
   const [editingRabbitId, setEditingRabbitId] = useState<string | null>(null);
-  const [editVenmo, setEditVenmo] = useState('');
-  const [editCashapp, setEditCashapp] = useState('');
-  const [editPaypal, setEditPaypal] = useState('');
+  const [editHandles, setEditHandles] = useState<Record<string, string>>({});
   const [currencyCode, setCurrencyCode] = useState('USD');
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [language, setLanguage] = useState(i18n.language || 'en');
-  const [venmo, setVenmo] = useState('');
-  const [cashapp, setCashapp] = useState('');
-  const [paypal, setPaypal] = useState('');
+  const [handles, setHandles] = useState<Record<string, string>>({});
+  const [showMoreProviders, setShowMoreProviders] = useState(false);
+  const [showMoreEditProviders, setShowMoreEditProviders] = useState(false);
   const [saving, setSaving] = useState(false);
   const [freeScansLeft, setFreeScansLeft] = useState(FREE_SCAN_LIMIT);
+
+  const region = regionFromCurrency(currencyCode);
+  const regionProviders = providersForRegion(region);
+  const extraProviders = PAYMENT_PROVIDERS.filter(
+    (p) => !regionProviders.find((rp) => rp.id === p.id)
+  );
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || '');
       setCurrencyCode(profile.currency_code || 'USD');
-      setVenmo(profile.venmo_username || '');
-      setCashapp(profile.cashapp_cashtag || '');
-      setPaypal(profile.paypal_username || '');
+      // Populate handles from profileToHandles
+      const profileHandles = profileToHandles(profile);
+      const handlesMap: Record<string, string> = {};
+      for (const h of profileHandles) {
+        handlesMap[h.provider] = h.username;
+      }
+      setHandles(handlesMap);
     }
   }, [profile]);
 
@@ -83,20 +100,44 @@ export default function ProfileScreen() {
 
   const stripPrefix = (val: string) => val.replace(/^[@$]/, '');
 
+  const buildHandlesArray = (handlesMap: Record<string, string>): PaymentHandle[] =>
+    Object.entries(handlesMap)
+      .filter(([, username]) => username.trim())
+      .map(([provider, username]) => ({
+        provider: provider as PaymentHandle['provider'],
+        username: stripPrefix(username.trim()),
+      }));
+
   const startEditingRabbit = (rabbit: SavedRabbit) => {
     setEditingRabbitId(rabbit.id);
-    setEditVenmo(rabbit.venmo_username || '');
-    setEditCashapp(rabbit.cashapp_cashtag || '');
-    setEditPaypal(rabbit.paypal_username || '');
+    setShowMoreEditProviders(false);
+    const rabbitHandles = profileToHandles({
+      venmo_username: rabbit.venmo_username,
+      cashapp_cashtag: rabbit.cashapp_cashtag,
+      paypal_username: rabbit.paypal_username,
+    });
+    // Also check payment_handles if present
+    const allHandles = rabbit.payment_handles && rabbit.payment_handles.length > 0
+      ? rabbit.payment_handles
+      : rabbitHandles;
+    const handlesMap: Record<string, string> = {};
+    for (const h of allHandles) {
+      handlesMap[h.provider] = h.username;
+    }
+    setEditHandles(handlesMap);
   };
 
   const saveRabbitEdit = async (id: string) => {
+    const handlesArray = buildHandlesArray(editHandles);
+    const legacyFields = handlesToLegacyFields(handlesArray);
     await updateSaved(id, {
-      venmo_username: stripPrefix(editVenmo.trim()) || null,
-      cashapp_cashtag: stripPrefix(editCashapp.trim()) || null,
-      paypal_username: stripPrefix(editPaypal.trim()) || null,
+      venmo_username: legacyFields.venmo_username,
+      cashapp_cashtag: legacyFields.cashapp_cashtag,
+      paypal_username: legacyFields.paypal_username,
+      payment_handles: handlesArray,
     });
     setEditingRabbitId(null);
+    setEditHandles({});
   };
 
   const confirmDeleteRabbit = (rabbit: SavedRabbit) => {
@@ -113,12 +154,15 @@ export default function ProfileScreen() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const handlesArray = buildHandlesArray(handles);
+      const legacyFields = handlesToLegacyFields(handlesArray);
       await updateProfile({
         display_name: displayName.trim() || null,
         currency_code: currencyCode,
-        venmo_username: stripPrefix(venmo.trim()) || null,
-        cashapp_cashtag: stripPrefix(cashapp.trim()) || null,
-        paypal_username: stripPrefix(paypal.trim()) || null,
+        venmo_username: legacyFields.venmo_username,
+        cashapp_cashtag: legacyFields.cashapp_cashtag,
+        paypal_username: legacyFields.paypal_username,
+        payment_handles: handlesArray,
       });
       showToast(t('messages.profileUpdated'), 'success');
     } catch (err: any) {
@@ -126,6 +170,18 @@ export default function ProfileScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const getRabbitHandleBadges = (rabbit: SavedRabbit) => {
+    const rabbitHandles =
+      rabbit.payment_handles && rabbit.payment_handles.length > 0
+        ? rabbit.payment_handles
+        : profileToHandles({
+            venmo_username: rabbit.venmo_username,
+            cashapp_cashtag: rabbit.cashapp_cashtag,
+            paypal_username: rabbit.paypal_username,
+          });
+    return rabbitHandles;
   };
 
   return (
@@ -155,7 +211,7 @@ export default function ProfileScreen() {
           <Text style={styles.currencyPickerArrow}>{showCurrencyPicker ? '▲' : '▼'}</Text>
         </Pressable>
         {showCurrencyPicker && (
-          <View style={styles.currencyList}>
+          <ScrollView style={styles.currencyList} nestedScrollEnabled>
             {CURRENCIES.map((c) => (
               <Pressable
                 key={c.code}
@@ -179,7 +235,7 @@ export default function ProfileScreen() {
                 </Text>
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
         )}
         <Text style={styles.currencyHint}>{t('messages.currencyHint')}</Text>
       </View>
@@ -196,7 +252,7 @@ export default function ProfileScreen() {
           <Text style={styles.currencyPickerArrow}>{showLanguagePicker ? '▲' : '▼'}</Text>
         </Pressable>
         {showLanguagePicker && (
-          <View style={styles.currencyList}>
+          <ScrollView style={styles.currencyList} nestedScrollEnabled>
             {LANGUAGES.map((l) => (
               <Pressable
                 key={l.code}
@@ -222,47 +278,55 @@ export default function ProfileScreen() {
                 </Text>
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
         )}
       </View>
 
+      {/* Payment handles — region-relevant providers */}
       <View style={styles.field}>
-        <Text style={styles.label}>Venmo Username</Text>
-        <TextInput
-          style={styles.input}
-          value={venmo}
-          onChangeText={setVenmo}
-          placeholder={t('placeholders.username')}
-          placeholderTextColor={colors.placeholder}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-      </View>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>Cash App $Cashtag</Text>
-        <TextInput
-          style={styles.input}
-          value={cashapp}
-          onChangeText={setCashapp}
-          placeholder={t('placeholders.cashtag')}
-          placeholderTextColor={colors.placeholder}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-      </View>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>PayPal Username</Text>
-        <TextInput
-          style={styles.input}
-          value={paypal}
-          onChangeText={setPaypal}
-          placeholder={t('placeholders.username')}
-          placeholderTextColor={colors.placeholder}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        <Text style={styles.label}>{t('labels.paymentInfoOptional', 'Payment Info (optional)')}</Text>
+        {regionProviders.map((provider) => (
+          <View key={provider.id} style={styles.paymentInputRow}>
+            <Text style={styles.paymentProviderLabel}>{provider.name}</Text>
+            <TextInput
+              style={[styles.input, styles.paymentInput]}
+              value={handles[provider.id] || ''}
+              onChangeText={(text) =>
+                setHandles((prev) => ({ ...prev, [provider.id]: text }))
+              }
+              placeholder={provider.placeholder}
+              placeholderTextColor={colors.placeholder}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+        ))}
+        {extraProviders.length > 0 && !showMoreProviders && (
+          <Pressable
+            style={({ pressed }) => [styles.moreButton, pressed && PRESSED_STYLE]}
+            onPress={() => setShowMoreProviders(true)}
+          >
+            <Text style={styles.moreButtonText}>
+              {t('actions.morePaymentOptions', 'More payment options')}
+            </Text>
+          </Pressable>
+        )}
+        {showMoreProviders && extraProviders.map((provider) => (
+          <View key={provider.id} style={styles.paymentInputRow}>
+            <Text style={styles.paymentProviderLabel}>{provider.name}</Text>
+            <TextInput
+              style={[styles.input, styles.paymentInput]}
+              value={handles[provider.id] || ''}
+              onChangeText={(text) =>
+                setHandles((prev) => ({ ...prev, [provider.id]: text }))
+              }
+              placeholder={provider.placeholder}
+              placeholderTextColor={colors.placeholder}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+        ))}
       </View>
 
       <Pressable
@@ -343,94 +407,105 @@ export default function ProfileScreen() {
             </Text>
           ) : (
             <View style={styles.savedRabbitsList}>
-              {savedRabbits.map((rabbit) => (
-                <View key={rabbit.id} style={styles.savedRabbitCard}>
-                  <View style={styles.savedRabbitHeader}>
-                    <View style={styles.savedRabbitInfo}>
-                      <View
-                        style={[
-                          styles.rabbitDot,
-                          { backgroundColor: BUTTON_COLORS[rabbit.color].bg },
-                        ]}
-                      />
-                      <Text style={styles.savedRabbitName}>{rabbit.name}</Text>
-                      {rabbit.venmo_username && (
-                        <View style={styles.handleBadge}>
-                          <Text style={styles.handleBadgeText}>Venmo</Text>
-                        </View>
-                      )}
-                      {rabbit.cashapp_cashtag && (
-                        <View style={[styles.handleBadge, styles.cashappBadge]}>
-                          <Text style={[styles.handleBadgeText, styles.cashappBadgeText]}>Cash</Text>
-                        </View>
-                      )}
-                      {rabbit.paypal_username && (
-                        <View style={[styles.handleBadge, styles.paypalBadge]}>
-                          <Text style={[styles.handleBadgeText, styles.paypalBadgeText]}>PayPal</Text>
-                        </View>
-                      )}
+              {savedRabbits.map((rabbit) => {
+                const rabbitHandleBadges = getRabbitHandleBadges(rabbit);
+                return (
+                  <View key={rabbit.id} style={styles.savedRabbitCard}>
+                    <View style={styles.savedRabbitHeader}>
+                      <View style={styles.savedRabbitInfo}>
+                        <View
+                          style={[
+                            styles.rabbitDot,
+                            { backgroundColor: BUTTON_COLORS[rabbit.color].bg },
+                          ]}
+                        />
+                        <Text style={styles.savedRabbitName}>{rabbit.name}</Text>
+                        {rabbitHandleBadges.map((handle) => (
+                          <View
+                            key={handle.provider}
+                            style={[styles.handleBadge, { borderColor: PAYMENT_PROVIDERS.find((p) => p.id === handle.provider)?.color || colors.accent }]}
+                          >
+                            <Text
+                              style={[styles.handleBadgeText, { color: PAYMENT_PROVIDERS.find((p) => p.id === handle.provider)?.color || colors.accent }]}
+                            >
+                              {PAYMENT_PROVIDERS.find((p) => p.id === handle.provider)?.name || handle.provider}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                      <View style={styles.savedRabbitActions}>
+                        <Pressable
+                          style={({ pressed }) => [pressed && PRESSED_STYLE]}
+                          onPress={() =>
+                            editingRabbitId === rabbit.id
+                              ? setEditingRabbitId(null)
+                              : startEditingRabbit(rabbit)
+                          }
+                        >
+                          <Text style={styles.linkText}>
+                            {editingRabbitId === rabbit.id ? t('actions.cancel') : t('actions.edit')}
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          style={({ pressed }) => [pressed && PRESSED_STYLE]}
+                          onPress={() => confirmDeleteRabbit(rabbit)}
+                        >
+                          <Text style={styles.deleteText}>{t('actions.delete')}</Text>
+                        </Pressable>
+                      </View>
                     </View>
-                    <View style={styles.savedRabbitActions}>
-                      <Pressable
-                        style={({ pressed }) => [pressed && PRESSED_STYLE]}
-                        onPress={() =>
-                          editingRabbitId === rabbit.id
-                            ? setEditingRabbitId(null)
-                            : startEditingRabbit(rabbit)
-                        }
-                      >
-                        <Text style={styles.linkText}>
-                          {editingRabbitId === rabbit.id ? t('actions.cancel') : t('actions.edit')}
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        style={({ pressed }) => [pressed && PRESSED_STYLE]}
-                        onPress={() => confirmDeleteRabbit(rabbit)}
-                      >
-                        <Text style={styles.deleteText}>{t('actions.delete')}</Text>
-                      </Pressable>
-                    </View>
-                  </View>
 
-                  {editingRabbitId === rabbit.id && (
-                    <View style={styles.editFields}>
-                      <TextInput
-                        style={styles.input}
-                        value={editVenmo}
-                        onChangeText={setEditVenmo}
-                        placeholder={t('placeholders.venmoUsername')}
-                        placeholderTextColor={colors.placeholder}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                      />
-                      <TextInput
-                        style={styles.input}
-                        value={editCashapp}
-                        onChangeText={setEditCashapp}
-                        placeholder={t('placeholders.cashAppCashtag')}
-                        placeholderTextColor={colors.placeholder}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                      />
-                      <TextInput
-                        style={styles.input}
-                        value={editPaypal}
-                        onChangeText={setEditPaypal}
-                        placeholder={t('placeholders.paypalUsername')}
-                        placeholderTextColor={colors.placeholder}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                      />
-                      <Pressable
-                        style={({ pressed }) => [styles.saveEditButton, pressed && PRESSED_STYLE]}
-                        onPress={() => saveRabbitEdit(rabbit.id)}
-                      >
-                        <Text style={styles.saveEditButtonText}>{t('actions.save')}</Text>
-                      </Pressable>
-                    </View>
-                  )}
-                </View>
-              ))}
+                    {editingRabbitId === rabbit.id && (
+                      <View style={styles.editFields}>
+                        {regionProviders.map((provider) => (
+                          <TextInput
+                            key={provider.id}
+                            style={styles.input}
+                            value={editHandles[provider.id] || ''}
+                            onChangeText={(text) =>
+                              setEditHandles((prev) => ({ ...prev, [provider.id]: text }))
+                            }
+                            placeholder={`${provider.name} ${provider.placeholder}`}
+                            placeholderTextColor={colors.placeholder}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                          />
+                        ))}
+                        {extraProviders.length > 0 && !showMoreEditProviders && (
+                          <Pressable
+                            style={({ pressed }) => [styles.moreButton, pressed && PRESSED_STYLE]}
+                            onPress={() => setShowMoreEditProviders(true)}
+                          >
+                            <Text style={styles.moreButtonText}>
+                              {t('actions.morePaymentOptions', 'More payment options')}
+                            </Text>
+                          </Pressable>
+                        )}
+                        {showMoreEditProviders && extraProviders.map((provider) => (
+                          <TextInput
+                            key={provider.id}
+                            style={styles.input}
+                            value={editHandles[provider.id] || ''}
+                            onChangeText={(text) =>
+                              setEditHandles((prev) => ({ ...prev, [provider.id]: text }))
+                            }
+                            placeholder={`${provider.name} ${provider.placeholder}`}
+                            placeholderTextColor={colors.placeholder}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                          />
+                        ))}
+                        <Pressable
+                          style={({ pressed }) => [styles.saveEditButton, pressed && PRESSED_STYLE]}
+                          onPress={() => saveRabbitEdit(rabbit.id)}
+                        >
+                          <Text style={styles.saveEditButtonText}>{t('actions.save')}</Text>
+                        </Pressable>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
             </View>
           )}
         </View>
@@ -467,6 +542,26 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.body,
   },
+  paymentInputRow: {
+    marginBottom: 12,
+  },
+  paymentProviderLabel: {
+    fontSize: 13,
+    color: colors.muted,
+    fontFamily: fonts.bodySemiBold,
+    marginBottom: 4,
+  },
+  paymentInput: {
+    marginBottom: 0,
+  },
+  moreButton: {
+    marginBottom: 12,
+  },
+  moreButtonText: {
+    fontSize: 14,
+    color: colors.link,
+    fontFamily: fonts.bodySemiBold,
+  },
   currencyPicker: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -494,6 +589,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     maxHeight: 200,
     backgroundColor: colors.surface,
+    overflow: 'hidden' as const,
   },
   currencyOption: {
     paddingHorizontal: 12,
@@ -635,24 +731,10 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: colors.accent,
   },
   handleBadgeText: {
     fontSize: 10,
-    color: colors.accent,
     fontFamily: fonts.bodyBold,
-  },
-  cashappBadge: {
-    borderColor: '#198754',
-  },
-  cashappBadgeText: {
-    color: '#198754',
-  },
-  paypalBadge: {
-    borderColor: '#0dcaf0',
-  },
-  paypalBadgeText: {
-    color: '#0dcaf0',
   },
   savedRabbitActions: {
     flexDirection: 'row',

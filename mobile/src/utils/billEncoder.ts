@@ -1,5 +1,6 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import type { RabbitColor } from '../types';
+import type { PaymentHandle } from './paymentProviders';
 
 // Compact bill format for URL encoding
 interface CompactBill {
@@ -15,6 +16,7 @@ interface CompactBill {
     v: string | null; // venmo_username
     c: string | null; // cashapp_cashtag
     p: string | null; // paypal_username
+    h?: [string, string][]; // payment_handles as [providerId, username] tuples
   };
 }
 
@@ -32,6 +34,7 @@ export interface SharedTabData {
     venmo_username: string | null;
     cashapp_cashtag: string | null;
     paypal_username: string | null;
+    payment_handles?: PaymentHandle[];
   };
 }
 
@@ -45,11 +48,14 @@ export function encodeBill(
     venmo_username: string | null;
     cashapp_cashtag: string | null;
     paypal_username: string | null;
+    payment_handles?: PaymentHandle[];
   }
 ): string {
   // Build index maps for compact reference
   const itemIdToIdx = new Map(items.map((item, idx) => [item.id, idx]));
   const rabbitIdToIdx = new Map(rabbits.map((r, idx) => [r.id, idx]));
+
+  const handles = ownerProfile.payment_handles;
 
   const compact: CompactBill = {
     n: tab.name,
@@ -77,6 +83,9 @@ export function encodeBill(
       v: ownerProfile.venmo_username,
       c: ownerProfile.cashapp_cashtag,
       p: ownerProfile.paypal_username,
+      ...(handles && handles.length > 0
+        ? { h: handles.map((h) => [h.provider, h.username] as [string, string]) }
+        : {}),
     },
   };
 
@@ -126,6 +135,11 @@ export function decodeBill(encoded: string): SharedTabData | null {
       ...(entry[2] != null && entry[2] !== 1 ? { share: entry[2] } : {}),
     }));
 
+    // Reconstruct payment_handles from h field if present
+    const payment_handles: PaymentHandle[] = compact.o.h
+      ? compact.o.h.map(([provider, username]) => ({ provider: provider as PaymentHandle['provider'], username }))
+      : [];
+
     return {
       tab: {
         name: compact.n,
@@ -141,6 +155,7 @@ export function decodeBill(encoded: string): SharedTabData | null {
         venmo_username: compact.o.v,
         cashapp_cashtag: compact.o.c,
         paypal_username: compact.o.p,
+        payment_handles,
       },
     };
   } catch {

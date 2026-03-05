@@ -1,7 +1,28 @@
+export interface PaymentHandle {
+  provider: PaymentProviderId;
+  username: string;
+}
+
+export type PaymentProviderId =
+  | 'venmo'
+  | 'cashapp'
+  | 'paypal'
+  | 'revolut'
+  | 'wise'
+  | 'upi'
+  | 'paypay'
+  | 'satispay'
+  | 'momo'
+  | 'mercadopago'
+  | 'lydia'
+  | 'toss';
+
 export interface Profile {
   id: string;
   username: string;
   display_name: string | null;
+  payment_handles: PaymentHandle[];
+  // Legacy fields — kept for backward compat with stored data
   venmo_username: string | null;
   cashapp_cashtag: string | null;
   paypal_username: string | null;
@@ -70,6 +91,8 @@ export interface SavedRabbit {
   id: string;
   name: string;
   color: RabbitColor;
+  payment_handles: PaymentHandle[];
+  // Legacy fields — kept for backward compat with stored data
   venmo_username: string | null;
   cashapp_cashtag: string | null;
   paypal_username: string | null;

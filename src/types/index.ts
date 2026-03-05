@@ -7,6 +7,8 @@ export type {
   ItemRabbit,
   RabbitColor,
   SavedRabbit,
+  PaymentHandle,
+  PaymentProviderId,
 } from '@tabbit/shared';
 
 export {

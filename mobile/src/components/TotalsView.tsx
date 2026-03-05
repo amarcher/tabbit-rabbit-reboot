@@ -6,7 +6,6 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  Linking,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -15,7 +14,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Slider from '@react-native-community/slider';
 import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
-import { venmoChargeLink, buildChargeNote } from '../utils/payments';
+import { buildChargeNote } from '../utils/payments';
+import { profileToHandles, getProviderById, openPaymentUrl } from '../utils/paymentProviders';
 import { amountToDecimal } from '../utils/currency';
 import { COLOR_HEX } from '../types';
 import { colors, fonts, timing } from '../utils/theme';
@@ -310,21 +310,36 @@ export default function TotalsView({
                       }))
                   )}
                 />
-                {rabbit.profile?.venmo_username && total > 0 && (
-                  <Pressable
-                    style={({ pressed }) => [styles.chargeButton, pressed && PRESSED_STYLE]}
-                    onPress={() => Linking.openURL(venmoChargeLink(rabbit.profile!.venmo_username!, amountToDecimal(total, currencyCode), buildChargeNote(tab.name, rabbit.name,
-                      assignments
-                        .filter((a) => a.rabbit_id === rabbit.id)
-                        .map((a) => ({
-                          description: items.find((i) => i.id === a.item_id)?.description || '',
-                          splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
-                        }))
-                    )))}
-                  >
-                    <Text style={styles.chargeButtonText}>{t('actions.requestViaVenmo')}</Text>
-                  </Pressable>
-                )}
+                {rabbit.profile && total > 0 && (() => {
+                  const chargeHandles = profileToHandles(rabbit.profile!).filter((handle) => {
+                    const cfg = getProviderById(handle.provider);
+                    return cfg?.buildChargeUrl != null;
+                  });
+                  if (chargeHandles.length === 0) return null;
+                  const chargeNote = buildChargeNote(tab.name, rabbit.name,
+                    assignments
+                      .filter((a) => a.rabbit_id === rabbit.id)
+                      .map((a) => ({
+                        description: items.find((i) => i.id === a.item_id)?.description || '',
+                        splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
+                      }))
+                  );
+                  return chargeHandles.map((handle) => {
+                    const cfg = getProviderById(handle.provider)!;
+                    const url = cfg.buildChargeUrl!(handle.username, amountToDecimal(total, currencyCode), chargeNote);
+                    return (
+                      <Pressable
+                        key={handle.provider}
+                        style={({ pressed }) => [styles.chargeButton, pressed && PRESSED_STYLE]}
+                        onPress={() => openPaymentUrl(url)}
+                      >
+                        <Text style={styles.chargeButtonText}>
+                          {t('actions.requestViaProvider', { provider: cfg.name, defaultValue: `Request via ${cfg.name}` })}
+                        </Text>
+                      </Pressable>
+                    );
+                  });
+                })()}
               </View>
             </View>
           ))}

@@ -3,7 +3,13 @@ import { Modal, Form, Button, Badge } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { RABBIT_COLORS, RabbitColor, COLOR_HEX } from '../types';
-import type { SavedRabbit, Profile } from '../types';
+import type { SavedRabbit, Profile, PaymentHandle } from '../types';
+import {
+  providersForRegion,
+  regionFromCurrency,
+  PAYMENT_PROVIDERS,
+  handlesToLegacyFields,
+} from '../utils/paymentProviders';
 
 interface AddRabbitModalProps {
   show: boolean;
@@ -50,44 +56,75 @@ export default function AddRabbitModal({
 }: AddRabbitModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
-  const [venmo, setVenmo] = useState('');
-  const [cashapp, setCashapp] = useState('');
-  const [paypal, setPaypal] = useState('');
+  const [handles, setHandles] = useState<Record<string, string>>({});
   const [showPaymentFields, setShowPaymentFields] = useState(false);
+  const [showMoreProviders, setShowMoreProviders] = useState(false);
   const [swatchSpin, setSwatchSpin] = useState(false);
   const prevColorRef = useRef<RabbitColor | null>(null);
 
   const nextColor =
     RABBIT_COLORS.find((c) => !usedColors.includes(c)) || RABBIT_COLORS[0];
 
+  const region = regionFromCurrency(currencyCode);
+  const regionProviders = providersForRegion(region);
+  const extraProviders = PAYMENT_PROVIDERS.filter(
+    (p) => !regionProviders.find((rp) => rp.id === p.id)
+  );
+
   // Spin swatch whenever color changes
   useEffect(() => {
     if (prevColorRef.current !== null && prevColorRef.current !== nextColor) {
       setSwatchSpin(true);
-      const t = setTimeout(() => setSwatchSpin(false), 380);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => setSwatchSpin(false), 380);
+      return () => clearTimeout(timer);
     }
     prevColorRef.current = nextColor;
   }, [nextColor]);
 
-  const stripPrefix = (val: string) => val.replace(/^[@$]/, '');
+  const stripPrefix = (val: string, prefix?: string) => {
+    if (!prefix) return val;
+    return val.replace(new RegExp(`^[${prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}]`), '');
+  };
 
   const resetForm = () => {
     setName('');
-    setVenmo('');
-    setCashapp('');
-    setPaypal('');
+    setHandles({});
     setShowPaymentFields(false);
+    setShowMoreProviders(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    const venmoClean = stripPrefix(venmo.trim()) || null;
-    const cashappClean = stripPrefix(cashapp.trim()) || null;
-    const paypalClean = stripPrefix(paypal.trim()) || null;
-    const hasPayment = venmoClean || cashappClean || paypalClean;
+    const allProviders = showMoreProviders
+      ? PAYMENT_PROVIDERS
+      : regionProviders;
+
+    const paymentHandles: PaymentHandle[] = allProviders
+      .filter((p) => handles[p.id]?.trim())
+      .map((p) => ({
+        provider: p.id,
+        username: stripPrefix(handles[p.id].trim(), p.prefix),
+      }));
+
+    // Also include extra providers if shown
+    if (showMoreProviders) {
+      // Already included above since we use PAYMENT_PROVIDERS
+    } else {
+      // Check extra providers too in case user typed in them
+      extraProviders.forEach((p) => {
+        if (handles[p.id]?.trim()) {
+          paymentHandles.push({
+            provider: p.id,
+            username: stripPrefix(handles[p.id].trim(), p.prefix),
+          });
+        }
+      });
+    }
+
+    const hasPayment = paymentHandles.length > 0;
+    const legacyFields = handlesToLegacyFields(paymentHandles);
 
     let profile: Profile | undefined;
     if (hasPayment) {
@@ -95,9 +132,10 @@ export default function AddRabbitModal({
         id: crypto.randomUUID(),
         username: name.trim().toLowerCase().replace(/\s+/g, '-'),
         display_name: name.trim(),
-        venmo_username: venmoClean,
-        cashapp_cashtag: cashappClean,
-        paypal_username: paypalClean,
+        payment_handles: paymentHandles,
+        venmo_username: legacyFields.venmo_username,
+        cashapp_cashtag: legacyFields.cashapp_cashtag,
+        paypal_username: legacyFields.paypal_username,
         currency_code: currencyCode,
         created_at: new Date().toISOString(),
       };
@@ -106,9 +144,10 @@ export default function AddRabbitModal({
         id: crypto.randomUUID(),
         name: name.trim(),
         color: nextColor,
-        venmo_username: venmoClean,
-        cashapp_cashtag: cashappClean,
-        paypal_username: paypalClean,
+        payment_handles: paymentHandles,
+        venmo_username: legacyFields.venmo_username,
+        cashapp_cashtag: legacyFields.cashapp_cashtag,
+        paypal_username: legacyFields.paypal_username,
       });
     }
 
@@ -122,10 +161,11 @@ export default function AddRabbitModal({
       id: crypto.randomUUID(),
       username: saved.name.toLowerCase().replace(/\s+/g, '-'),
       display_name: saved.name,
+      payment_handles: saved.payment_handles ?? [],
       venmo_username: saved.venmo_username,
       cashapp_cashtag: saved.cashapp_cashtag,
       paypal_username: saved.paypal_username,
-      currency_code: 'USD',
+      currency_code: currencyCode,
       created_at: new Date().toISOString(),
     };
 
@@ -139,6 +179,16 @@ export default function AddRabbitModal({
     resetForm();
     onHide();
   };
+
+  const hasAnyHandle = (saved: SavedRabbit) =>
+    (saved.payment_handles && saved.payment_handles.length > 0) ||
+    saved.venmo_username ||
+    saved.cashapp_cashtag ||
+    saved.paypal_username;
+
+  const displayedProviders = showMoreProviders
+    ? PAYMENT_PROVIDERS
+    : regionProviders;
 
   return (
     <Modal show={show} onHide={handleClose} centered>
@@ -193,7 +243,7 @@ export default function AddRabbitModal({
                         title={`Click to add ${saved.name}`}
                       >
                         {saved.name}
-                        {(saved.venmo_username || saved.cashapp_cashtag || saved.paypal_username) && (
+                        {hasAnyHandle(saved) && (
                           <span className="ms-1 text-success fw-bold">$</span>
                         )}
                       </Badge>
@@ -269,13 +319,9 @@ export default function AddRabbitModal({
                 <div>
                   <small className="text-muted fw-semibold d-block mb-2">{t('addRabbitModal.paymentInfoLabel')}</small>
                   <AnimatePresence>
-                    {[
-                      { placeholder: t('addRabbitModal.venmoPlaeholder'), value: venmo, onChange: setVenmo },
-                      { placeholder: t('addRabbitModal.cashappPlaceholder'), value: cashapp, onChange: setCashapp },
-                      { placeholder: t('addRabbitModal.paypalPlaceholder'), value: paypal, onChange: setPaypal },
-                    ].map((field, idx) => (
+                    {displayedProviders.map((provider, idx) => (
                       <motion.div
-                        key={field.placeholder}
+                        key={provider.id}
                         className="mb-2"
                         custom={idx}
                         variants={fieldVariants}
@@ -285,15 +331,27 @@ export default function AddRabbitModal({
                         <Form.Group>
                           <Form.Control
                             type="text"
-                            placeholder={field.placeholder}
-                            value={field.value}
-                            onChange={(e) => field.onChange(e.target.value)}
+                            placeholder={`${provider.name}${provider.prefix ? ` (${provider.prefix}${provider.placeholder})` : ` (${provider.placeholder})`}`}
+                            value={handles[provider.id] ?? ''}
+                            onChange={(e) =>
+                              setHandles((prev) => ({ ...prev, [provider.id]: e.target.value }))
+                            }
                             autoComplete="off"
                           />
                         </Form.Group>
                       </motion.div>
                     ))}
                   </AnimatePresence>
+                  {!showMoreProviders && extraProviders.length > 0 && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="p-0 mb-2"
+                      onClick={() => setShowMoreProviders(true)}
+                    >
+                      {t('addRabbitModal.morePaymentOptions', '+ More payment options')}
+                    </Button>
+                  )}
                   <small className="text-muted">
                     {t('addRabbitModal.paymentHintSave')}
                   </small>
