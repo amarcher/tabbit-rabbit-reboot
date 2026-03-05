@@ -8,7 +8,14 @@ import { remainingFreeScans, FREE_SCAN_LIMIT } from '../utils/scanCounter';
 import { CURRENCIES } from '../utils/currency';
 import i18n from '../i18n/i18n';
 import { COLOR_HEX } from '../types';
-import type { SavedRabbit } from '../types';
+import type { SavedRabbit, PaymentHandle } from '../types';
+import {
+  providersForRegion,
+  regionFromCurrency,
+  PAYMENT_PROVIDERS,
+  handlesToLegacyFields,
+  profileToHandles,
+} from '../utils/paymentProviders';
 
 interface ProfileSettingsProps {
   profile: LocalProfile | null;
@@ -38,9 +45,8 @@ const MoreToggle = forwardRef<HTMLButtonElement, { onClick: (e: React.MouseEvent
 export default function ProfileSettings({ profile, updateProfile }: ProfileSettingsProps) {
   const { t } = useTranslation();
   const [displayName, setDisplayName] = useState('');
-  const [venmoUsername, setVenmoUsername] = useState('');
-  const [cashappCashtag, setCashappCashtag] = useState('');
-  const [paypalUsername, setPaypalUsername] = useState('');
+  const [handles, setHandles] = useState<Record<string, string>>({});
+  const [showMoreProviders, setShowMoreProviders] = useState(false);
   const [currencyCode, setCurrencyCode] = useState('USD');
   const [language, setLanguage] = useState(i18n.language || 'en');
   const [saving, setSaving] = useState(false);
@@ -49,7 +55,8 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
   // Saved rabbits
   const { savedRabbits, removeSaved, updateSaved } = useSavedRabbits();
   const [editingRabbitId, setEditingRabbitId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Partial<SavedRabbit>>({});
+  const [editHandles, setEditHandles] = useState<Record<string, string>>({});
+  const [editName, setEditName] = useState('');
 
   // BYOK state
   const [apiKey, setApiKey] = useState('');
@@ -57,15 +64,33 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
   const [storedKeyPreview, setStoredKeyPreview] = useState('');
   const [freeScansLeft, setFreeScansLeft] = useState(FREE_SCAN_LIMIT);
 
+  const region = regionFromCurrency(currencyCode);
+  const regionProviders = providersForRegion(region);
+  const extraProviders = PAYMENT_PROVIDERS.filter(
+    (p) => !regionProviders.find((rp) => rp.id === p.id)
+  );
+  const displayedProviders = showMoreProviders ? PAYMENT_PROVIDERS : regionProviders;
+
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || '');
-      setVenmoUsername(profile.venmo_username || '');
-      setCashappCashtag(profile.cashapp_cashtag || '');
-      setPaypalUsername(profile.paypal_username || '');
       setCurrencyCode(profile.currency_code || 'USD');
+      // Populate handles from payment_handles (or fall back to legacy fields)
+      const existingHandles = profileToHandles(profile);
+      const handlesMap: Record<string, string> = {};
+      for (const h of existingHandles) {
+        handlesMap[h.provider] = h.username;
+      }
+      setHandles(handlesMap);
+      // Show more providers if any existing handles aren't in region providers
+      const currentRegion = regionFromCurrency(profile.currency_code || 'USD');
+      const currentRegionProviders = providersForRegion(currentRegion);
+      const hasExtraHandles = existingHandles.some(
+        (h) => !currentRegionProviders.find((rp) => rp.id === h.provider)
+      );
+      if (hasExtraHandles) setShowMoreProviders(true);
     }
-  }, [profile]);
+  }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const key = getStoredApiKey();
@@ -76,17 +101,35 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
     setFreeScansLeft(remainingFreeScans());
   }, []);
 
+  const stripPrefix = (val: string, prefix?: string) => {
+    if (!prefix) return val;
+    return val.replace(new RegExp(`^[${prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}]`), '');
+  };
+
+  const buildHandlesFromMap = (map: Record<string, string>): PaymentHandle[] => {
+    return PAYMENT_PROVIDERS
+      .filter((p) => map[p.id]?.trim())
+      .map((p) => ({
+        provider: p.id,
+        username: stripPrefix(map[p.id].trim(), p.prefix),
+      }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setMessage(null);
 
     try {
+      const paymentHandles = buildHandlesFromMap(handles);
+      const legacyFields = handlesToLegacyFields(paymentHandles);
+
       await updateProfile({
         display_name: displayName.trim() || null,
-        venmo_username: venmoUsername.trim().replace(/^@/, '') || null,
-        cashapp_cashtag: cashappCashtag.trim().replace(/^\$/, '') || null,
-        paypal_username: paypalUsername.trim().replace(/^@/, '') || null,
+        payment_handles: paymentHandles,
+        venmo_username: legacyFields.venmo_username,
+        cashapp_cashtag: legacyFields.cashapp_cashtag,
+        paypal_username: legacyFields.paypal_username,
         currency_code: currencyCode || 'USD',
       });
       setMessage({ type: 'success', text: t('profile.savedSuccess') });
@@ -94,6 +137,51 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
       setMessage({ type: 'danger', text: err.message || 'Failed to save.' });
     }
     setSaving(false);
+  };
+
+  const hasAnyHandle = (saved: SavedRabbit) =>
+    (saved.payment_handles && saved.payment_handles.length > 0) ||
+    saved.venmo_username ||
+    saved.cashapp_cashtag ||
+    saved.paypal_username;
+
+  const getSavedRabbitHandles = (saved: SavedRabbit) => profileToHandles(saved);
+
+  const startEditRabbit = (saved: SavedRabbit) => {
+    setEditingRabbitId(saved.id);
+    setEditName(saved.name);
+    const existingHandles = getSavedRabbitHandles(saved);
+    const map: Record<string, string> = {};
+    for (const h of existingHandles) {
+      map[h.provider] = h.username;
+    }
+    setEditHandles(map);
+  };
+
+  const saveEditRabbit = (saved: SavedRabbit) => {
+    const paymentHandles = buildHandlesFromMap(editHandles);
+    const legacyFields = handlesToLegacyFields(paymentHandles);
+    updateSaved(saved.id, {
+      name: editName.trim() || saved.name,
+      payment_handles: paymentHandles,
+      venmo_username: legacyFields.venmo_username,
+      cashapp_cashtag: legacyFields.cashapp_cashtag,
+      paypal_username: legacyFields.paypal_username,
+    });
+    setEditingRabbitId(null);
+  };
+
+  // Providers to show for rabbit edit: region providers + any that the rabbit already has handles for
+  const getRabbitEditProviders = (saved: SavedRabbit) => {
+    const existing = getSavedRabbitHandles(saved);
+    const existingIds = new Set(existing.map((h) => h.provider));
+    const all = [...regionProviders];
+    for (const p of PAYMENT_PROVIDERS) {
+      if (existingIds.has(p.id) && !all.find((rp) => rp.id === p.id)) {
+        all.push(p);
+      }
+    }
+    return all;
   };
 
   return (
@@ -161,35 +249,30 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
               {t('profile.paymentHint')}
             </p>
 
-            <Form.Group className="mb-3">
-              <Form.Label>{t('profile.venmoLabel')}</Form.Label>
-              <Form.Control
-                type="text"
-                value={venmoUsername}
-                onChange={(e) => setVenmoUsername(e.target.value)}
-                placeholder={t('profile.venmoPlaceholder')}
-              />
-            </Form.Group>
+            {displayedProviders.map((provider) => (
+              <Form.Group key={provider.id} className="mb-3">
+                <Form.Label>{provider.name}</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={handles[provider.id] ?? ''}
+                  onChange={(e) =>
+                    setHandles((prev) => ({ ...prev, [provider.id]: e.target.value }))
+                  }
+                  placeholder={`${provider.prefix ?? ''}${provider.placeholder}`}
+                />
+              </Form.Group>
+            ))}
 
-            <Form.Group className="mb-3">
-              <Form.Label>{t('profile.cashappLabel')}</Form.Label>
-              <Form.Control
-                type="text"
-                value={cashappCashtag}
-                onChange={(e) => setCashappCashtag(e.target.value)}
-                placeholder={t('profile.cashappPlaceholder')}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>{t('profile.paypalLabel')}</Form.Label>
-              <Form.Control
-                type="text"
-                value={paypalUsername}
-                onChange={(e) => setPaypalUsername(e.target.value)}
-                placeholder={t('profile.paypalPlaceholder')}
-              />
-            </Form.Group>
+            {!showMoreProviders && extraProviders.length > 0 && (
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 mb-3"
+                onClick={() => setShowMoreProviders(true)}
+              >
+                {t('profile.morePaymentOptions', '+ More payment options')}
+              </Button>
+            )}
 
             <Button variant="success" type="submit" className="w-100" disabled={saving}>
               {saving ? t('profile.saving') : t('profile.saveProfile')}
@@ -224,50 +307,29 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                         size="sm"
                         className="mb-1"
                         placeholder={t('profile.savedRabbits.namePlaceholder')}
-                        value={editForm.name ?? ''}
-                        onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
                       />
-                      <InputGroup size="sm" className="mb-1">
-                        <InputGroup.Text style={{ fontSize: '0.8em', width: 76, justifyContent: 'center' }}>Venmo</InputGroup.Text>
-                        <Form.Control
-                          type="text"
-                          placeholder={t('profile.savedRabbits.venmoPlaceholder')}
-                          value={editForm.venmo_username ?? ''}
-                          onChange={(e) => setEditForm((f) => ({ ...f, venmo_username: e.target.value }))}
-                        />
-                      </InputGroup>
-                      <InputGroup size="sm" className="mb-1">
-                        <InputGroup.Text style={{ fontSize: '0.8em', width: 76, justifyContent: 'center' }}>Cash App</InputGroup.Text>
-                        <Form.Control
-                          type="text"
-                          placeholder={t('profile.savedRabbits.cashappPlaceholder')}
-                          value={editForm.cashapp_cashtag ?? ''}
-                          onChange={(e) => setEditForm((f) => ({ ...f, cashapp_cashtag: e.target.value }))}
-                        />
-                      </InputGroup>
-                      <InputGroup size="sm" className="mb-1">
-                        <InputGroup.Text style={{ fontSize: '0.8em', width: 76, justifyContent: 'center' }}>PayPal</InputGroup.Text>
-                        <Form.Control
-                          type="text"
-                          placeholder={t('profile.savedRabbits.paypalPlaceholder')}
-                          value={editForm.paypal_username ?? ''}
-                          onChange={(e) => setEditForm((f) => ({ ...f, paypal_username: e.target.value }))}
-                        />
-                      </InputGroup>
+                      {getRabbitEditProviders(saved).map((provider) => (
+                        <InputGroup key={provider.id} size="sm" className="mb-1">
+                          <InputGroup.Text style={{ fontSize: '0.8em', width: 90, justifyContent: 'center' }}>
+                            {provider.name}
+                          </InputGroup.Text>
+                          <Form.Control
+                            type="text"
+                            placeholder={`${provider.prefix ?? ''}${provider.placeholder}`}
+                            value={editHandles[provider.id] ?? ''}
+                            onChange={(e) =>
+                              setEditHandles((prev) => ({ ...prev, [provider.id]: e.target.value }))
+                            }
+                          />
+                        </InputGroup>
+                      ))}
                       <div className="d-flex gap-1">
                         <Button
                           variant="outline-success"
                           size="sm"
-                          onClick={() => {
-                            const stripPrefix = (v: string) => v.replace(/^[@$]/, '');
-                            updateSaved(saved.id, {
-                              name: (editForm.name || '').trim() || saved.name,
-                              venmo_username: stripPrefix((editForm.venmo_username || '').trim()) || null,
-                              cashapp_cashtag: stripPrefix((editForm.cashapp_cashtag || '').trim()) || null,
-                              paypal_username: stripPrefix((editForm.paypal_username || '').trim()) || null,
-                            });
-                            setEditingRabbitId(null);
-                          }}
+                          onClick={() => saveEditRabbit(saved)}
                         >
                           {t('profile.savedRabbits.save')}
                         </Button>
@@ -295,13 +357,14 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                       />
                       <div className="flex-grow-1" style={{ minWidth: 0 }}>
                         <span className="fw-semibold">{saved.name}</span>
-                        {(saved.venmo_username || saved.cashapp_cashtag || saved.paypal_username) && (
+                        {hasAnyHandle(saved) && (
                           <div className="text-muted" style={{ fontSize: '0.75em' }}>
-                            {[
-                              saved.venmo_username && `Venmo`,
-                              saved.cashapp_cashtag && `Cash App`,
-                              saved.paypal_username && `PayPal`,
-                            ].filter(Boolean).join(' · ')}
+                            {getSavedRabbitHandles(saved)
+                              .map((h) => {
+                                const config = PAYMENT_PROVIDERS.find((p) => p.id === h.provider);
+                                return config?.name ?? h.provider;
+                              })
+                              .join(' · ')}
                           </div>
                         )}
                       </div>
@@ -309,15 +372,7 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                         <Dropdown.Toggle as={MoreToggle} />
                         <Dropdown.Menu>
                           <Dropdown.Item
-                            onClick={() => {
-                              setEditingRabbitId(saved.id);
-                              setEditForm({
-                                name: saved.name,
-                                venmo_username: saved.venmo_username || '',
-                                cashapp_cashtag: saved.cashapp_cashtag || '',
-                                paypal_username: saved.paypal_username || '',
-                              });
-                            }}
+                            onClick={() => startEditRabbit(saved)}
                           >
                             {t('profile.savedRabbits.edit')}
                           </Dropdown.Item>

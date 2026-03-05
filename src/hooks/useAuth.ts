@@ -9,10 +9,14 @@ export interface LocalProfile extends Profile {
 }
 
 function migrateProfile(raw: LocalProfile): LocalProfile {
-  if (!raw.currency_code) {
-    return { ...raw, currency_code: detectCurrencyFromLocale() };
+  let migrated = raw;
+  if (!migrated.currency_code) {
+    migrated = { ...migrated, currency_code: detectCurrencyFromLocale() };
   }
-  return raw;
+  if (!migrated.payment_handles) {
+    migrated = { ...migrated, payment_handles: [] };
+  }
+  return migrated;
 }
 
 export function useAuth() {
@@ -36,6 +40,7 @@ export function useAuth() {
         username: '',
         display_name: null,
         email: null,
+        payment_handles: [],
         venmo_username: null,
         cashapp_cashtag: null,
         paypal_username: null,

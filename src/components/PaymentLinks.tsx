@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, ButtonGroup } from 'react-bootstrap';
 import type { Rabbit } from '../types';
-import { venmoChargeLink, cashAppLink, paypalLink } from '../utils/payments';
+import { profileToHandles, getProviderById } from '../utils/paymentProviders';
 
 interface PaymentLinksProps {
   rabbit: Rabbit;
@@ -13,43 +13,29 @@ export default function PaymentLinks({ rabbit, amount, note }: PaymentLinksProps
   const profile = rabbit.profile;
   if (!profile) return null;
 
-  const hasAny =
-    profile.venmo_username || profile.cashapp_cashtag || profile.paypal_username;
-
-  if (!hasAny) return null;
+  const handles = profileToHandles(profile);
+  if (handles.length === 0) return null;
 
   return (
     <ButtonGroup size="sm">
-      {profile.venmo_username && (
-        <Button
-          variant="outline-primary"
-          href={venmoChargeLink(profile.venmo_username, amount, note)}
-          target="_blank"
-          rel="noopener"
-        >
-          Venmo
-        </Button>
-      )}
-      {profile.cashapp_cashtag && (
-        <Button
-          variant="outline-success"
-          href={cashAppLink(profile.cashapp_cashtag, amount)}
-          target="_blank"
-          rel="noopener"
-        >
-          Cash App
-        </Button>
-      )}
-      {profile.paypal_username && (
-        <Button
-          variant="outline-info"
-          href={paypalLink(profile.paypal_username, amount)}
-          target="_blank"
-          rel="noopener"
-        >
-          PayPal
-        </Button>
-      )}
+      {handles.map(({ provider, username }) => {
+        const config = getProviderById(provider);
+        if (!config) return null;
+        const href = config.buildChargeUrl
+          ? config.buildChargeUrl(username, amount, note)
+          : config.buildPayUrl(username, amount, note);
+        return (
+          <Button
+            key={provider}
+            variant={`outline-${config.variant}`}
+            href={href}
+            target="_blank"
+            rel="noopener"
+          >
+            {config.name}
+          </Button>
+        );
+      })}
     </ButtonGroup>
   );
 }

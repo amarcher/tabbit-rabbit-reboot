@@ -17,6 +17,13 @@ import { RABBIT_COLORS, RabbitColor } from '../types';
 import type { SavedRabbit, Profile } from '../types';
 import { BUTTON_COLORS } from '../utils/colors';
 import { colors, fonts } from '../utils/theme';
+import {
+  providersForRegion,
+  regionFromCurrency,
+  PAYMENT_PROVIDERS,
+  handlesToLegacyFields,
+  type PaymentHandle,
+} from '../utils/paymentProviders';
 
 interface AddRabbitModalProps {
   visible: boolean;
@@ -45,31 +52,42 @@ export default function AddRabbitModal({
 }: AddRabbitModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
-  const [venmo, setVenmo] = useState('');
-  const [cashapp, setCashapp] = useState('');
-  const [paypal, setPaypal] = useState('');
+  const [handles, setHandles] = useState<Record<string, string>>({});
   const [showPaymentFields, setShowPaymentFields] = useState(false);
+  const [showMoreProviders, setShowMoreProviders] = useState(false);
+
+  const region = regionFromCurrency(currencyCode);
+  const regionProviders = providersForRegion(region);
+  const extraProviders = PAYMENT_PROVIDERS.filter(
+    (p) => !regionProviders.find((rp) => rp.id === p.id)
+  );
 
   const nextColor =
     RABBIT_COLORS.find((c) => !usedColors.includes(c)) || RABBIT_COLORS[0];
 
   const stripPrefix = (val: string) => val.replace(/^[@$]/, '');
 
+  const buildHandlesArray = (): PaymentHandle[] =>
+    Object.entries(handles)
+      .filter(([, username]) => username.trim())
+      .map(([provider, username]) => ({
+        provider: provider as PaymentHandle['provider'],
+        username: stripPrefix(username.trim()),
+      }));
+
   const resetForm = () => {
     setName('');
-    setVenmo('');
-    setCashapp('');
-    setPaypal('');
+    setHandles({});
     setShowPaymentFields(false);
+    setShowMoreProviders(false);
   };
 
   const handleSubmit = () => {
     if (!name.trim()) return;
 
-    const venmoClean = stripPrefix(venmo.trim()) || null;
-    const cashappClean = stripPrefix(cashapp.trim()) || null;
-    const paypalClean = stripPrefix(paypal.trim()) || null;
-    const hasPayment = venmoClean || cashappClean || paypalClean;
+    const handlesArray = buildHandlesArray();
+    const hasPayment = handlesArray.length > 0;
+    const legacyFields = handlesToLegacyFields(handlesArray);
 
     // Build profile if payment handles exist
     let profile: Profile | undefined;
@@ -78,9 +96,10 @@ export default function AddRabbitModal({
         id: Crypto.randomUUID(),
         username: name.trim().toLowerCase().replace(/\s+/g, '-'),
         display_name: name.trim(),
-        venmo_username: venmoClean,
-        cashapp_cashtag: cashappClean,
-        paypal_username: paypalClean,
+        payment_handles: handlesArray,
+        venmo_username: legacyFields.venmo_username,
+        cashapp_cashtag: legacyFields.cashapp_cashtag,
+        paypal_username: legacyFields.paypal_username,
         currency_code: currencyCode,
         created_at: new Date().toISOString(),
       };
@@ -90,9 +109,10 @@ export default function AddRabbitModal({
         id: Crypto.randomUUID(),
         name: name.trim(),
         color: nextColor,
-        venmo_username: venmoClean,
-        cashapp_cashtag: cashappClean,
-        paypal_username: paypalClean,
+        venmo_username: legacyFields.venmo_username,
+        cashapp_cashtag: legacyFields.cashapp_cashtag,
+        paypal_username: legacyFields.paypal_username,
+        payment_handles: handlesArray,
       });
     }
 
@@ -106,10 +126,11 @@ export default function AddRabbitModal({
       id: Crypto.randomUUID(),
       username: saved.name.toLowerCase().replace(/\s+/g, '-'),
       display_name: saved.name,
+      payment_handles: saved.payment_handles ?? [],
       venmo_username: saved.venmo_username,
       cashapp_cashtag: saved.cashapp_cashtag,
       paypal_username: saved.paypal_username,
-      currency_code: 'USD',
+      currency_code: currencyCode,
       created_at: new Date().toISOString(),
     };
 
@@ -139,6 +160,12 @@ export default function AddRabbitModal({
     resetForm();
     onClose();
   };
+
+  const hasPaymentIndicator = (saved: SavedRabbit) =>
+    (saved.payment_handles && saved.payment_handles.length > 0) ||
+    saved.venmo_username ||
+    saved.cashapp_cashtag ||
+    saved.paypal_username;
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
@@ -177,7 +204,7 @@ export default function AddRabbitModal({
                         ]}
                       />
                       <Text style={styles.chipName}>{saved.name}</Text>
-                      {(saved.venmo_username || saved.cashapp_cashtag || saved.paypal_username) && (
+                      {hasPaymentIndicator(saved) && (
                         <Text style={styles.chipPayment}>$</Text>
                       )}
                     </Pressable>
@@ -229,35 +256,44 @@ export default function AddRabbitModal({
                 ) : (
                   <View style={styles.paymentFields}>
                     <Text style={styles.paymentLabel}>{t('labels.paymentInfoOptional')}</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder={t('placeholders.venmoUsername')}
-                      placeholderTextColor={colors.placeholder}
-                      value={venmo}
-                      onChangeText={setVenmo}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder={t('placeholders.cashAppCashtag')}
-                      placeholderTextColor={colors.placeholder}
-                      value={cashapp}
-                      onChangeText={setCashapp}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder={t('placeholders.paypalUsername')}
-                      placeholderTextColor={colors.placeholder}
-                      value={paypal}
-                      onChangeText={setPaypal}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      returnKeyType="done"
-                      onSubmitEditing={handleSubmit}
-                    />
+                    {regionProviders.map((provider) => (
+                      <TextInput
+                        key={provider.id}
+                        style={styles.input}
+                        placeholder={`${provider.name} ${provider.placeholder}`}
+                        placeholderTextColor={colors.placeholder}
+                        value={handles[provider.id] || ''}
+                        onChangeText={(text) =>
+                          setHandles((prev) => ({ ...prev, [provider.id]: text }))
+                        }
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                    ))}
+                    {extraProviders.length > 0 && !showMoreProviders && (
+                      <Pressable
+                        style={({ pressed }) => [styles.expandButton, pressed && PRESSED_STYLE]}
+                        onPress={() => setShowMoreProviders(true)}
+                      >
+                        <Text style={styles.expandButtonText}>
+                          {t('actions.morePaymentOptions', 'More payment options')}
+                        </Text>
+                      </Pressable>
+                    )}
+                    {showMoreProviders && extraProviders.map((provider) => (
+                      <TextInput
+                        key={provider.id}
+                        style={styles.input}
+                        placeholder={`${provider.name} ${provider.placeholder}`}
+                        placeholderTextColor={colors.placeholder}
+                        value={handles[provider.id] || ''}
+                        onChangeText={(text) =>
+                          setHandles((prev) => ({ ...prev, [provider.id]: text }))
+                        }
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                    ))}
                     <Text style={styles.paymentHint}>
                       {t('messages.paymentSaveHint')}
                     </Text>

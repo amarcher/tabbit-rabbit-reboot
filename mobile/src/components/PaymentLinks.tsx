@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import type { Rabbit } from '../types';
-import { venmoChargeLink, cashAppLink, paypalLink } from '../utils/payments';
+import { profileToHandles, getProviderById, openPaymentUrl } from '../utils/paymentProviders';
 import { fonts } from '../utils/theme';
 
 interface PaymentLinksProps {
@@ -16,41 +16,31 @@ export default function PaymentLinks({ rabbit, amount, note }: PaymentLinksProps
   const profile = rabbit.profile;
   if (!profile) return null;
 
-  const hasAny =
-    profile.venmo_username || profile.cashapp_cashtag || profile.paypal_username;
-
-  if (!hasAny) return null;
-
-  const openLink = (url: string) => {
-    Linking.openURL(url);
-  };
+  const handles = profileToHandles(profile);
+  if (handles.length === 0) return null;
 
   return (
     <View style={styles.container}>
-      {profile.venmo_username && (
-        <Pressable
-          style={({ pressed }) => [styles.button, styles.venmo, pressed && PRESSED_STYLE]}
-          onPress={() => openLink(venmoChargeLink(profile.venmo_username!, amount, note))}
-        >
-          <Text style={[styles.buttonText, styles.venmoText]}>Venmo</Text>
-        </Pressable>
-      )}
-      {profile.cashapp_cashtag && (
-        <Pressable
-          style={({ pressed }) => [styles.button, styles.cashapp, pressed && PRESSED_STYLE]}
-          onPress={() => openLink(cashAppLink(profile.cashapp_cashtag!, amount))}
-        >
-          <Text style={[styles.buttonText, styles.cashappText]}>Cash App</Text>
-        </Pressable>
-      )}
-      {profile.paypal_username && (
-        <Pressable
-          style={({ pressed }) => [styles.button, styles.paypal, pressed && PRESSED_STYLE]}
-          onPress={() => openLink(paypalLink(profile.paypal_username!, amount))}
-        >
-          <Text style={[styles.buttonText, styles.paypalText]}>PayPal</Text>
-        </Pressable>
-      )}
+      {handles.map((handle) => {
+        const config = getProviderById(handle.provider);
+        if (!config) return null;
+        const url = config.buildChargeUrl
+          ? config.buildChargeUrl(handle.username, amount, note)
+          : config.buildPayUrl(handle.username, amount, note);
+        return (
+          <Pressable
+            key={handle.provider}
+            style={({ pressed }) => [
+              styles.button,
+              { borderColor: config.color },
+              pressed && PRESSED_STYLE,
+            ]}
+            onPress={() => openPaymentUrl(url)}
+          >
+            <Text style={[styles.buttonText, { color: config.color }]}>{config.name}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -59,6 +49,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     gap: 6,
+    flexWrap: 'wrap',
   },
   button: {
     paddingHorizontal: 10,
@@ -69,23 +60,5 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 12,
     fontFamily: fonts.bodySemiBold,
-  },
-  venmo: {
-    borderColor: '#3d95ce',
-  },
-  venmoText: {
-    color: '#3d95ce',
-  },
-  cashapp: {
-    borderColor: '#198754',
-  },
-  cashappText: {
-    color: '#198754',
-  },
-  paypal: {
-    borderColor: '#0070ba',
-  },
-  paypalText: {
-    color: '#0070ba',
   },
 });

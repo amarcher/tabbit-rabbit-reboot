@@ -1,5 +1,6 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import type { RabbitColor } from '../types';
+import type { PaymentHandle } from '../types';
 
 // Compact bill format for URL encoding
 interface CompactBill {
@@ -12,9 +13,10 @@ interface CompactBill {
   a: (readonly [number, number] | readonly [number, number, number])[]; // assignments: [itemIdx, rabbitIdx, share?]
   o: {
     d: string | null; // display_name
-    v: string | null; // venmo_username
-    c: string | null; // cashapp_cashtag
-    p: string | null; // paypal_username
+    v: string | null; // venmo_username (legacy)
+    c: string | null; // cashapp_cashtag (legacy)
+    p: string | null; // paypal_username (legacy)
+    h?: [string, string][]; // payment_handles as [providerId, username] tuples
   };
 }
 
@@ -29,6 +31,7 @@ export interface SharedTabData {
   assignments: { item_id: string; rabbit_id: string; share?: number }[];
   ownerProfile: {
     display_name: string | null;
+    payment_handles?: PaymentHandle[];
     venmo_username: string | null;
     cashapp_cashtag: string | null;
     paypal_username: string | null;
@@ -42,6 +45,7 @@ export function encodeBill(
   assignments: { item_id: string; rabbit_id: string; share?: number }[],
   ownerProfile: {
     display_name: string | null;
+    payment_handles?: PaymentHandle[];
     venmo_username: string | null;
     cashapp_cashtag: string | null;
     paypal_username: string | null;
@@ -49,6 +53,8 @@ export function encodeBill(
 ): string {
   const itemIdToIdx = new Map(items.map((item, idx) => [item.id, idx]));
   const rabbitIdToIdx = new Map(rabbits.map((r, idx) => [r.id, idx]));
+
+  const handles = ownerProfile.payment_handles;
 
   const compact: CompactBill = {
     n: tab.name,
@@ -76,6 +82,9 @@ export function encodeBill(
       v: ownerProfile.venmo_username,
       c: ownerProfile.cashapp_cashtag,
       p: ownerProfile.paypal_username,
+      ...(handles && handles.length > 0
+        ? { h: handles.map((h) => [h.provider, h.username] as [string, string]) }
+        : {}),
     },
   };
 
@@ -124,6 +133,15 @@ export function decodeBill(encoded: string): SharedTabData | null {
       ...(entry[2] != null && entry[2] !== 1 ? { share: entry[2] } : {}),
     }));
 
+    // Reconstruct payment_handles from h field if present, else from legacy fields
+    let paymentHandles: PaymentHandle[] | undefined;
+    if (compact.o.h && compact.o.h.length > 0) {
+      paymentHandles = compact.o.h.map(([provider, username]) => ({
+        provider: provider as PaymentHandle['provider'],
+        username,
+      }));
+    }
+
     return {
       tab: {
         name: compact.n,
@@ -136,6 +154,7 @@ export function decodeBill(encoded: string): SharedTabData | null {
       assignments,
       ownerProfile: {
         display_name: compact.o.d,
+        payment_handles: paymentHandles,
         venmo_username: compact.o.v,
         cashapp_cashtag: compact.o.c,
         paypal_username: compact.o.p,

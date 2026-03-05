@@ -1,9 +1,12 @@
 import React from 'react';
 import { Button, ButtonGroup } from 'react-bootstrap';
-import { venmoLink, cashAppLink, paypalLink } from '../utils/payments';
+import type { PaymentHandle } from '../types';
+import { profileToHandles, getProviderById } from '../utils/paymentProviders';
 
 interface OwnerPaymentLinksProps {
   ownerProfile: {
+    display_name?: string | null;
+    payment_handles?: PaymentHandle[];
     venmo_username: string | null;
     cashapp_cashtag: string | null;
     paypal_username: string | null;
@@ -13,43 +16,27 @@ interface OwnerPaymentLinksProps {
 }
 
 export default function OwnerPaymentLinks({ ownerProfile, amount, note }: OwnerPaymentLinksProps) {
-  const hasAny =
-    ownerProfile.venmo_username || ownerProfile.cashapp_cashtag || ownerProfile.paypal_username;
-
-  if (!hasAny) return null;
+  const handles = profileToHandles(ownerProfile);
+  if (handles.length === 0) return null;
 
   return (
     <ButtonGroup size="sm">
-      {ownerProfile.venmo_username && (
-        <Button
-          variant="outline-primary"
-          href={venmoLink(ownerProfile.venmo_username, amount, note)}
-          target="_blank"
-          rel="noopener"
-        >
-          Pay with Venmo
-        </Button>
-      )}
-      {ownerProfile.cashapp_cashtag && (
-        <Button
-          variant="outline-success"
-          href={cashAppLink(ownerProfile.cashapp_cashtag, amount)}
-          target="_blank"
-          rel="noopener"
-        >
-          Cash App
-        </Button>
-      )}
-      {ownerProfile.paypal_username && (
-        <Button
-          variant="outline-info"
-          href={paypalLink(ownerProfile.paypal_username, amount)}
-          target="_blank"
-          rel="noopener"
-        >
-          PayPal
-        </Button>
-      )}
+      {handles.map(({ provider, username }) => {
+        const config = getProviderById(provider);
+        if (!config) return null;
+        const href = config.buildPayUrl(username, amount, note);
+        return (
+          <Button
+            key={provider}
+            variant={`outline-${config.variant}`}
+            href={href}
+            target="_blank"
+            rel="noopener"
+          >
+            Pay with {config.name}
+          </Button>
+        );
+      })}
     </ButtonGroup>
   );
 }

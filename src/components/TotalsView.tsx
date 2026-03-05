@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { Item, Rabbit, ItemRabbit, Tab, Profile } from '../types';
 import { formatAmount, amountToDecimal } from '../utils/currency';
 import { venmoChargeLink, buildChargeNote } from '../utils/payments';
+import { profileToHandles, getProviderById } from '../utils/paymentProviders';
 import { COLOR_HEX } from '../types';
 import PaymentLinks from './PaymentLinks';
 import AnimatedNumber from './AnimatedNumber';
@@ -277,15 +278,27 @@ export default function TotalsView({
                         }))
                     )}
                   />
-                  {currentUserProfile?.venmo_username && total > 0 && (
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={() => openChargeModal(rabbit, total)}
-                    >
-                      {t('totals.requestViaVenmo')}
-                    </Button>
-                  )}
+                  {currentUserProfile && total > 0 && (() => {
+                    const ownerHandles = profileToHandles(currentUserProfile);
+                    const chargeHandles = ownerHandles.filter((h) => {
+                      const config = getProviderById(h.provider);
+                      return config?.buildChargeUrl != null;
+                    });
+                    return chargeHandles.map(({ provider }) => {
+                      const config = getProviderById(provider);
+                      if (!config) return null;
+                      return (
+                        <Button
+                          key={provider}
+                          variant="outline-secondary"
+                          size="sm"
+                          onClick={() => openChargeModal(rabbit, total)}
+                        >
+                          {t('totals.requestViaProvider', { provider: config.name }, `Request via ${config.name}`)}
+                        </Button>
+                      );
+                    });
+                  })()}
                 </div>
               </ListGroup.Item>
             ))}
