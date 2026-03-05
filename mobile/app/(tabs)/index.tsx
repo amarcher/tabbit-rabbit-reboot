@@ -125,15 +125,17 @@ export default function DashboardScreen() {
     Record<string, { items: Item[]; rabbits: Rabbit[] }>
   >({});
 
-  const { start, isActive } = useCoachmark();
+  const { start } = useCoachmark();
+  const tourAttempted = useRef(false);
 
   // Auto-start home tour for new users with no tabs
   useEffect(() => {
-    if (!loading && tabs.length === 0 && !isActive) {
+    if (!loading && tabs.length === 0 && !tourAttempted.current) {
+      tourAttempted.current = true;
       const timer = setTimeout(() => start(homeTour), 1000);
       return () => clearTimeout(timer);
     }
-  }, [loading, tabs.length, isActive, start]);
+  }, [loading, tabs.length, start]);
 
   const loadTabData = useCallback(async () => {
     if (tabs.length === 0) return;

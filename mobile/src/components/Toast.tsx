@@ -10,7 +10,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
-  SlideInUp,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -100,7 +99,7 @@ function ToastCard({
 
   return (
     <Animated.View
-      entering={SlideInUp.duration(250).springify().damping(18).stiffness(200)}
+      entering={FadeIn.duration(200)}
       exiting={FadeOut.duration(200)}
       style={[styles.card, { borderTopColor: accentColor }]}
       accessibilityRole="alert"

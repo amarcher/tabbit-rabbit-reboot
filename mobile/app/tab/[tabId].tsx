@@ -137,7 +137,8 @@ export default function TabEditorScreen() {
 
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const { start, stop, isActive } = useCoachmark();
+  const { start, stop } = useCoachmark();
+  const tourAttempted = useRef(false);
   const [selectedRabbitId, setSelectedRabbitId] = useState<string | null>(null);
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -165,15 +166,17 @@ export default function TabEditorScreen() {
 
   // Auto-start editor tour once the screen loads; stop on unmount
   useEffect(() => {
-    if (!loading && tab && !isActive) {
+    if (!loading && tab && !tourAttempted.current) {
+      tourAttempted.current = true;
       const timer = setTimeout(() => start(editorTour), 1000);
       return () => clearTimeout(timer);
     }
-  }, [loading, tab, isActive, start]);
+  }, [loading, tab, start]);
 
   useEffect(() => {
     return () => { stop(); };
-  }, [stop]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   React.useEffect(() => {
     if (tab?.name) {
