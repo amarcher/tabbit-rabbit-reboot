@@ -141,8 +141,18 @@ export default function ProfileSettings({ profile, updateProfile }: ProfileSetti
                   localStorage.setItem('tabbitrabbit:language', lng);
                 }}
               >
+                <option value="de">Deutsch</option>
                 <option value="en">English</option>
                 <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="it">Italiano</option>
+                <option value="pt">Português</option>
+                <option value="vi">Tiếng Việt</option>
+                <option value="ru">Русский</option>
+                <option value="hi">हिन्दी</option>
+                <option value="zh">中文</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
               </Form.Select>
             </Form.Group>
 

@@ -26,8 +26,18 @@ import type { SavedRabbit } from '@/src/types';
 const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 const LANGUAGES = [
+  { code: 'de', name: 'Deutsch' },
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
+  { code: 'fr', name: 'Français' },
+  { code: 'it', name: 'Italiano' },
+  { code: 'pt', name: 'Português' },
+  { code: 'vi', name: 'Tiếng Việt' },
+  { code: 'ru', name: 'Русский' },
+  { code: 'hi', name: 'हिन्दी' },
+  { code: 'zh', name: '中文' },
+  { code: 'ja', name: '日本語' },
+  { code: 'ko', name: '한국어' },
 ];
 
 export default function ProfileScreen() {

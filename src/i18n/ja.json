@@ -1,0 +1,207 @@
+{
+  "nav": {
+    "myTabs": "マイタブ",
+    "profile": "プロフィール"
+  },
+  "tabList": {
+    "heading": "マイタブ",
+    "tagline": "友達と割り勘しましょう。アイテムを追加して、担当者を割り当て、支払いリクエストを送れます。",
+    "placeholderEmpty": "タブ名を入力して作成してください",
+    "placeholderDefault": "タブ名（例：金曜の夕食）",
+    "creating": "作成中...",
+    "newTab": "新しいタブ",
+    "hintCreate": "タブを作って割り勘を始めましょう。",
+    "sharing": "共有中...",
+    "shareBill": "請求書を共有",
+    "delete": "削除",
+    "deleteModal": {
+      "confirm": "{{name}}を削除しますか？",
+      "cannotUndo": "この操作は取り消せません。",
+      "cancel": "キャンセル",
+      "delete": "削除"
+    },
+    "toast": {
+      "copySuccess": "共有リンクをクリップボードにコピーしました！",
+      "shareFailed": "請求書の共有に失敗しました。もう一度お試しください。"
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "タブを読み込み中...",
+    "hintScan": "レシートをスキャンして始めましょう",
+    "hintManual": "またはアイテムを手動で入力してください",
+    "scanning": "スキャン中...",
+    "scanReceipt": "レシートをスキャン",
+    "sharing": "共有中...",
+    "copied": "コピーしました！",
+    "shareBill": "請求書を共有",
+    "assignHint": "アイテムをタップして<strong>{{name}}</strong>に割り当ててください",
+    "clickToEdit": "クリックして編集",
+    "scanError": {
+      "scanLimitReached": "今月の無料スキャン{{limit}}回をすべて使い切りました。無制限スキャンのためにプロフィールでAPIキーを追加してください。",
+      "noItemsFound": "レシートでアイテムが見つかりませんでした。もっとはっきりした写真でお試しください。",
+      "failedToProcess": "レシートの処理に失敗しました",
+      "currencyMismatch": "注意：レシートは{{detected}}のようですが、このタブは{{expected}}を使用しています。アイテムは{{expected}}として追加されました。"
+    }
+  },
+  "totals": {
+    "heading": "合計",
+    "tax": "税金 %",
+    "tip": "チップ %",
+    "taxWord": "税",
+    "tipWord": "チップ",
+    "tipLabels": {
+      "wow": "太っ腹！",
+      "generous": "気前いい！",
+      "nice": "いいね！",
+      "standard": "標準"
+    },
+    "subtotal": "小計",
+    "taxWithPercent": "税金（{{percent}}%）",
+    "tipWithPercent": "チップ（{{percent}}%）",
+    "grandTotal": "合計金額",
+    "unassignedWarning_one": "{{count}}件のアイテムがまだ誰にも割り当てられていません。",
+    "unassignedWarning_other": "{{count}}件のアイテムがまだ誰にも割り当てられていません。",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} 税 + {{tip}} チップ",
+    "requestViaVenmo": "Venmoでリクエスト",
+    "venmoModal": {
+      "title": "Venmoで{{name}}にリクエスト",
+      "usernameLabel": "Venmoユーザー名",
+      "usernamePlaceholder": "ユーザー名",
+      "cancel": "キャンセル",
+      "sendRequest": "リクエストを送る"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ 人を追加",
+    "remove": "削除",
+    "removeConfirm": "{{name}}を削除しますか？"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "アイテム名",
+    "pricePlaceholder": "$0.00",
+    "addButton": "追加"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "アイテムを削除"
+  },
+  "addRabbitModal": {
+    "title": "人を追加",
+    "savedRabbits": "保存済みラビット",
+    "orAddNew": "または新しく追加",
+    "nameLabel": "名前",
+    "namePlaceholder": "例：太郎",
+    "colorLabel": "カラー：",
+    "addPaymentInfo": "+ 支払い情報を追加",
+    "paymentInfoLabel": "支払い情報（任意）",
+    "paymentHintSave": "支払い情報を追加すると、このラビットが今後のタブに保存されます。",
+    "venmoPlaeholder": "Venmoユーザー名",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "PayPalユーザー名",
+    "cancel": "キャンセル",
+    "add": "追加"
+  },
+  "profile": {
+    "title": "プロフィール設定",
+    "savedSuccess": "プロフィールを保存しました！",
+    "displayNameLabel": "表示名",
+    "displayNamePlaceholder": "お名前",
+    "paymentHint": "請求書を共有したときに支払いを受け取れるよう、支払いユーザー名を設定してください。",
+    "venmoLabel": "Venmoユーザー名",
+    "venmoPlaceholder": "例：taro-yamada-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "例：taroyamada",
+    "paypalLabel": "PayPalユーザー名",
+    "paypalPlaceholder": "例：taroyamada",
+    "defaultCurrencyLabel": "デフォルト通貨",
+    "currencyHint": "新しいタブはこの通貨をデフォルトで使用します。",
+    "languageLabel": "言語",
+    "saving": "保存中...",
+    "saveProfile": "プロフィールを保存",
+    "savedRabbits": {
+      "heading": "保存済みラビット",
+      "empty": "まだ保存済みラビットがいません。タブに誰かを追加する際に支払い情報を入力するとここに表示されます。",
+      "namePlaceholder": "名前",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "username",
+      "save": "保存",
+      "cancel": "キャンセル",
+      "edit": "編集",
+      "remove": "削除",
+      "removeConfirm": "保存済みラビットから{{name}}を削除しますか？"
+    },
+    "advanced": {
+      "heading": "詳細設定",
+      "freeScansRemaining": "今月の無料スキャン{{limit}}回中、残り{{remaining}}回です。",
+      "apiKeyLabel": "Anthropic APIキー",
+      "usingOwnKey": "自分のキーを使用中 — 無制限スキャン。",
+      "removeKey": "削除",
+      "saveApiKey": "APIキーを保存",
+      "apiKeyHint": "自分のAPIキーを使うと無制限にスキャンできます。ブラウザにのみ保存されます。",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "console.anthropic.comでキーを取得してください"
+    }
+  },
+  "nux": {
+    "skipTour": "ツアーをスキップ",
+    "gotIt": "わかりました",
+    "stepOf": "{{current}} / {{total}}",
+    "steps": {
+      "createTab": "タブに名前をつけて**新しいタブ**を押して割り勘を始めましょう！",
+      "scanReceipt": "レシートを撮影するとアイテムが自動でインポートされます",
+      "addItemManually": "またはアイテムを手動で入力してください",
+      "addRabbit": "この請求を分担する人を追加してください。Venmo、Cash App、PayPalも登録できます！",
+      "assignItems": "上で人を選んでから、そのアイテムをタップしてください。",
+      "taxTip": "税金とチップを調整してください — それぞれの負担割合に比例して適用されます。",
+      "profile": "支払いアカウントをプロフィールに設定して、支払いリクエストの送信や請求書の共有ができます。"
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "請求書を読み込み中...",
+    "billNotFound": "請求書が見つかりません",
+    "goToApp": "Tabbit Rabbitへ",
+    "sharedBy": "{{name}}が共有しました",
+    "whatEachPersonOwes": "各人の支払い金額",
+    "subtotal": "小計",
+    "taxWithPercent": "税金（{{percent}}%）",
+    "tipWithPercent": "チップ（{{percent}}%）",
+    "grandTotal": "合計金額",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} 税 + {{tip}} チップ",
+    "cta": {
+      "tagline": "友達と割り勘しましょう",
+      "tryApp": "Tabbit Rabbitを試してみる"
+    }
+  },
+  "layout": {
+    "scrollToTop": "トップへスクロール",
+    "backToTop": "トップへ戻る"
+  },
+  "voiceAssignment": {
+    "title": "音声割り当て",
+    "buttonLabel": "割り当て",
+    "instructions": "誰が何を注文したか話してください — 例：「太郎がスープとサンドイッチ半分、花子がサラダ。」",
+    "tapToSpeak": "タップして話す",
+    "listening": "聞いています...",
+    "processTranscript": "処理",
+    "or": "または",
+    "textFallbackLabel": "またはテキストで入力",
+    "textInputLabel": "誰が何を注文したか入力してください",
+    "textPlaceholder": "例：太郎がスープ、花子がサラダ",
+    "processText": "処理",
+    "processing": "アイテムと人を照合中...",
+    "reviewAssignments": "提案された割り当てを確認してください：",
+    "shareLabel": "割合：{{share}}",
+    "noAssignmentsFound": "割り当てが一致しませんでした。別の表現でもう一度お試しください。",
+    "tryAgain": "もう一度試す",
+    "apply": "{{count}}件の割り当てを適用",
+    "cancel": "キャンセル",
+    "scanLimitReached": "今月の無料AI機能{{limit}}回をすべて使い切りました。無制限利用のためにプロフィールでAPIキーを追加してください。",
+    "processingFailed": "音声割り当ての処理に失敗しました"
+  },
+  "common": {
+    "loading": "読み込み中",
+    "loadingTabs": "タブを読み込み中",
+    "loadingItems": "アイテムを読み込み中",
+    "moreOptions": "その他のオプション"
+  }
+}

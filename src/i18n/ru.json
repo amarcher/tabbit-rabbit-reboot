@@ -1,0 +1,209 @@
+{
+  "nav": {
+    "myTabs": "Мои счета",
+    "profile": "Профиль"
+  },
+  "tabList": {
+    "heading": "Мои счета",
+    "tagline": "Делите счета с друзьями. Добавляй позиции, назначай людей и отправляй запросы на оплату.",
+    "placeholderEmpty": "Введи название счёта, чтобы создать его",
+    "placeholderDefault": "Название счёта (напр. Пятничный ужин)",
+    "creating": "Создаём...",
+    "newTab": "Новый счёт",
+    "hintCreate": "Создай счёт, чтобы начать делить.",
+    "sharing": "Отправляем...",
+    "shareBill": "Поделиться счётом",
+    "delete": "Удалить",
+    "deleteModal": {
+      "confirm": "Удалить {{name}}?",
+      "cannotUndo": "Это действие нельзя отменить.",
+      "cancel": "Отмена",
+      "delete": "Удалить"
+    },
+    "toast": {
+      "copySuccess": "Ссылка скопирована в буфер обмена!",
+      "shareFailed": "Не удалось поделиться счётом. Попробуй снова."
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "Загружаем счёт...",
+    "hintScan": "Отсканируй чек, чтобы начать",
+    "hintManual": "Или добавь позиции вручную",
+    "scanning": "Сканируем...",
+    "scanReceipt": "Сканировать чек",
+    "sharing": "Отправляем...",
+    "copied": "Скопировано!",
+    "shareBill": "Поделиться счётом",
+    "assignHint": "Нажми на позиции, чтобы назначить их <strong>{{name}}</strong>",
+    "clickToEdit": "Нажми для редактирования",
+    "scanError": {
+      "scanLimitReached": "Ты использовал все {{limit}} бесплатных сканирований этого месяца. Добавь свой API-ключ в Профиле для безлимитных сканирований.",
+      "noItemsFound": "Позиции в чеке не найдены. Попробуй более чёткое фото.",
+      "failedToProcess": "Не удалось обработать чек",
+      "currencyMismatch": "Примечание: чек, по всей видимости, в {{detected}}, но этот счёт использует {{expected}}. Позиции добавлены как {{expected}}."
+    }
+  },
+  "totals": {
+    "heading": "Итого",
+    "tax": "Налог %",
+    "tip": "Чаевые %",
+    "taxWord": "налог",
+    "tipWord": "чаевые",
+    "tipLabels": {
+      "wow": "Вау!",
+      "generous": "Щедро!",
+      "nice": "Хорошо!",
+      "standard": "Стандарт"
+    },
+    "subtotal": "Сумма",
+    "taxWithPercent": "Налог ({{percent}}%)",
+    "tipWithPercent": "Чаевые ({{percent}}%)",
+    "grandTotal": "Итог",
+    "unassignedWarning_one": "{{count}} позиция ещё не назначена никому.",
+    "unassignedWarning_few": "{{count}} позиции ещё не назначены никому.",
+    "unassignedWarning_many": "{{count}} позиций ещё не назначено никому.",
+    "unassignedWarning_other": "{{count}} позиций ещё не назначено никому.",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} налог + {{tip}} чаев.",
+    "requestViaVenmo": "Запросить через Venmo",
+    "venmoModal": {
+      "title": "Запрос к {{name}} через Venmo",
+      "usernameLabel": "Имя пользователя Venmo",
+      "usernamePlaceholder": "имя пользователя",
+      "cancel": "Отмена",
+      "sendRequest": "Отправить запрос"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ Добавить человека",
+    "remove": "Удалить",
+    "removeConfirm": "Удалить {{name}}?"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "Название позиции",
+    "pricePlaceholder": "$0.00",
+    "addButton": "Добавить"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "Удалить позицию"
+  },
+  "addRabbitModal": {
+    "title": "Добавить человека",
+    "savedRabbits": "Сохранённые",
+    "orAddNew": "или добавить нового",
+    "nameLabel": "Имя",
+    "namePlaceholder": "напр. Алексей",
+    "colorLabel": "Цвет:",
+    "addPaymentInfo": "+ Добавить платёжные данные",
+    "paymentInfoLabel": "Платёжные данные (необязательно)",
+    "paymentHintSave": "Добавление платёжных данных сохраняет этого человека для будущих счётов.",
+    "venmoPlaeholder": "Имя пользователя Venmo",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "Имя пользователя PayPal",
+    "cancel": "Отмена",
+    "add": "Добавить"
+  },
+  "profile": {
+    "title": "Настройки профиля",
+    "savedSuccess": "Профиль сохранён!",
+    "displayNameLabel": "Отображаемое имя",
+    "displayNamePlaceholder": "Твоё имя",
+    "paymentHint": "Укажи свои платёжные данные, чтобы люди могли платить тебе при совместном счёте.",
+    "venmoLabel": "Имя пользователя Venmo",
+    "venmoPlaceholder": "напр. ivan-petrov-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "напр. ivanpetrov",
+    "paypalLabel": "Имя пользователя PayPal",
+    "paypalPlaceholder": "напр. ivanpetrov",
+    "defaultCurrencyLabel": "Валюта по умолчанию",
+    "currencyHint": "Новые счета будут использовать эту валюту по умолчанию.",
+    "languageLabel": "Язык",
+    "saving": "Сохраняем...",
+    "saveProfile": "Сохранить профиль",
+    "savedRabbits": {
+      "heading": "Сохранённые",
+      "empty": "Пока никого нет. Добавь платёжные данные при добавлении человека — и они появятся здесь.",
+      "namePlaceholder": "Имя",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "username",
+      "save": "Сохранить",
+      "cancel": "Отмена",
+      "edit": "Редактировать",
+      "remove": "Удалить",
+      "removeConfirm": "Удалить {{name}} из сохранённых?"
+    },
+    "advanced": {
+      "heading": "Дополнительно",
+      "freeScansRemaining": "{{remaining}} из {{limit}} бесплатных сканирований осталось в этом месяце.",
+      "apiKeyLabel": "API-ключ Anthropic",
+      "usingOwnKey": "Используется твой ключ — безлимитные сканирования.",
+      "removeKey": "Удалить",
+      "saveApiKey": "Сохранить API-ключ",
+      "apiKeyHint": "Используй свой API-ключ для безлимитных сканирований. Хранится только в твоём браузере.",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "Получи ключ на console.anthropic.com"
+    }
+  },
+  "nux": {
+    "skipTour": "Пропустить тур",
+    "gotIt": "Понятно",
+    "stepOf": "{{current}} из {{total}}",
+    "steps": {
+      "createTab": "Дай название своему счёту и нажми **Новый счёт**, чтобы начать делить!",
+      "scanReceipt": "Сфотографируй чек, чтобы автоматически импортировать позиции",
+      "addItemManually": "Или введи позиции вручную",
+      "addRabbit": "Добавь людей, которые делят этот счёт. Можно указать их Venmo, Cash App или PayPal!",
+      "assignItems": "Нажми на человека выше, затем на его позиции.",
+      "taxTip": "Настрой налог и чаевые — они применяются пропорционально доле каждого.",
+      "profile": "Настрой профиль с платёжными данными, чтобы отправлять запросы и делиться счётами."
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "Загружаем счёт...",
+    "billNotFound": "Счёт не найден",
+    "goToApp": "Перейти в Tabbit Rabbit",
+    "sharedBy": "Поделился(ась) {{name}}",
+    "whatEachPersonOwes": "Сколько должен каждый",
+    "subtotal": "Сумма",
+    "taxWithPercent": "Налог ({{percent}}%)",
+    "tipWithPercent": "Чаевые ({{percent}}%)",
+    "grandTotal": "Итог",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} налог + {{tip}} чаев.",
+    "cta": {
+      "tagline": "Делите счета с друзьями",
+      "tryApp": "Попробовать Tabbit Rabbit"
+    }
+  },
+  "layout": {
+    "scrollToTop": "Наверх",
+    "backToTop": "Вернуться наверх"
+  },
+  "voiceAssignment": {
+    "title": "Голосовое назначение",
+    "buttonLabel": "Назначить",
+    "instructions": "Скажи, кто что заказал — напр. «Алексей взял суп и половину сэндвича, Маша взяла салат».",
+    "tapToSpeak": "Нажми, чтобы говорить",
+    "listening": "Слушаем...",
+    "processTranscript": "Обработать",
+    "or": "или",
+    "textFallbackLabel": "Или напиши",
+    "textInputLabel": "Напиши, кто что заказал",
+    "textPlaceholder": "напр. Алексей взял суп, Маша взяла салат",
+    "processText": "Обработать",
+    "processing": "Сопоставляем позиции и людей...",
+    "reviewAssignments": "Проверь предложенные назначения:",
+    "shareLabel": "доля: {{share}}",
+    "noAssignmentsFound": "Не удалось сопоставить назначения. Попробуй сформулировать иначе.",
+    "tryAgain": "Попробовать снова",
+    "apply": "Применить {{count}} назначений",
+    "cancel": "Отмена",
+    "scanLimitReached": "Ты использовал все {{limit}} бесплатных действий ИИ в этом месяце. Добавь свой API-ключ в Профиле для безлимитного использования.",
+    "processingFailed": "Не удалось обработать голосовое назначение"
+  },
+  "common": {
+    "loading": "Загрузка",
+    "loadingTabs": "Загружаем счета",
+    "loadingItems": "Загружаем позиции",
+    "moreOptions": "Ещё варианты"
+  }
+}

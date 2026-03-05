@@ -4,9 +4,19 @@ import { getLocales } from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import en from './en.json';
 import es from './es.json';
+import hi from './hi.json';
+import pt from './pt.json';
+import ko from './ko.json';
+import ja from './ja.json';
+import zh from './zh.json';
+import de from './de.json';
+import ru from './ru.json';
+import fr from './fr.json';
+import it from './it.json';
+import vi from './vi.json';
 
 const LANGUAGE_KEY = 'tabbitrabbit:language';
-const SUPPORTED_LANGS = ['en', 'es'];
+const SUPPORTED_LANGS = ['en', 'es', 'hi', 'pt', 'ko', 'ja', 'zh', 'de', 'ru', 'fr', 'it', 'vi'];
 
 // Use synchronous device locale as initial default (avoids flash of English)
 const deviceLang = getLocales()[0]?.languageCode || 'en';
@@ -20,7 +30,14 @@ AsyncStorage.getItem(LANGUAGE_KEY).then((stored) => {
 }).catch(() => {});
 
 i18n.use(initReactI18next).init({
-  resources: { en: { translation: en }, es: { translation: es } },
+  resources: {
+    en: { translation: en }, es: { translation: es },
+    hi: { translation: hi }, pt: { translation: pt },
+    ko: { translation: ko }, ja: { translation: ja },
+    zh: { translation: zh }, de: { translation: de },
+    ru: { translation: ru }, fr: { translation: fr },
+    it: { translation: it }, vi: { translation: vi },
+  },
   supportedLngs: SUPPORTED_LANGS,
   lng: syncDefault,
   fallbackLng: 'en',

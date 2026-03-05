@@ -1,0 +1,207 @@
+{
+  "nav": {
+    "myTabs": "Hóa Đơn Của Tôi",
+    "profile": "Hồ Sơ"
+  },
+  "tabList": {
+    "heading": "Hóa Đơn Của Tôi",
+    "tagline": "Chia hóa đơn với bạn bè. Thêm món, phân công người trả và gửi yêu cầu thanh toán.",
+    "placeholderEmpty": "Nhập tên để tạo hóa đơn",
+    "placeholderDefault": "Tên hóa đơn (VD: Tối thứ Sáu)",
+    "creating": "Đang tạo...",
+    "newTab": "Hóa Đơn Mới",
+    "hintCreate": "Tạo một hóa đơn để bắt đầu chia tiền.",
+    "sharing": "Đang chia sẻ...",
+    "shareBill": "Chia Sẻ Hóa Đơn",
+    "delete": "Xóa",
+    "deleteModal": {
+      "confirm": "Xóa {{name}}?",
+      "cannotUndo": "Không thể hoàn tác.",
+      "cancel": "Hủy",
+      "delete": "Xóa"
+    },
+    "toast": {
+      "copySuccess": "Đã sao chép link vào clipboard!",
+      "shareFailed": "Chia sẻ thất bại. Vui lòng thử lại."
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "Đang tải hóa đơn...",
+    "hintScan": "Quét hóa đơn để bắt đầu",
+    "hintManual": "Hoặc nhập món thủ công",
+    "scanning": "Đang quét...",
+    "scanReceipt": "Quét Hóa Đơn",
+    "sharing": "Đang chia sẻ...",
+    "copied": "Đã sao chép!",
+    "shareBill": "Chia Sẻ Hóa Đơn",
+    "assignHint": "Chạm vào món để gán cho <strong>{{name}}</strong>",
+    "clickToEdit": "Nhấn để chỉnh sửa",
+    "scanError": {
+      "scanLimitReached": "Bạn đã dùng hết {{limit}} lần quét miễn phí tháng này. Thêm API key của bạn trong Hồ Sơ để quét không giới hạn.",
+      "noItemsFound": "Không tìm thấy món nào trong hóa đơn. Hãy thử chụp rõ hơn.",
+      "failedToProcess": "Xử lý hóa đơn thất bại",
+      "currencyMismatch": "Lưu ý: Hóa đơn có vẻ dùng {{detected}}, nhưng tab này dùng {{expected}}. Các món đã được thêm theo {{expected}}."
+    }
+  },
+  "totals": {
+    "heading": "Tổng Cộng",
+    "tax": "Thuế %",
+    "tip": "Tiền Tip %",
+    "taxWord": "thuế",
+    "tipWord": "tip",
+    "tipLabels": {
+      "wow": "Quá hào phóng!",
+      "generous": "Hào phóng!",
+      "nice": "Tốt đấy!",
+      "standard": "Tiêu chuẩn"
+    },
+    "subtotal": "Tạm tính",
+    "taxWithPercent": "Thuế ({{percent}}%)",
+    "tipWithPercent": "Tip ({{percent}}%)",
+    "grandTotal": "Tổng Cộng",
+    "unassignedWarning_one": "{{count}} món chưa được gán cho ai.",
+    "unassignedWarning_other": "{{count}} món chưa được gán cho ai.",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} thuế + {{tip}} tip",
+    "requestViaVenmo": "Yêu cầu qua Venmo",
+    "venmoModal": {
+      "title": "Yêu cầu {{name}} thanh toán qua Venmo",
+      "usernameLabel": "Tên người dùng Venmo",
+      "usernamePlaceholder": "username",
+      "cancel": "Hủy",
+      "sendRequest": "Gửi Yêu Cầu"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ Thêm Người",
+    "remove": "Xóa",
+    "removeConfirm": "Xóa {{name}}?"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "Tên món",
+    "pricePlaceholder": "$0.00",
+    "addButton": "Thêm"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "Xóa món"
+  },
+  "addRabbitModal": {
+    "title": "Thêm Người",
+    "savedRabbits": "Người Đã Lưu",
+    "orAddNew": "hoặc thêm mới",
+    "nameLabel": "Tên",
+    "namePlaceholder": "VD: Minh",
+    "colorLabel": "Màu:",
+    "addPaymentInfo": "+ Thêm thông tin thanh toán",
+    "paymentInfoLabel": "Thông Tin Thanh Toán (tùy chọn)",
+    "paymentHintSave": "Thêm thông tin thanh toán sẽ lưu người này cho các hóa đơn sau.",
+    "venmoPlaeholder": "Tên người dùng Venmo",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "Tên người dùng PayPal",
+    "cancel": "Hủy",
+    "add": "Thêm"
+  },
+  "profile": {
+    "title": "Cài Đặt Hồ Sơ",
+    "savedSuccess": "Đã lưu hồ sơ!",
+    "displayNameLabel": "Tên Hiển Thị",
+    "displayNamePlaceholder": "Tên của bạn",
+    "paymentHint": "Thiết lập thông tin thanh toán để mọi người có thể trả tiền cho bạn khi chia sẻ hóa đơn.",
+    "venmoLabel": "Tên người dùng Venmo",
+    "venmoPlaceholder": "VD: nguyen-minh-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "VD: nguyenminh",
+    "paypalLabel": "Tên người dùng PayPal",
+    "paypalPlaceholder": "VD: nguyenminh",
+    "defaultCurrencyLabel": "Tiền Tệ Mặc Định",
+    "currencyHint": "Các hóa đơn mới sẽ dùng tiền tệ này theo mặc định.",
+    "languageLabel": "Ngôn ngữ",
+    "saving": "Đang lưu...",
+    "saveProfile": "Lưu Hồ Sơ",
+    "savedRabbits": {
+      "heading": "Người Đã Lưu",
+      "empty": "Chưa có người nào được lưu. Thêm thông tin thanh toán khi thêm ai đó vào hóa đơn và họ sẽ xuất hiện ở đây.",
+      "namePlaceholder": "Tên",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "username",
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "edit": "Sửa",
+      "remove": "Xóa",
+      "removeConfirm": "Xóa {{name}} khỏi danh sách đã lưu?"
+    },
+    "advanced": {
+      "heading": "Nâng Cao",
+      "freeScansRemaining": "Còn {{remaining}} / {{limit}} lần quét miễn phí tháng này.",
+      "apiKeyLabel": "API Key Anthropic",
+      "usingOwnKey": "Đang dùng key của bạn — quét không giới hạn.",
+      "removeKey": "Xóa",
+      "saveApiKey": "Lưu API Key",
+      "apiKeyHint": "Dùng API key của bạn để quét không giới hạn. Chỉ lưu trong trình duyệt của bạn.",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "Lấy key tại console.anthropic.com"
+    }
+  },
+  "nux": {
+    "skipTour": "Bỏ qua hướng dẫn",
+    "gotIt": "Hiểu rồi",
+    "stepOf": "{{current}} / {{total}}",
+    "steps": {
+      "createTab": "Đặt tên cho hóa đơn và nhấn **Hóa Đơn Mới** để bắt đầu chia tiền!",
+      "scanReceipt": "Chụp ảnh hóa đơn để tự động nhập các món",
+      "addItemManually": "Hoặc nhập thủ công từng món",
+      "addRabbit": "Thêm những người chia hóa đơn. Bạn có thể thêm cả Venmo, Cash App hoặc PayPal của họ!",
+      "assignItems": "Nhấn vào người phía trên, rồi chạm vào món của họ.",
+      "taxTip": "Điều chỉnh thuế và tip — sẽ được tính theo tỷ lệ cho từng người.",
+      "profile": "Thiết lập hồ sơ với thông tin thanh toán để gửi yêu cầu và chia sẻ hóa đơn."
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "Đang tải hóa đơn...",
+    "billNotFound": "Không tìm thấy hóa đơn",
+    "goToApp": "Đến Tabbit Rabbit",
+    "sharedBy": "Được chia sẻ bởi {{name}}",
+    "whatEachPersonOwes": "Mỗi người cần trả bao nhiêu",
+    "subtotal": "Tạm tính",
+    "taxWithPercent": "Thuế ({{percent}}%)",
+    "tipWithPercent": "Tip ({{percent}}%)",
+    "grandTotal": "Tổng Cộng",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} thuế + {{tip}} tip",
+    "cta": {
+      "tagline": "Chia hóa đơn với bạn bè",
+      "tryApp": "Thử Tabbit Rabbit"
+    }
+  },
+  "layout": {
+    "scrollToTop": "Lên đầu trang",
+    "backToTop": "Trở về đầu trang"
+  },
+  "voiceAssignment": {
+    "title": "Phân Công Bằng Giọng Nói",
+    "buttonLabel": "Phân Công",
+    "instructions": "Nói ai đã gọi món gì — VD: \"Minh gọi súp và nửa cái bánh mì, Lan gọi salad.\"",
+    "tapToSpeak": "Chạm để nói",
+    "listening": "Đang nghe...",
+    "processTranscript": "Xử lý",
+    "or": "hoặc",
+    "textFallbackLabel": "Hoặc gõ vào",
+    "textInputLabel": "Gõ ai gọi món gì",
+    "textPlaceholder": "VD: Minh gọi súp, Lan gọi salad",
+    "processText": "Xử lý",
+    "processing": "Đang ghép món và người...",
+    "reviewAssignments": "Kiểm tra các phân công đề xuất:",
+    "shareLabel": "phần: {{share}}",
+    "noAssignmentsFound": "Không thể ghép được phân công nào. Hãy thử diễn đạt khác.",
+    "tryAgain": "Thử Lại",
+    "apply": "Áp dụng {{count}} phân công",
+    "cancel": "Hủy",
+    "scanLimitReached": "Bạn đã dùng hết {{limit}} lần dùng AI miễn phí tháng này. Thêm API key của bạn trong Hồ Sơ để dùng không giới hạn.",
+    "processingFailed": "Xử lý phân công giọng nói thất bại"
+  },
+  "common": {
+    "loading": "Đang tải",
+    "loadingTabs": "Đang tải hóa đơn",
+    "loadingItems": "Đang tải món",
+    "moreOptions": "Thêm tùy chọn"
+  }
+}

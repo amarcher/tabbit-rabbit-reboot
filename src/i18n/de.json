@@ -1,0 +1,207 @@
+{
+  "nav": {
+    "myTabs": "Meine Tabs",
+    "profile": "Profil"
+  },
+  "tabList": {
+    "heading": "Meine Tabs",
+    "tagline": "Rechnung mit Freunden aufteilen. Artikel hinzufügen, Personen zuweisen und Zahlungsanfragen senden.",
+    "placeholderEmpty": "Tab-Namen eingeben, um einen zu erstellen",
+    "placeholderDefault": "Neuer Tab-Name (z.B. Freitagabend-Essen)",
+    "creating": "Wird erstellt...",
+    "newTab": "Neuer Tab",
+    "hintCreate": "Erstelle einen Tab, um eine Rechnung aufzuteilen.",
+    "sharing": "Wird geteilt...",
+    "shareBill": "Rechnung teilen",
+    "delete": "Löschen",
+    "deleteModal": {
+      "confirm": "{{name}} löschen?",
+      "cannotUndo": "Das kann nicht rückgängig gemacht werden.",
+      "cancel": "Abbrechen",
+      "delete": "Löschen"
+    },
+    "toast": {
+      "copySuccess": "Link in die Zwischenablage kopiert!",
+      "shareFailed": "Rechnung konnte nicht geteilt werden. Bitte versuche es erneut."
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "Tab wird geladen...",
+    "hintScan": "Scanne einen Beleg, um loszulegen",
+    "hintManual": "Oder Artikel manuell eingeben",
+    "scanning": "Wird gescannt...",
+    "scanReceipt": "Beleg scannen",
+    "sharing": "Wird geteilt...",
+    "copied": "Kopiert!",
+    "shareBill": "Rechnung teilen",
+    "assignHint": "Artikel antippen, um sie <strong>{{name}}</strong> zuzuweisen",
+    "clickToEdit": "Zum Bearbeiten klicken",
+    "scanError": {
+      "scanLimitReached": "Du hast alle {{limit}} kostenlosen Scans diesen Monat verbraucht. Füge deinen eigenen API-Schlüssel im Profil hinzu, um unbegrenzt zu scannen.",
+      "noItemsFound": "Keine Artikel im Beleg gefunden. Versuche ein klareres Foto.",
+      "failedToProcess": "Beleg konnte nicht verarbeitet werden",
+      "currencyMismatch": "Hinweis: Der Beleg scheint in {{detected}} zu sein, aber dieser Tab verwendet {{expected}}. Artikel wurden als {{expected}} hinzugefügt."
+    }
+  },
+  "totals": {
+    "heading": "Gesamt",
+    "tax": "Steuer %",
+    "tip": "Trinkgeld %",
+    "taxWord": "Steuer",
+    "tipWord": "Trinkgeld",
+    "tipLabels": {
+      "wow": "Mega großzügig!",
+      "generous": "Sehr großzügig!",
+      "nice": "Super!",
+      "standard": "Standard"
+    },
+    "subtotal": "Zwischensumme",
+    "taxWithPercent": "Steuer ({{percent}}%)",
+    "tipWithPercent": "Trinkgeld ({{percent}}%)",
+    "grandTotal": "Gesamtsumme",
+    "unassignedWarning_one": "{{count}} Artikel noch niemandem zugewiesen.",
+    "unassignedWarning_other": "{{count}} Artikel noch niemandem zugewiesen.",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} Steuer + {{tip}} Trinkgeld",
+    "requestViaVenmo": "Per Venmo anfragen",
+    "venmoModal": {
+      "title": "Von {{name}} per Venmo anfragen",
+      "usernameLabel": "Venmo-Benutzername",
+      "usernamePlaceholder": "Benutzername",
+      "cancel": "Abbrechen",
+      "sendRequest": "Anfrage senden"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ Person hinzufügen",
+    "remove": "Entfernen",
+    "removeConfirm": "{{name}} entfernen?"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "Artikelname",
+    "pricePlaceholder": "$0.00",
+    "addButton": "Hinzufügen"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "Artikel löschen"
+  },
+  "addRabbitModal": {
+    "title": "Person hinzufügen",
+    "savedRabbits": "Gespeicherte Personen",
+    "orAddNew": "oder neu hinzufügen",
+    "nameLabel": "Name",
+    "namePlaceholder": "z.B. Max",
+    "colorLabel": "Farbe:",
+    "addPaymentInfo": "+ Zahlungsinfo hinzufügen",
+    "paymentInfoLabel": "Zahlungsinfo (optional)",
+    "paymentHintSave": "Mit Zahlungsinfo wird diese Person für spätere Tabs gespeichert.",
+    "venmoPlaeholder": "Venmo-Benutzername",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "PayPal-Benutzername",
+    "cancel": "Abbrechen",
+    "add": "Hinzufügen"
+  },
+  "profile": {
+    "title": "Profileinstellungen",
+    "savedSuccess": "Profil gespeichert!",
+    "displayNameLabel": "Anzeigename",
+    "displayNamePlaceholder": "Dein Name",
+    "paymentHint": "Gib deine Zahlungs-Benutzernamen ein, damit andere dich bezahlen können, wenn du eine Rechnung teilst.",
+    "venmoLabel": "Venmo-Benutzername",
+    "venmoPlaceholder": "z.B. max-mustermann-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "z.B. maxmustermann",
+    "paypalLabel": "PayPal-Benutzername",
+    "paypalPlaceholder": "z.B. maxmustermann",
+    "defaultCurrencyLabel": "Standardwährung",
+    "currencyHint": "Neue Tabs verwenden standardmäßig diese Währung.",
+    "languageLabel": "Sprache",
+    "saving": "Wird gespeichert...",
+    "saveProfile": "Profil speichern",
+    "savedRabbits": {
+      "heading": "Gespeicherte Personen",
+      "empty": "Noch keine gespeicherten Personen. Füge Zahlungsinfo hinzu, wenn du jemanden zu einem Tab hinzufügst, und sie erscheinen hier.",
+      "namePlaceholder": "Name",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "Benutzername",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "edit": "Bearbeiten",
+      "remove": "Entfernen",
+      "removeConfirm": "{{name}} aus den gespeicherten Personen entfernen?"
+    },
+    "advanced": {
+      "heading": "Erweitert",
+      "freeScansRemaining": "{{remaining}} von {{limit}} kostenlosen Scans diesen Monat verbleibend.",
+      "apiKeyLabel": "Anthropic API-Schlüssel",
+      "usingOwnKey": "Du verwendest deinen eigenen Schlüssel — unbegrenzte Scans.",
+      "removeKey": "Entfernen",
+      "saveApiKey": "API-Schlüssel speichern",
+      "apiKeyHint": "Verwende deinen eigenen API-Schlüssel für unbegrenzte Scans. Wird nur in deinem Browser gespeichert.",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "Hol dir einen Schlüssel unter console.anthropic.com"
+    }
+  },
+  "nux": {
+    "skipTour": "Tour überspringen",
+    "gotIt": "Verstanden",
+    "stepOf": "{{current}} von {{total}}",
+    "steps": {
+      "createTab": "Gib deinem Tab einen Namen und klicke auf **Neuer Tab**, um eine Rechnung aufzuteilen!",
+      "scanReceipt": "Mach ein Foto von deinem Beleg, um Artikel automatisch zu importieren",
+      "addItemManually": "Oder Artikel manuell eingeben",
+      "addRabbit": "Füge die Personen hinzu, die die Rechnung teilen. Du kannst auch deren Venmo, Cash App oder PayPal angeben!",
+      "assignItems": "Klicke oben auf eine Person und dann auf ihre Artikel.",
+      "taxTip": "Steuer und Trinkgeld anpassen — sie werden proportional auf jeden aufgeteilt.",
+      "profile": "Richte dein Profil mit Zahlungskonten ein, um Zahlungsanfragen zu senden und Rechnungen zu teilen."
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "Rechnung wird geladen...",
+    "billNotFound": "Rechnung nicht gefunden",
+    "goToApp": "Zu Tabbit Rabbit",
+    "sharedBy": "Geteilt von {{name}}",
+    "whatEachPersonOwes": "Was jede Person schuldet",
+    "subtotal": "Zwischensumme",
+    "taxWithPercent": "Steuer ({{percent}}%)",
+    "tipWithPercent": "Trinkgeld ({{percent}}%)",
+    "grandTotal": "Gesamtsumme",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} Steuer + {{tip}} Trinkgeld",
+    "cta": {
+      "tagline": "Rechnung mit Freunden aufteilen",
+      "tryApp": "Tabbit Rabbit ausprobieren"
+    }
+  },
+  "layout": {
+    "scrollToTop": "Nach oben scrollen",
+    "backToTop": "Zurück nach oben"
+  },
+  "voiceAssignment": {
+    "title": "Sprachzuweisung",
+    "buttonLabel": "Zuweisen",
+    "instructions": "Sag, wer was hatte — z.B. \"Max hatte die Suppe und die halbe Sandwich, Lisa hatte den Salat.\"",
+    "tapToSpeak": "Tippe zum Sprechen",
+    "listening": "Höre zu...",
+    "processTranscript": "Verarbeiten",
+    "or": "oder",
+    "textFallbackLabel": "Oder eintippen",
+    "textInputLabel": "Eintippen, wer was hatte",
+    "textPlaceholder": "z.B. Max hatte die Suppe, Lisa hatte den Salat",
+    "processText": "Verarbeiten",
+    "processing": "Artikel und Personen werden zugeordnet...",
+    "reviewAssignments": "Vorgeschlagene Zuweisungen prüfen:",
+    "shareLabel": "Anteil: {{share}}",
+    "noAssignmentsFound": "Keine Zuweisungen konnten gefunden werden. Versuche es mit anderen Worten.",
+    "tryAgain": "Erneut versuchen",
+    "apply": "{{count}} Zuweisungen übernehmen",
+    "cancel": "Abbrechen",
+    "scanLimitReached": "Du hast alle {{limit}} kostenlosen KI-Aktionen diesen Monat verbraucht. Füge deinen eigenen API-Schlüssel im Profil hinzu, um unbegrenzt zu verwenden.",
+    "processingFailed": "Sprachzuweisung konnte nicht verarbeitet werden"
+  },
+  "common": {
+    "loading": "Laden",
+    "loadingTabs": "Tabs werden geladen",
+    "loadingItems": "Artikel werden geladen",
+    "moreOptions": "Weitere Optionen"
+  }
+}

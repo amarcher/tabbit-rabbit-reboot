@@ -1,0 +1,207 @@
+{
+  "nav": {
+    "myTabs": "Minhas Contas",
+    "profile": "Perfil"
+  },
+  "tabList": {
+    "heading": "Minhas Contas",
+    "tagline": "Divida contas com amigos. Adicione itens, atribua pessoas e envie solicitações de pagamento.",
+    "placeholderEmpty": "Digite um nome para criar uma conta",
+    "placeholderDefault": "Nome da conta (ex. Jantar de sexta)",
+    "creating": "Criando...",
+    "newTab": "Nova Conta",
+    "hintCreate": "Crie uma conta para começar a dividir.",
+    "sharing": "Compartilhando...",
+    "shareBill": "Compartilhar Conta",
+    "delete": "Excluir",
+    "deleteModal": {
+      "confirm": "Excluir {{name}}?",
+      "cannotUndo": "Isso não pode ser desfeito.",
+      "cancel": "Cancelar",
+      "delete": "Excluir"
+    },
+    "toast": {
+      "copySuccess": "Link copiado para a área de transferência!",
+      "shareFailed": "Falha ao compartilhar a conta. Tente novamente."
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "Carregando conta...",
+    "hintScan": "Escaneie um recibo para começar",
+    "hintManual": "Ou insira os itens manualmente",
+    "scanning": "Escaneando...",
+    "scanReceipt": "Escanear Recibo",
+    "sharing": "Compartilhando...",
+    "copied": "Copiado!",
+    "shareBill": "Compartilhar Conta",
+    "assignHint": "Toque nos itens para atribuí-los a <strong>{{name}}</strong>",
+    "clickToEdit": "Clique para editar",
+    "scanError": {
+      "scanLimitReached": "Você usou todos os {{limit}} escaneamentos gratuitos deste mês. Adicione sua própria chave de API no Perfil para escaneamentos ilimitados.",
+      "noItemsFound": "Nenhum item encontrado no recibo. Tente uma foto mais nítida.",
+      "failedToProcess": "Falha ao processar o recibo",
+      "currencyMismatch": "Nota: O recibo parece estar em {{detected}}, mas esta conta usa {{expected}}. Os itens foram adicionados como {{expected}}."
+    }
+  },
+  "totals": {
+    "heading": "Totais",
+    "tax": "Imposto %",
+    "tip": "Gorjeta %",
+    "taxWord": "imposto",
+    "tipWord": "gorjeta",
+    "tipLabels": {
+      "wow": "Incrível!",
+      "generous": "Generoso!",
+      "nice": "Ótimo!",
+      "standard": "Padrão"
+    },
+    "subtotal": "Subtotal",
+    "taxWithPercent": "Imposto ({{percent}}%)",
+    "tipWithPercent": "Gorjeta ({{percent}}%)",
+    "grandTotal": "Total Geral",
+    "unassignedWarning_one": "{{count}} item ainda não atribuído a ninguém.",
+    "unassignedWarning_other": "{{count}} itens ainda não atribuídos a ninguém.",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} imposto + {{tip}} gorjeta",
+    "requestViaVenmo": "Solicitar pelo Venmo",
+    "venmoModal": {
+      "title": "Solicitar de {{name}} pelo Venmo",
+      "usernameLabel": "Nome de usuário do Venmo",
+      "usernamePlaceholder": "usuário",
+      "cancel": "Cancelar",
+      "sendRequest": "Enviar Solicitação"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ Adicionar Pessoa",
+    "remove": "Remover",
+    "removeConfirm": "Remover {{name}}?"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "Nome do item",
+    "pricePlaceholder": "$0.00",
+    "addButton": "Adicionar"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "Excluir item"
+  },
+  "addRabbitModal": {
+    "title": "Adicionar Pessoa",
+    "savedRabbits": "Pessoas Salvas",
+    "orAddNew": "ou adicionar nova",
+    "nameLabel": "Nome",
+    "namePlaceholder": "ex. João",
+    "colorLabel": "Cor:",
+    "addPaymentInfo": "+ Adicionar dados de pagamento",
+    "paymentInfoLabel": "Dados de Pagamento (opcional)",
+    "paymentHintSave": "Adicionar dados de pagamento salva esta pessoa para contas futuras.",
+    "venmoPlaeholder": "Nome de usuário do Venmo",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "Nome de usuário do PayPal",
+    "cancel": "Cancelar",
+    "add": "Adicionar"
+  },
+  "profile": {
+    "title": "Configurações do Perfil",
+    "savedSuccess": "Perfil salvo!",
+    "displayNameLabel": "Nome de Exibição",
+    "displayNamePlaceholder": "Seu nome",
+    "paymentHint": "Configure seus dados de pagamento para que as pessoas possam pagar você quando compartilhar uma conta.",
+    "venmoLabel": "Nome de Usuário do Venmo",
+    "venmoPlaceholder": "ex. joao-silva-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "ex. joaosilva",
+    "paypalLabel": "Nome de Usuário do PayPal",
+    "paypalPlaceholder": "ex. joaosilva",
+    "defaultCurrencyLabel": "Moeda Padrão",
+    "currencyHint": "Novas contas usarão esta moeda por padrão.",
+    "languageLabel": "Idioma",
+    "saving": "Salvando...",
+    "saveProfile": "Salvar Perfil",
+    "savedRabbits": {
+      "heading": "Pessoas Salvas",
+      "empty": "Nenhuma pessoa salva ainda. Adicione dados de pagamento ao incluir alguém em uma conta e eles aparecerão aqui.",
+      "namePlaceholder": "Nome",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "username",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "edit": "Editar",
+      "remove": "Remover",
+      "removeConfirm": "Remover {{name}} das pessoas salvas?"
+    },
+    "advanced": {
+      "heading": "Avançado",
+      "freeScansRemaining": "{{remaining}} de {{limit}} escaneamentos gratuitos restantes este mês.",
+      "apiKeyLabel": "Chave de API da Anthropic",
+      "usingOwnKey": "Usando sua própria chave — escaneamentos ilimitados.",
+      "removeKey": "Remover",
+      "saveApiKey": "Salvar Chave de API",
+      "apiKeyHint": "Use sua própria chave de API para escaneamentos ilimitados. Armazenada apenas no seu navegador.",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "Obtenha uma chave em console.anthropic.com"
+    }
+  },
+  "nux": {
+    "skipTour": "Pular tour",
+    "gotIt": "Entendi",
+    "stepOf": "{{current}} de {{total}}",
+    "steps": {
+      "createTab": "Dê um nome à sua conta e toque em **Nova Conta** para começar a dividir!",
+      "scanReceipt": "Tire uma foto do seu recibo para importar os itens automaticamente",
+      "addItemManually": "Ou digite os itens manualmente",
+      "addRabbit": "Adicione as pessoas que vão dividir a conta. Você pode incluir o Venmo, Cash App ou PayPal delas também!",
+      "assignItems": "Clique em uma pessoa acima e depois toque nos itens dela.",
+      "taxTip": "Ajuste o imposto e a gorjeta — eles se aplicam proporcionalmente à parte de cada pessoa.",
+      "profile": "Configure seu perfil com dados de pagamento para enviar solicitações e compartilhar contas."
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "Carregando conta...",
+    "billNotFound": "Conta não encontrada",
+    "goToApp": "Ir para o Tabbit Rabbit",
+    "sharedBy": "Compartilhado por {{name}}",
+    "whatEachPersonOwes": "O que cada pessoa deve",
+    "subtotal": "Subtotal",
+    "taxWithPercent": "Imposto ({{percent}}%)",
+    "tipWithPercent": "Gorjeta ({{percent}}%)",
+    "grandTotal": "Total Geral",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} imposto + {{tip}} gorjeta",
+    "cta": {
+      "tagline": "Divida contas com amigos",
+      "tryApp": "Experimente o Tabbit Rabbit"
+    }
+  },
+  "layout": {
+    "scrollToTop": "Ir para o topo",
+    "backToTop": "Voltar ao topo"
+  },
+  "voiceAssignment": {
+    "title": "Atribuição por Voz",
+    "buttonLabel": "Atribuir",
+    "instructions": "Diga quem pediu o quê — ex. \"João pediu a sopa e metade do sanduíche, Ana pediu a salada.\"",
+    "tapToSpeak": "Toque para falar",
+    "listening": "Ouvindo...",
+    "processTranscript": "Processar",
+    "or": "ou",
+    "textFallbackLabel": "Ou digite",
+    "textInputLabel": "Digite quem pediu o quê",
+    "textPlaceholder": "ex. João pediu a sopa, Ana pediu a salada",
+    "processText": "Processar",
+    "processing": "Correspondendo itens e pessoas...",
+    "reviewAssignments": "Revise as atribuições propostas:",
+    "shareLabel": "parte: {{share}}",
+    "noAssignmentsFound": "Nenhuma atribuição pôde ser encontrada. Tente novamente com palavras diferentes.",
+    "tryAgain": "Tentar Novamente",
+    "apply": "Aplicar {{count}} atribuições",
+    "cancel": "Cancelar",
+    "scanLimitReached": "Você usou todas as {{limit}} ações gratuitas de IA deste mês. Adicione sua própria chave de API no Perfil para uso ilimitado.",
+    "processingFailed": "Falha ao processar a atribuição por voz"
+  },
+  "common": {
+    "loading": "Carregando",
+    "loadingTabs": "Carregando contas",
+    "loadingItems": "Carregando itens",
+    "moreOptions": "Mais opções"
+  }
+}

@@ -1,0 +1,207 @@
+{
+  "nav": {
+    "myTabs": "मेरे टैब",
+    "profile": "प्रोफ़ाइल"
+  },
+  "tabList": {
+    "heading": "मेरे टैब",
+    "tagline": "दोस्तों के साथ बिल बाँटें। आइटम जोड़ें, लोगों को असाइन करें, और पेमेंट रिक्वेस्ट भेजें।",
+    "placeholderEmpty": "टैब बनाने के लिए नाम टाइप करें",
+    "placeholderDefault": "नए टैब का नाम (उदा. शुक्रवार का डिनर)",
+    "creating": "बन रहा है...",
+    "newTab": "नया टैब",
+    "hintCreate": "बिल बाँटना शुरू करने के लिए एक टैब बनाएं।",
+    "sharing": "शेयर हो रहा है...",
+    "shareBill": "बिल शेयर करें",
+    "delete": "हटाएं",
+    "deleteModal": {
+      "confirm": "{{name}} हटाएं?",
+      "cannotUndo": "यह पूर्ववत नहीं हो सकता।",
+      "cancel": "रद्द करें",
+      "delete": "हटाएं"
+    },
+    "toast": {
+      "copySuccess": "शेयर लिंक क्लिपबोर्ड पर कॉपी हो गया!",
+      "shareFailed": "बिल शेयर नहीं हो सका। कृपया फिर से प्रयास करें।"
+    }
+  },
+  "tabEditor": {
+    "loadingTab": "टैब लोड हो रहा है...",
+    "hintScan": "शुरू करने के लिए रसीद स्कैन करें",
+    "hintManual": "या आइटम मैन्युअल रूप से दर्ज करें",
+    "scanning": "स्कैन हो रहा है...",
+    "scanReceipt": "रसीद स्कैन करें",
+    "sharing": "शेयर हो रहा है...",
+    "copied": "कॉपी हो गया!",
+    "shareBill": "बिल शेयर करें",
+    "assignHint": "<strong>{{name}}</strong> को असाइन करने के लिए आइटम पर टैप करें",
+    "clickToEdit": "संपादित करने के लिए क्लिक करें",
+    "scanError": {
+      "scanLimitReached": "आपने इस महीने के सभी {{limit}} मुफ्त स्कैन उपयोग कर लिए हैं। असीमित स्कैन के लिए प्रोफ़ाइल में अपनी API कुंजी जोड़ें।",
+      "noItemsFound": "रसीद में कोई आइटम नहीं मिला। एक साफ़ फ़ोटो लेने का प्रयास करें।",
+      "failedToProcess": "रसीद प्रोसेस करने में विफल",
+      "currencyMismatch": "नोट: रसीद {{detected}} में प्रतीत होती है, लेकिन यह टैब {{expected}} उपयोग करता है। आइटम {{expected}} के रूप में जोड़े गए।"
+    }
+  },
+  "totals": {
+    "heading": "कुल",
+    "tax": "टैक्स %",
+    "tip": "टिप %",
+    "taxWord": "टैक्स",
+    "tipWord": "टिप",
+    "tipLabels": {
+      "wow": "वाह!",
+      "generous": "उदार!",
+      "nice": "बढ़िया!",
+      "standard": "सामान्य"
+    },
+    "subtotal": "उप-योग",
+    "taxWithPercent": "टैक्स ({{percent}}%)",
+    "tipWithPercent": "टिप ({{percent}}%)",
+    "grandTotal": "कुल योग",
+    "unassignedWarning_one": "{{count}} आइटम अभी किसी को असाइन नहीं किया गया।",
+    "unassignedWarning_other": "{{count}} आइटम अभी किसी को असाइन नहीं किए गए।",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} टैक्स + {{tip}} टिप",
+    "requestViaVenmo": "Venmo से रिक्वेस्ट करें",
+    "venmoModal": {
+      "title": "{{name}} से Venmo के ज़रिए रिक्वेस्ट करें",
+      "usernameLabel": "Venmo यूज़रनेम",
+      "usernamePlaceholder": "यूज़रनेम",
+      "cancel": "रद्द करें",
+      "sendRequest": "रिक्वेस्ट भेजें"
+    }
+  },
+  "rabbitBar": {
+    "addSomeone": "+ किसी को जोड़ें",
+    "remove": "हटाएं",
+    "removeConfirm": "{{name}} को हटाएं?"
+  },
+  "itemList": {
+    "itemNamePlaceholder": "आइटम का नाम",
+    "pricePlaceholder": "$0.00",
+    "addButton": "जोड़ें"
+  },
+  "itemRow": {
+    "deleteAriaLabel": "आइटम हटाएं"
+  },
+  "addRabbitModal": {
+    "title": "किसी को जोड़ें",
+    "savedRabbits": "सहेजे गए लोग",
+    "orAddNew": "या नया जोड़ें",
+    "nameLabel": "नाम",
+    "namePlaceholder": "उदा. राहुल",
+    "colorLabel": "रंग:",
+    "addPaymentInfo": "+ पेमेंट जानकारी जोड़ें",
+    "paymentInfoLabel": "पेमेंट जानकारी (वैकल्पिक)",
+    "paymentHintSave": "पेमेंट जानकारी जोड़ने से यह व्यक्ति भविष्य के टैब के लिए सहेजा जाएगा।",
+    "venmoPlaeholder": "Venmo यूज़रनेम",
+    "cashappPlaceholder": "Cash App $cashtag",
+    "paypalPlaceholder": "PayPal यूज़रनेम",
+    "cancel": "रद्द करें",
+    "add": "जोड़ें"
+  },
+  "profile": {
+    "title": "प्रोफ़ाइल सेटिंग्स",
+    "savedSuccess": "प्रोफ़ाइल सहेजी गई!",
+    "displayNameLabel": "प्रदर्शन नाम",
+    "displayNamePlaceholder": "आपका नाम",
+    "paymentHint": "अपनी पेमेंट जानकारी सेट करें ताकि जब आप बिल शेयर करें तो लोग आपको पेमेंट कर सकें।",
+    "venmoLabel": "Venmo यूज़रनेम",
+    "venmoPlaceholder": "उदा. rahul-sharma-42",
+    "cashappLabel": "Cash App $Cashtag",
+    "cashappPlaceholder": "उदा. rahulsharma",
+    "paypalLabel": "PayPal यूज़रनेम",
+    "paypalPlaceholder": "उदा. rahulsharma",
+    "defaultCurrencyLabel": "डिफ़ॉल्ट मुद्रा",
+    "currencyHint": "नए टैब इस मुद्रा का उपयोग करेंगे।",
+    "languageLabel": "भाषा",
+    "saving": "सहेजा जा रहा है...",
+    "saveProfile": "प्रोफ़ाइल सहेजें",
+    "savedRabbits": {
+      "heading": "सहेजे गए लोग",
+      "empty": "अभी कोई सहेजा हुआ व्यक्ति नहीं है। किसी को टैब में जोड़ते समय पेमेंट जानकारी दें और वे यहाँ दिखेंगे।",
+      "namePlaceholder": "नाम",
+      "venmoPlaceholder": "@username",
+      "cashappPlaceholder": "$cashtag",
+      "paypalPlaceholder": "username",
+      "save": "सहेजें",
+      "cancel": "रद्द करें",
+      "edit": "संपादित करें",
+      "remove": "हटाएं",
+      "removeConfirm": "{{name}} को सहेजे गए लोगों से हटाएं?"
+    },
+    "advanced": {
+      "heading": "उन्नत",
+      "freeScansRemaining": "इस महीने {{limit}} में से {{remaining}} मुफ्त रसीद स्कैन बचे हैं।",
+      "apiKeyLabel": "Anthropic API कुंजी",
+      "usingOwnKey": "अपनी खुद की कुंजी का उपयोग कर रहे हैं — असीमित स्कैन।",
+      "removeKey": "हटाएं",
+      "saveApiKey": "API कुंजी सहेजें",
+      "apiKeyHint": "असीमित स्कैन के लिए अपनी खुद की API कुंजी का उपयोग करें। केवल आपके ब्राउज़र में सहेजी जाती है।",
+      "apiKeyPlaceholder": "sk-ant-...",
+      "getKeyLink": "console.anthropic.com पर कुंजी प्राप्त करें"
+    }
+  },
+  "nux": {
+    "skipTour": "टूर छोड़ें",
+    "gotIt": "समझ गया",
+    "stepOf": "{{total}} में से {{current}}",
+    "steps": {
+      "createTab": "अपने टैब को एक नाम दें और बिल बाँटना शुरू करने के लिए **नया टैब** दबाएं!",
+      "scanReceipt": "आइटम अपने आप इम्पोर्ट करने के लिए अपनी रसीद की फ़ोटो लें",
+      "addItemManually": "या आइटम मैन्युअल रूप से टाइप करें",
+      "addRabbit": "इस बिल को बाँटने वाले लोगों को जोड़ें। आप उनका Venmo, Cash App या PayPal भी शामिल कर सकते हैं!",
+      "assignItems": "ऊपर किसी व्यक्ति पर क्लिक करें, फिर उनके आइटम पर टैप करें।",
+      "taxTip": "टैक्स और टिप एडजस्ट करें — ये हर व्यक्ति के हिस्से के अनुपात में लागू होते हैं।",
+      "profile": "पेमेंट हैंडल के साथ अपना प्रोफ़ाइल सेट करें ताकि पेमेंट रिक्वेस्ट भेज सकें और बिल शेयर कर सकें।"
+    }
+  },
+  "sharedBill": {
+    "loadingBill": "बिल लोड हो रहा है...",
+    "billNotFound": "बिल नहीं मिला",
+    "goToApp": "Tabbit Rabbit पर जाएं",
+    "sharedBy": "{{name}} द्वारा शेयर किया गया",
+    "whatEachPersonOwes": "हर व्यक्ति को कितना देना है",
+    "subtotal": "उप-योग",
+    "taxWithPercent": "टैक्स ({{percent}}%)",
+    "tipWithPercent": "टिप ({{percent}}%)",
+    "grandTotal": "कुल योग",
+    "rabbitBreakdown": "{{subtotal}} + {{tax}} टैक्स + {{tip}} टिप",
+    "cta": {
+      "tagline": "दोस्तों के साथ बिल बाँटें",
+      "tryApp": "Tabbit Rabbit आज़माएं"
+    }
+  },
+  "layout": {
+    "scrollToTop": "ऊपर जाएं",
+    "backToTop": "वापस ऊपर"
+  },
+  "voiceAssignment": {
+    "title": "वॉयस असाइनमेंट",
+    "buttonLabel": "असाइन करें",
+    "instructions": "बताएं किसने क्या खाया — उदा. \"राहुल ने सूप और आधा सैंडविच खाया, प्रिया ने सलाद खाया।\"",
+    "tapToSpeak": "बोलने के लिए टैप करें",
+    "listening": "सुन रहे हैं...",
+    "processTranscript": "प्रोसेस करें",
+    "or": "या",
+    "textFallbackLabel": "या टाइप करें",
+    "textInputLabel": "टाइप करें किसने क्या खाया",
+    "textPlaceholder": "उदा. राहुल ने सूप खाया, प्रिया ने सलाद खाया",
+    "processText": "प्रोसेस करें",
+    "processing": "आइटम और लोगों को मिलाया जा रहा है...",
+    "reviewAssignments": "प्रस्तावित असाइनमेंट की समीक्षा करें:",
+    "shareLabel": "हिस्सा: {{share}}",
+    "noAssignmentsFound": "कोई असाइनमेंट मिलान नहीं हो सका। अलग शब्दों से फिर प्रयास करें।",
+    "tryAgain": "फिर प्रयास करें",
+    "apply": "{{count}} असाइनमेंट लागू करें",
+    "cancel": "रद्द करें",
+    "scanLimitReached": "आपने इस महीने के सभी {{limit}} मुफ्त AI कार्य उपयोग कर लिए हैं। असीमित उपयोग के लिए प्रोफ़ाइल में अपनी API कुंजी जोड़ें।",
+    "processingFailed": "वॉयस असाइनमेंट प्रोसेस करने में विफल"
+  },
+  "common": {
+    "loading": "लोड हो रहा है",
+    "loadingTabs": "टैब लोड हो रहे हैं",
+    "loadingItems": "आइटम लोड हो रहे हैं",
+    "moreOptions": "अधिक विकल्प"
+  }
+}
