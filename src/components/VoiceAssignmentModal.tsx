@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Badge, Button, Form, ListGroup, Modal } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import type { Item, Rabbit, ItemRabbit } from '../types';
 import { COLOR_HEX } from '../types';
 import { formatAmount } from '../utils/currency';
-import { isSpeechRecognitionSupported, startSpeechRecognition } from '../utils/speechRecognition';
 import { parseVoiceAssignmentDirect, parseVoiceAssignmentFree } from '../utils/voiceAssignment';
 import type { VoiceAssignmentResult } from '../utils/voiceAssignment';
 import { computeAssignmentFraction } from '@tabbit/shared';
@@ -16,6 +15,7 @@ import LoadingSpinner from './LoadingSpinner';
 interface VoiceAssignmentModalProps {
   show: boolean;
   onHide: () => void;
+  initialTranscript?: string;
   items: Item[];
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
@@ -23,79 +23,34 @@ interface VoiceAssignmentModalProps {
   onApply: (assignments: ItemRabbit[]) => void;
 }
 
-type Phase = 'input' | 'processing' | 'confirm';
+type Phase = 'review' | 'processing' | 'confirm';
 
 export default function VoiceAssignmentModal({
   show,
   onHide,
+  initialTranscript = '',
   items,
   rabbits,
   assignments,
   currencyCode,
   onApply,
 }: VoiceAssignmentModalProps) {
-  const { t, i18n } = useTranslation();
-  const speechSupported = isSpeechRecognitionSupported();
+  const { t } = useTranslation();
 
-  const [phase, setPhase] = useState<Phase>('input');
-  const [recording, setRecording] = useState(false);
+  const [phase, setPhase] = useState<Phase>('review');
   const [transcript, setTranscript] = useState('');
-  const [interimText, setInterimText] = useState('');
-  const [textInput, setTextInput] = useState('');
   const [error, setError] = useState('');
   const [result, setResult] = useState<VoiceAssignmentResult | null>(null);
-
-  const sessionRef = useRef<{ stop: () => void } | null>(null);
 
   // Reset state when modal opens
   useEffect(() => {
     if (show) {
-      setPhase('input');
-      setRecording(false);
-      setTranscript('');
-      setInterimText('');
-      setTextInput('');
+      setPhase('review');
+      setTranscript(initialTranscript);
       setError('');
       setResult(null);
     }
-  }, [show]);
-
-  // Cleanup speech session on unmount
-  useEffect(() => {
-    return () => { sessionRef.current?.stop(); };
-  }, []);
-
-  const startRecording = useCallback(() => {
-    setError('');
-    setTranscript('');
-    setInterimText('');
-    setRecording(true);
-
-    const SPEECH_LANG_MAP: Record<string, string> = {
-      en: 'en-US', es: 'es-ES', hi: 'hi-IN', pt: 'pt-BR',
-      ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN', de: 'de-DE',
-      ru: 'ru-RU', fr: 'fr-FR', it: 'it-IT', vi: 'vi-VN',
-    };
-
-    sessionRef.current = startSpeechRecognition({
-      lang: SPEECH_LANG_MAP[i18n.language] || 'en-US',
-      onInterimResult: (text) => setInterimText(text),
-      onFinalResult: (text) => {
-        setTranscript(text);
-        setRecording(false);
-      },
-      onError: (err) => {
-        setError(err);
-        setRecording(false);
-      },
-      onEnd: () => setRecording(false),
-    });
-  }, [i18n.language]);
-
-  const stopRecording = useCallback(() => {
-    sessionRef.current?.stop();
-    sessionRef.current = null;
-  }, []);
+  }, [show, initialTranscript]);
 
   const processTranscript = useCallback(async (text: string) => {
     if (!text.trim()) return;
@@ -121,14 +76,9 @@ export default function VoiceAssignmentModal({
       setPhase('confirm');
     } catch (err: any) {
       setError(err.message || t('voiceAssignment.processingFailed'));
-      setPhase('input');
+      setPhase('review');
     }
   }, [items, rabbits, assignments, t]);
-
-  const handleSubmitText = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    processTranscript(textInput);
-  }, [textInput, processTranscript]);
 
   const handleApply = useCallback(() => {
     if (!result) return;
@@ -151,7 +101,9 @@ export default function VoiceAssignmentModal({
             transition={{ type: 'spring', stiffness: 340, damping: 26 }}
           >
             <Modal.Header closeButton>
-              <Modal.Title as="h6">{t('voiceAssignment.title')}</Modal.Title>
+              <Modal.Title as="h6">
+                {phase === 'confirm' ? t('voiceAssignment.reviewAssignments') : t('voiceAssignment.reviewTitle')}
+              </Modal.Title>
             </Modal.Header>
             <Modal.Body>
               {error && (
@@ -160,82 +112,16 @@ export default function VoiceAssignmentModal({
                 </Alert>
               )}
 
-              {phase === 'input' && (
+              {phase === 'review' && (
                 <div>
                   <p className="text-muted small mb-3">{t('voiceAssignment.instructions')}</p>
-
-                  {/* Speech recognition */}
-                  {speechSupported && (
-                    <div className="text-center mb-3">
-                      <Button
-                        variant={recording ? 'danger' : 'outline-primary'}
-                        size="lg"
-                        className="rounded-circle"
-                        style={{ width: 64, height: 64 }}
-                        onClick={recording ? stopRecording : startRecording}
-                      >
-                        {recording ? (
-                          <span className="fs-5">&#9632;</span>
-                        ) : (
-                          <span className="fs-5">&#127908;</span>
-                        )}
-                      </Button>
-                      <div className="mt-2 small text-muted">
-                        {recording ? t('voiceAssignment.listening') : t('voiceAssignment.tapToSpeak')}
-                      </div>
-                      {(interimText || transcript) && (
-                        <div className="mt-2 p-2 bg-light rounded small">
-                          {recording ? interimText : transcript}
-                        </div>
-                      )}
-                      {transcript && !recording && (
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          className="mt-2"
-                          onClick={() => processTranscript(transcript)}
-                        >
-                          {t('voiceAssignment.processTranscript')}
-                        </Button>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Divider */}
-                  {speechSupported && (
-                    <div className="d-flex align-items-center my-3">
-                      <hr className="flex-grow-1" />
-                      <span className="px-2 text-muted small">{t('voiceAssignment.or')}</span>
-                      <hr className="flex-grow-1" />
-                    </div>
-                  )}
-
-                  {/* Text fallback */}
-                  <Form onSubmit={handleSubmitText}>
-                    <Form.Group>
-                      <Form.Label className="small text-muted">
-                        {speechSupported
-                          ? t('voiceAssignment.textFallbackLabel')
-                          : t('voiceAssignment.textInputLabel')}
-                      </Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={2}
-                        placeholder={t('voiceAssignment.textPlaceholder')}
-                        value={textInput}
-                        onChange={(e) => setTextInput(e.target.value)}
-                      />
-                    </Form.Group>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      type="submit"
-                      className="mt-2"
-                      disabled={!textInput.trim()}
-                    >
-                      {t('voiceAssignment.processText')}
-                    </Button>
-                  </Form>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    placeholder={t('voiceAssignment.inputPlaceholder')}
+                    value={transcript}
+                    onChange={(e) => setTranscript(e.target.value)}
+                  />
                 </div>
               )}
 
@@ -247,7 +133,6 @@ export default function VoiceAssignmentModal({
 
               {phase === 'confirm' && result && (
                 <div>
-                  <p className="text-muted small mb-2">{t('voiceAssignment.reviewAssignments')}</p>
                   {result.assignments.length > 0 ? (
                     <ListGroup className="mb-3">
                       {result.assignments.map((a, i) => {
@@ -323,9 +208,24 @@ export default function VoiceAssignmentModal({
               )}
             </Modal.Body>
             <Modal.Footer>
+              {phase === 'review' && (
+                <>
+                  <Button variant="outline-secondary" size="sm" onClick={onHide}>
+                    {t('voiceAssignment.cancel')}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    disabled={!transcript.trim()}
+                    onClick={() => processTranscript(transcript)}
+                  >
+                    {t('voiceAssignment.commit')}
+                  </Button>
+                </>
+              )}
               {phase === 'confirm' && result && result.assignments.length > 0 && (
                 <>
-                  <Button variant="outline-secondary" size="sm" onClick={() => setPhase('input')}>
+                  <Button variant="outline-secondary" size="sm" onClick={() => setPhase('review')}>
                     {t('voiceAssignment.tryAgain')}
                   </Button>
                   <Button variant="success" size="sm" onClick={handleApply}>
@@ -334,13 +234,8 @@ export default function VoiceAssignmentModal({
                 </>
               )}
               {phase === 'confirm' && result && result.assignments.length === 0 && (
-                <Button variant="outline-secondary" size="sm" onClick={() => setPhase('input')}>
+                <Button variant="outline-secondary" size="sm" onClick={() => setPhase('review')}>
                   {t('voiceAssignment.tryAgain')}
-                </Button>
-              )}
-              {phase === 'input' && (
-                <Button variant="outline-secondary" size="sm" onClick={onHide}>
-                  {t('voiceAssignment.cancel')}
                 </Button>
               )}
             </Modal.Footer>
