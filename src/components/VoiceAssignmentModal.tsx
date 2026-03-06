@@ -8,6 +8,7 @@ import { formatAmount } from '../utils/currency';
 import { isSpeechRecognitionSupported, startSpeechRecognition } from '../utils/speechRecognition';
 import { parseVoiceAssignmentDirect, parseVoiceAssignmentFree } from '../utils/voiceAssignment';
 import type { VoiceAssignmentResult } from '../utils/voiceAssignment';
+import { computeAssignmentFraction } from '@tabbit/shared';
 import { getStoredApiKey } from '../utils/anthropic';
 import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '../utils/scanCounter';
 import LoadingSpinner from './LoadingSpinner';
@@ -253,6 +254,11 @@ export default function VoiceAssignmentModal({
                         const item = items.find((it) => it.id === a.item_id);
                         const rabbit = rabbits.find((r) => r.id === a.rabbit_id);
                         if (!item || !rabbit) return null;
+
+                        const { fraction, isSplit, label: fractionLabel } = computeAssignmentFraction(
+                          a, result.assignments, assignments,
+                        );
+
                         return (
                           <ListGroup.Item
                             key={i}
@@ -268,10 +274,32 @@ export default function VoiceAssignmentModal({
                                   ({formatAmount(item.price_cents, currencyCode)})
                                 </span>
                               </span>
-                              {a.share !== 1 && (
-                                <Badge bg="secondary">
-                                  {t('voiceAssignment.shareLabel', { share: a.share })}
-                                </Badge>
+                              {isSplit && (
+                                <div className="d-flex align-items-center gap-1 ms-2">
+                                  <div
+                                    style={{
+                                      width: 32,
+                                      height: 8,
+                                      borderRadius: 4,
+                                      backgroundColor: 'rgba(0,0,0,0.15)',
+                                      overflow: 'hidden',
+                                      display: 'flex',
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: `${fraction * 100}%`,
+                                        height: '100%',
+                                        borderRadius: 4,
+                                        backgroundColor: COLOR_HEX[rabbit.color] || '#6c757d',
+                                        filter: 'brightness(0.7)',
+                                      }}
+                                    />
+                                  </div>
+                                  <Badge bg="secondary" className="small">
+                                    {fractionLabel}
+                                  </Badge>
+                                </div>
                               )}
                             </div>
                           </ListGroup.Item>
