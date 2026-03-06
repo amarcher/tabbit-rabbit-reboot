@@ -62,6 +62,36 @@ Rules:
 8. If multiple items could match (e.g., two items with "chicken"), pick the best match. If truly ambiguous, add a warning.`;
 }
 
+/** Compute the display fraction for an assignment in the confirmation UI.
+ *  Merges existing assignments (not overridden by new results) with new results
+ *  to determine total shares for the item, then returns the fraction and label. */
+export function computeAssignmentFraction(
+  assignment: { item_id: string; rabbit_id: string; share: number },
+  newAssignments: { item_id: string; rabbit_id: string; share: number }[],
+  existingAssignments: { item_id: string; rabbit_id: string; share?: number }[],
+): { fraction: number; isSplit: boolean; label: string } {
+  const existingForItem = existingAssignments
+    .filter((ea) => ea.item_id === assignment.item_id)
+    .filter((ea) => !newAssignments.some(
+      (ra) => ra.item_id === ea.item_id && ra.rabbit_id === ea.rabbit_id
+    ));
+  const newForItem = newAssignments.filter((ra) => ra.item_id === assignment.item_id);
+  const totalShares = existingForItem.reduce((s, ea) => s + (ea.share ?? 1), 0)
+    + newForItem.reduce((s, ra) => s + ra.share, 0);
+  const fraction = totalShares > 0 ? assignment.share / totalShares : 1;
+  const isSplit = totalShares > assignment.share;
+
+  let label: string;
+  if (fraction === 0.5) label = '\u00BD';
+  else if (Math.abs(fraction - 1/3) < 0.01) label = '\u2153';
+  else if (Math.abs(fraction - 2/3) < 0.01) label = '\u2154';
+  else if (Math.abs(fraction - 1/4) < 0.01) label = '\u00BC';
+  else if (Math.abs(fraction - 3/4) < 0.01) label = '\u00BE';
+  else label = `${assignment.share}/${totalShares}`;
+
+  return { fraction, isSplit, label };
+}
+
 export function validateVoiceAssignmentResult(raw: unknown): VoiceAssignmentResult {
   if (!raw || typeof raw !== 'object') throw new Error('Invalid response structure');
   const obj = raw as Record<string, unknown>;

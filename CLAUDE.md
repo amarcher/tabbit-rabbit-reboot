@@ -105,10 +105,10 @@ Receipt scanning logic lives inline in `mobile/app/tab/[tabId].tsx` (mobile) and
 Users speak or type who had what, and Claude AI fuzzy-matches items to people. Uses the same BYOK/free dual-path as receipt OCR.
 
 Architecture:
-- **Shared logic** (`packages/shared/src/voiceAssignment.ts`): `buildVoiceAssignmentPrompt()` constructs a structured LLM prompt with items, rabbits, existing assignments, and transcript. `validateVoiceAssignmentResult()` normalizes the LLM JSON response — filters invalid entries, clamps shares to positive integers (min 1), filters non-string warnings.
+- **Shared logic** (`packages/shared/src/voiceAssignment.ts`): `buildVoiceAssignmentPrompt()` constructs a structured LLM prompt with items, rabbits, existing assignments, and transcript. `validateVoiceAssignmentResult()` normalizes the LLM JSON response — filters invalid entries, clamps shares to positive integers (min 1), filters non-string warnings. `computeAssignmentFraction()` computes the display fraction for a single assignment by merging existing and new assignments for the same item — returns `{ fraction, isSplit, label }` where `label` uses Unicode fractions (½, ⅓, ⅔, ¼, ¾) or `n/m` for non-standard splits.
 - **Web wrapper** (`src/utils/voiceAssignment.ts`): `parseVoiceAssignmentDirect()` (BYOK, browser-to-Anthropic) and `parseVoiceAssignmentFree()` (POST to `/api/parse-voice-assignment`).
 - **API route** (`api/parse-voice-assignment.js`): Vercel serverless proxy for free-tier voice assignment.
-- **UI** (`src/components/VoiceAssignmentModal.tsx`): Three-phase modal (input → processing → confirm). Uses Web Speech API for speech recognition with `SPEECH_LANG_MAP` lookup for all 12 supported languages. Falls back to textarea for manual transcript input.
+- **UI** (`src/components/VoiceAssignmentModal.tsx`): Three-phase modal (input → processing → confirm). Uses Web Speech API for speech recognition with `SPEECH_LANG_MAP` lookup for all 12 supported languages. Falls back to textarea for manual transcript input. The confirm phase shows a fraction bar + label when an item is split between multiple people (e.g., ½ bar for 50/50 splits).
 
 Share math: The `share` field is a relative integer weight. An item's cost is split proportionally: `portion = myShare / sum(allShares)`. E.g., Alice share=2 + Bob share=1 means Alice pays 2/3, Bob pays 1/3. The validator ensures shares are always positive integers >= 1 via `Math.max(1, Math.round(share))`.
 

@@ -22,6 +22,7 @@ import {
   parseVoiceAssignmentFree,
 } from '../utils/voiceAssignment';
 import type { VoiceAssignmentResult } from '../utils/voiceAssignment';
+import { computeAssignmentFraction } from '@tabbit/shared';
 import { canScanFree, incrementScanCount, FREE_SCAN_LIMIT } from '../utils/scanCounter';
 import { colors, fonts, radii } from '../utils/theme';
 
@@ -288,6 +289,13 @@ export default function VoiceAssignmentModal({
                       const item = items.find((it) => it.id === a.item_id);
                       const rabbit = rabbits.find((r) => r.id === a.rabbit_id);
                       if (!item || !rabbit) return null;
+
+                      const { fraction, isSplit, label: fractionLabel } = computeAssignmentFraction(
+                        a,
+                        result.assignments,
+                        assignments,
+                      );
+
                       return (
                         <View
                           key={i}
@@ -306,10 +314,14 @@ export default function VoiceAssignmentModal({
                               {' '}({formatAmount(item.price_cents, currencyCode)})
                             </Text>
                           </View>
-                          {a.share !== 1 && (
-                            <View style={styles.shareBadge}>
-                              <Text style={styles.shareBadgeText}>
-                                {t('voiceAssignment.shareLabel', { share: a.share })}
+                          {isSplit && (
+                            <View style={styles.fractionBadge}>
+                              <View style={styles.fractionBarBg}>
+                                <View style={[styles.fractionBarFill, { flex: fraction }, { backgroundColor: COLOR_HEX[rabbit.color] || colors.accent }]} />
+                                <View style={{ flex: 1 - fraction }} />
+                              </View>
+                              <Text style={styles.fractionText}>
+                                {fractionLabel}
                               </Text>
                             </View>
                           )}
@@ -553,16 +565,28 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.muted,
   },
-  shareBadge: {
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+  fractionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginLeft: 6,
+    gap: 4,
   },
-  shareBadgeText: {
-    fontSize: 11,
+  fractionBarBg: {
+    width: 32,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  fractionBarFill: {
+    height: '100%',
+  },
+  fractionText: {
+    fontSize: 12,
     color: colors.text,
+    fontFamily: fonts.bodySemiBold,
+    minWidth: 16,
   },
   emptyBox: {
     backgroundColor: colors.surface,

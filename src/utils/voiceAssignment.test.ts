@@ -1,6 +1,7 @@
 import {
   buildVoiceAssignmentPrompt,
   validateVoiceAssignmentResult,
+  computeAssignmentFraction,
 } from '@tabbit/shared';
 import type { VoiceAssignmentRequest } from '@tabbit/shared';
 
@@ -190,5 +191,115 @@ describe('validateVoiceAssignmentResult', () => {
       warnings: [],
     });
     expect(result.assignments[0].share).toBe(1);
+  });
+});
+
+describe('computeAssignmentFraction', () => {
+  it('shows 50/50 split when two people share equally', () => {
+    const newAssignments = [
+      { item_id: 'i1', rabbit_id: 'r1', share: 1 },
+      { item_id: 'i1', rabbit_id: 'r2', share: 1 },
+    ];
+    const r1 = computeAssignmentFraction(newAssignments[0], newAssignments, []);
+    const r2 = computeAssignmentFraction(newAssignments[1], newAssignments, []);
+    expect(r1.fraction).toBe(0.5);
+    expect(r1.isSplit).toBe(true);
+    expect(r1.label).toBe('\u00BD');
+    expect(r2.fraction).toBe(0.5);
+    expect(r2.isSplit).toBe(true);
+  });
+
+  it('shows no split for sole assignee', () => {
+    const newAssignments = [{ item_id: 'i1', rabbit_id: 'r1', share: 1 }];
+    const result = computeAssignmentFraction(newAssignments[0], newAssignments, []);
+    expect(result.fraction).toBe(1);
+    expect(result.isSplit).toBe(false);
+  });
+
+  it('computes 2/3 and 1/3 for unequal shares', () => {
+    const newAssignments = [
+      { item_id: 'i1', rabbit_id: 'r1', share: 2 },
+      { item_id: 'i1', rabbit_id: 'r2', share: 1 },
+    ];
+    const r1 = computeAssignmentFraction(newAssignments[0], newAssignments, []);
+    const r2 = computeAssignmentFraction(newAssignments[1], newAssignments, []);
+    expect(r1.label).toBe('\u2154');
+    expect(r2.label).toBe('\u2153');
+    expect(r1.fraction).toBeCloseTo(2/3);
+    expect(r2.fraction).toBeCloseTo(1/3);
+  });
+
+  it('computes 3/4 and 1/4 for 3:1 shares', () => {
+    const newAssignments = [
+      { item_id: 'i1', rabbit_id: 'r1', share: 3 },
+      { item_id: 'i1', rabbit_id: 'r2', share: 1 },
+    ];
+    const r1 = computeAssignmentFraction(newAssignments[0], newAssignments, []);
+    const r2 = computeAssignmentFraction(newAssignments[1], newAssignments, []);
+    expect(r1.label).toBe('\u00BE');
+    expect(r2.label).toBe('\u00BC');
+  });
+
+  it('uses n/m format for non-standard fractions', () => {
+    const newAssignments = [
+      { item_id: 'i1', rabbit_id: 'r1', share: 2 },
+      { item_id: 'i1', rabbit_id: 'r2', share: 3 },
+    ];
+    const r1 = computeAssignmentFraction(newAssignments[0], newAssignments, []);
+    expect(r1.label).toBe('2/5');
+    expect(r1.fraction).toBeCloseTo(0.4);
+  });
+
+  it('merges existing assignments with new ones', () => {
+    const existing = [{ item_id: 'i1', rabbit_id: 'r1', share: 1 }];
+    const newAssignments = [{ item_id: 'i1', rabbit_id: 'r2', share: 1 }];
+    const result = computeAssignmentFraction(newAssignments[0], newAssignments, existing);
+    expect(result.fraction).toBe(0.5);
+    expect(result.isSplit).toBe(true);
+    expect(result.label).toBe('\u00BD');
+  });
+
+  it('existing assignment defaults share to 1 when undefined', () => {
+    const existing = [{ item_id: 'i1', rabbit_id: 'r1' }];
+    const newAssignments = [{ item_id: 'i1', rabbit_id: 'r2', share: 1 }];
+    const result = computeAssignmentFraction(newAssignments[0], newAssignments, existing);
+    expect(result.fraction).toBe(0.5);
+    expect(result.isSplit).toBe(true);
+  });
+
+  it('excludes overridden existing assignments', () => {
+    // r1 is in both existing and new — new should take precedence
+    const existing = [{ item_id: 'i1', rabbit_id: 'r1', share: 1 }];
+    const newAssignments = [
+      { item_id: 'i1', rabbit_id: 'r1', share: 2 },
+      { item_id: 'i1', rabbit_id: 'r2', share: 1 },
+    ];
+    const r1 = computeAssignmentFraction(newAssignments[0], newAssignments, existing);
+    const r2 = computeAssignmentFraction(newAssignments[1], newAssignments, existing);
+    // total = 2 + 1 = 3 (existing r1 excluded since overridden)
+    expect(r1.fraction).toBeCloseTo(2/3);
+    expect(r2.fraction).toBeCloseTo(1/3);
+  });
+
+  it('only considers assignments for the same item', () => {
+    const newAssignments = [
+      { item_id: 'i1', rabbit_id: 'r1', share: 1 },
+      { item_id: 'i2', rabbit_id: 'r2', share: 1 },
+    ];
+    const r1 = computeAssignmentFraction(newAssignments[0], newAssignments, []);
+    expect(r1.fraction).toBe(1);
+    expect(r1.isSplit).toBe(false);
+  });
+
+  it('handles three-way equal split', () => {
+    const newAssignments = [
+      { item_id: 'i1', rabbit_id: 'r1', share: 1 },
+      { item_id: 'i1', rabbit_id: 'r2', share: 1 },
+      { item_id: 'i1', rabbit_id: 'r3', share: 1 },
+    ];
+    const r1 = computeAssignmentFraction(newAssignments[0], newAssignments, []);
+    expect(r1.fraction).toBeCloseTo(1/3);
+    expect(r1.isSplit).toBe(true);
+    expect(r1.label).toBe('\u2153');
   });
 });
