@@ -148,22 +148,18 @@
     "title": "Atribuição por Voz",
     "buttonLabel": "Atribuir",
     "instructions": "Diga quem pediu o quê — ex. \"João pediu a sopa e metade do sanduíche, Ana pediu a salada.\"",
-    "tapToSpeak": "Toque para falar",
-    "listening": "Ouvindo...",
-    "processTranscript": "Processar",
-    "or": "ou",
-    "textInputLabel": "Ou digite quem pediu o quê",
-    "textPlaceholder": "ex. João pediu a sopa, Ana pediu a salada",
+    "inputPlaceholder": "Digite ou dite quem pediu o quê...",
+    "commit": "Confirmar",
+    "reviewTitle": "Revisar Transcrição",
     "processText": "Processar",
     "processing": "Correspondendo itens e pessoas...",
     "reviewAssignments": "Revise as atribuições propostas:",
     "shareLabel": "parte: {{share}}",
-    "noAssignmentsFound": "Nenhuma atribuição pôde ser encontrada. Tente novamente com palavras diferentes.",
+    "noAssignmentsFound": "Nenhuma atribuição encontrada. Tente novamente com outras palavras.",
     "tryAgain": "Tentar Novamente",
     "apply": "Aplicar {{count}} atribuições",
-    "scanLimitReached": "Você usou todas as {{limit}} ações gratuitas de IA deste mês. Adicione sua própria chave de API para uso ilimitado.",
-    "processingFailed": "Falha ao processar a atribuição por voz",
-    "permissionDenied": "As permissões de microfone e reconhecimento de voz são necessárias."
+    "scanLimitReached": "Você usou todas as {{limit}} ações IA gratuitas deste mês. Adicione sua própria chave API para uso ilimitado.",
+    "processingFailed": "Falha ao processar atribuição por voz"
   },
   "profile": {
     "languageLabel": "Idioma"

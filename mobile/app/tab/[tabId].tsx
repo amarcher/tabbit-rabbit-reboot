@@ -39,6 +39,7 @@ import TotalsView from '@/src/components/TotalsView';
 import HintArrow from '@/src/components/HintArrow';
 import Confetti from '@/src/components/Confetti';
 import VoiceAssignmentModal from '@/src/components/VoiceAssignmentModal';
+import VoiceInputBar from '@/src/components/VoiceInputBar';
 import { editorTour } from '@/src/utils/onboardingTour';
 import type { RabbitColor, Profile, Tab, ItemRabbit } from '@/src/types';
 
@@ -143,7 +144,9 @@ export default function TabEditorScreen() {
   const [showAddRabbit, setShowAddRabbit] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [showVoiceInput, setShowVoiceInput] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Scroll-to-top button state
@@ -341,6 +344,12 @@ export default function TabEditorScreen() {
     );
   }
 
+  const handleVoiceProcess = useCallback((text: string) => {
+    setVoiceTranscript(text);
+    setShowVoiceInput(false);
+    setShowVoiceModal(true);
+  }, []);
+
   const hasItems = items.length > 0;
   const hasRabbits = rabbits.length > 0;
   const showFirstTabHints = !hasItems && !hasRabbits;
@@ -351,7 +360,7 @@ export default function TabEditorScreen() {
     <ScrollView
       ref={scrollViewRef}
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, showVoiceInput && styles.contentWithInputBar]}
       onScroll={handleScroll}
       scrollEventThrottle={16}
     >
@@ -367,7 +376,7 @@ export default function TabEditorScreen() {
         <ActionBar
           onScanReceipt={handleScanReceipt}
           onShareBill={handleShareBill}
-          onVoiceAssign={() => setShowVoiceModal(true)}
+          onVoiceAssign={() => setShowVoiceInput(true)}
           scanning={scanning}
           sharing={sharing}
           hasItems={hasItems}
@@ -435,24 +444,13 @@ export default function TabEditorScreen() {
         <ActionBar
           onScanReceipt={handleScanReceipt}
           onShareBill={handleShareBill}
-          onVoiceAssign={() => setShowVoiceModal(true)}
+          onVoiceAssign={() => setShowVoiceInput(true)}
           scanning={scanning}
           sharing={sharing}
           hasItems={hasItems}
           hasRabbits={hasRabbits}
         />
       )}
-
-      {/* Voice Assignment Modal */}
-      <VoiceAssignmentModal
-        visible={showVoiceModal}
-        onClose={() => setShowVoiceModal(false)}
-        items={items}
-        rabbits={rabbits}
-        assignments={assignments}
-        currencyCode={currencyCode}
-        onApply={applyAssignments}
-      />
 
       {/* Add Rabbit Modal */}
       <AddRabbitModal
@@ -470,14 +468,31 @@ export default function TabEditorScreen() {
       <View style={styles.bottomPadding} />
     </ScrollView>
     {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}
-    <Animated.View style={[styles.scrollTopButton, scrollTopStyle]}>
-      <Pressable
-        style={({ pressed }) => [pressed && PRESSED_STYLE]}
-        onPress={scrollToTop}
-      >
-        <Text style={styles.scrollTopText}>↑</Text>
-      </Pressable>
-    </Animated.View>
+    {!showVoiceInput && (
+      <Animated.View style={[styles.scrollTopButton, scrollTopStyle]}>
+        <Pressable
+          style={({ pressed }) => [pressed && PRESSED_STYLE]}
+          onPress={scrollToTop}
+        >
+          <Text style={styles.scrollTopText}>↑</Text>
+        </Pressable>
+      </Animated.View>
+    )}
+    <VoiceInputBar
+      visible={showVoiceInput}
+      onClose={() => setShowVoiceInput(false)}
+      onProcess={handleVoiceProcess}
+    />
+    <VoiceAssignmentModal
+      visible={showVoiceModal}
+      onClose={() => setShowVoiceModal(false)}
+      initialTranscript={voiceTranscript}
+      items={items}
+      rabbits={rabbits}
+      assignments={assignments}
+      currencyCode={currencyCode}
+      onApply={applyAssignments}
+    />
     </View>
   );
 }
@@ -489,6 +504,9 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+  },
+  contentWithInputBar: {
+    paddingBottom: 120,
   },
   centered: {
     flex: 1,

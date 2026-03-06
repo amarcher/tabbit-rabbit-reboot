@@ -148,22 +148,18 @@
     "title": "Attribution vocale",
     "buttonLabel": "Assigner",
     "instructions": "Dis qui a pris quoi — ex. « Pierre a pris la soupe et la moitié du sandwich, Marie a pris la salade. »",
-    "tapToSpeak": "Appuie pour parler",
-    "listening": "Écoute...",
-    "processTranscript": "Traiter",
-    "or": "ou",
-    "textInputLabel": "Ou écris qui a pris quoi",
-    "textPlaceholder": "ex. Pierre a pris la soupe, Marie a pris la salade",
+    "inputPlaceholder": "Tape ou dicte qui a pris quoi...",
+    "commit": "Valider",
+    "reviewTitle": "Vérifier la transcription",
     "processText": "Traiter",
     "processing": "Association des articles et des personnes...",
     "reviewAssignments": "Vérifie les attributions proposées :",
     "shareLabel": "part : {{share}}",
-    "noAssignmentsFound": "Impossible de faire correspondre les attributions. Réessaie avec d'autres formulations.",
+    "noAssignmentsFound": "Aucune attribution n'a pu être identifiée. Essaie avec une autre formulation.",
     "tryAgain": "Réessayer",
     "apply": "Appliquer {{count}} attributions",
-    "scanLimitReached": "Tu as utilisé toutes tes {{limit}} actions IA gratuites ce mois-ci. Ajoute ta propre clé API pour une utilisation illimitée.",
-    "processingFailed": "Impossible de traiter l'attribution vocale",
-    "permissionDenied": "Les permissions pour le microphone et la reconnaissance vocale sont requises."
+    "scanLimitReached": "Tu as utilisé tes {{limit}} actions IA gratuites ce mois-ci. Ajoute ta propre clé API pour un usage illimité.",
+    "processingFailed": "Échec du traitement de l'attribution vocale"
   },
   "profile": {
     "languageLabel": "Langue"

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -10,10 +10,6 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from 'expo-speech-recognition';
 import type { Item, Rabbit, ItemRabbit } from '../types';
 import { COLOR_HEX } from '../types';
 import { formatAmount } from '../utils/currency';
@@ -41,6 +37,7 @@ async function getStoredApiKey(): Promise<string | null> {
 interface Props {
   visible: boolean;
   onClose: () => void;
+  initialTranscript: string;
   items: Item[];
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
@@ -48,106 +45,36 @@ interface Props {
   onApply: (assignments: ItemRabbit[]) => void;
 }
 
-type Phase = 'input' | 'processing' | 'confirm';
+type Phase = 'review' | 'processing' | 'confirm';
 
 const PRESSED_STYLE = { opacity: 0.7 } as const;
 
 export default function VoiceAssignmentModal({
   visible,
   onClose,
+  initialTranscript,
   items,
   rabbits,
   assignments,
   currencyCode,
   onApply,
 }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
-  const [phase, setPhase] = useState<Phase>('input');
-  const [recording, setRecording] = useState(false);
+  const [phase, setPhase] = useState<Phase>('review');
   const [transcript, setTranscript] = useState('');
-  const [textInput, setTextInput] = useState('');
   const [error, setError] = useState('');
   const [result, setResult] = useState<VoiceAssignmentResult | null>(null);
-  const recognizingRef = useRef(false);
 
   // Reset state when modal opens
   useEffect(() => {
     if (visible) {
-      setPhase('input');
-      setRecording(false);
-      setTranscript('');
-      setTextInput('');
+      setPhase('review');
+      setTranscript(initialTranscript);
       setError('');
       setResult(null);
     }
-  }, [visible]);
-
-  // Speech recognition events
-  useSpeechRecognitionEvent('result', (event) => {
-    const text = event.results[0]?.transcript || '';
-    setTranscript(text);
-    if (event.isFinal) {
-      setRecording(false);
-      recognizingRef.current = false;
-    }
-  });
-
-  useSpeechRecognitionEvent('error', (event) => {
-    if (event.error !== 'no-speech') {
-      setError(event.error || 'Speech recognition error');
-    }
-    setRecording(false);
-    recognizingRef.current = false;
-  });
-
-  useSpeechRecognitionEvent('end', () => {
-    setRecording(false);
-    recognizingRef.current = false;
-  });
-
-  const startRecording = useCallback(async () => {
-    setError('');
-    setTranscript('');
-
-    const { granted } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-    if (!granted) {
-      setError(t('voiceAssignment.permissionDenied'));
-      return;
-    }
-
-    recognizingRef.current = true;
-    setRecording(true);
-
-    const SPEECH_LANG_MAP: Record<string, string> = {
-      en: 'en-US', es: 'es-ES', hi: 'hi-IN', pt: 'pt-BR',
-      ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN', de: 'de-DE',
-      ru: 'ru-RU', fr: 'fr-FR', it: 'it-IT', vi: 'vi-VN',
-    };
-    const speechLang = SPEECH_LANG_MAP[i18n.language] || 'en-US';
-    ExpoSpeechRecognitionModule.start({
-      lang: speechLang,
-      interimResults: true,
-      continuous: true,
-    });
-  }, [t, i18n.language]);
-
-  const stopRecording = useCallback(() => {
-    if (recognizingRef.current) {
-      ExpoSpeechRecognitionModule.stop();
-    }
-    recognizingRef.current = false;
-    setRecording(false);
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (recognizingRef.current) {
-        ExpoSpeechRecognitionModule.stop();
-      }
-    };
-  }, []);
+  }, [visible, initialTranscript]);
 
   const processTranscript = useCallback(async (text: string) => {
     if (!text.trim()) return;
@@ -173,7 +100,7 @@ export default function VoiceAssignmentModal({
       setPhase('confirm');
     } catch (err: any) {
       setError(err.message || t('voiceAssignment.processingFailed'));
-      setPhase('input');
+      setPhase('review');
     }
   }, [items, rabbits, assignments, t]);
 
@@ -206,70 +133,19 @@ export default function VoiceAssignmentModal({
               </View>
             ) : null}
 
-            {phase === 'input' && (
+            {phase === 'review' && (
               <View>
+                <Text style={styles.reviewTitle}>{t('voiceAssignment.reviewTitle')}</Text>
                 <Text style={styles.instructions}>{t('voiceAssignment.instructions')}</Text>
-
-                {/* Mic button */}
-                <View style={styles.micRow}>
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.micButton,
-                      recording && styles.micButtonRecording,
-                      pressed && PRESSED_STYLE,
-                    ]}
-                    onPress={recording ? stopRecording : startRecording}
-                  >
-                    <Text style={styles.micIcon}>{recording ? '\u25A0' : '\uD83C\uDFA4'}</Text>
-                  </Pressable>
-                  <Text style={styles.micLabel}>
-                    {recording ? t('voiceAssignment.listening') : t('voiceAssignment.tapToSpeak')}
-                  </Text>
-                </View>
-
-                {transcript ? (
-                  <View style={styles.transcriptBox}>
-                    <Text style={styles.transcriptText}>{transcript}</Text>
-                    {!recording && (
-                      <Pressable
-                        style={({ pressed }) => [styles.processButton, pressed && PRESSED_STYLE]}
-                        onPress={() => processTranscript(transcript)}
-                      >
-                        <Text style={styles.processButtonText}>{t('voiceAssignment.processTranscript')}</Text>
-                      </Pressable>
-                    )}
-                  </View>
-                ) : null}
-
-                {/* Divider */}
-                <View style={styles.divider}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>{t('voiceAssignment.or')}</Text>
-                  <View style={styles.dividerLine} />
-                </View>
-
-                {/* Text input */}
-                <Text style={styles.textLabel}>{t('voiceAssignment.textInputLabel')}</Text>
                 <TextInput
                   style={styles.textArea}
-                  placeholder={t('voiceAssignment.textPlaceholder')}
+                  placeholder={t('voiceAssignment.inputPlaceholder')}
                   placeholderTextColor={colors.muted}
-                  value={textInput}
-                  onChangeText={setTextInput}
+                  value={transcript}
+                  onChangeText={setTranscript}
                   multiline
                   numberOfLines={3}
                 />
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.processButton,
-                    !textInput.trim() && styles.processButtonDisabled,
-                    pressed && PRESSED_STYLE,
-                  ]}
-                  onPress={() => processTranscript(textInput)}
-                  disabled={!textInput.trim()}
-                >
-                  <Text style={styles.processButtonText}>{t('voiceAssignment.processText')}</Text>
-                </Pressable>
               </View>
             )}
 
@@ -348,11 +224,32 @@ export default function VoiceAssignmentModal({
 
           {/* Footer buttons */}
           <View style={styles.footer}>
+            {phase === 'review' && (
+              <>
+                <Pressable
+                  style={({ pressed }) => [styles.footerBtnOutline, pressed && PRESSED_STYLE]}
+                  onPress={onClose}
+                >
+                  <Text style={styles.footerBtnOutlineText}>{t('actions.cancel')}</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.footerBtnFilled,
+                    !transcript.trim() && styles.footerBtnDisabled,
+                    pressed && PRESSED_STYLE,
+                  ]}
+                  onPress={() => processTranscript(transcript)}
+                  disabled={!transcript.trim()}
+                >
+                  <Text style={styles.footerBtnFilledText}>{t('voiceAssignment.commit')}</Text>
+                </Pressable>
+              </>
+            )}
             {phase === 'confirm' && result && result.assignments.length > 0 && (
               <>
                 <Pressable
                   style={({ pressed }) => [styles.footerBtnOutline, pressed && PRESSED_STYLE]}
-                  onPress={() => setPhase('input')}
+                  onPress={() => setPhase('review')}
                 >
                   <Text style={styles.footerBtnOutlineText}>{t('voiceAssignment.tryAgain')}</Text>
                 </Pressable>
@@ -369,17 +266,9 @@ export default function VoiceAssignmentModal({
             {phase === 'confirm' && result && result.assignments.length === 0 && (
               <Pressable
                 style={({ pressed }) => [styles.footerBtnOutline, pressed && PRESSED_STYLE]}
-                onPress={() => setPhase('input')}
+                onPress={() => setPhase('review')}
               >
                 <Text style={styles.footerBtnOutlineText}>{t('voiceAssignment.tryAgain')}</Text>
-              </Pressable>
-            )}
-            {phase === 'input' && (
-              <Pressable
-                style={({ pressed }) => [styles.footerBtnOutline, pressed && PRESSED_STYLE]}
-                onPress={onClose}
-              >
-                <Text style={styles.footerBtnOutlineText}>{t('actions.cancel')}</Text>
               </Pressable>
             )}
           </View>
@@ -425,68 +314,17 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
   },
+  reviewTitle: {
+    fontSize: 15,
+    fontFamily: fonts.bodySemiBold,
+    color: colors.text,
+    marginBottom: 4,
+  },
   instructions: {
     fontSize: 14,
     color: colors.muted,
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  micRow: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  micButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  micButtonRecording: {
-    backgroundColor: '#dc3545',
-    borderColor: '#dc3545',
-  },
-  micIcon: {
-    fontSize: 24,
-  },
-  micLabel: {
-    fontSize: 13,
-    color: colors.muted,
-  },
-  transcriptBox: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.md,
-    padding: 12,
     marginBottom: 12,
-  },
-  transcriptText: {
-    fontSize: 14,
-    color: colors.text,
-    marginBottom: 8,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    color: colors.muted,
-    fontSize: 13,
-  },
-  textLabel: {
-    fontSize: 13,
-    color: colors.muted,
-    fontFamily: fonts.bodySemiBold,
-    marginBottom: 6,
+    lineHeight: 20,
   },
   textArea: {
     borderWidth: 1,
@@ -499,21 +337,6 @@ const styles = StyleSheet.create({
     minHeight: 60,
     textAlignVertical: 'top',
     marginBottom: 8,
-  },
-  processButton: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  processButtonDisabled: {
-    opacity: 0.4,
-  },
-  processButtonText: {
-    color: colors.text,
-    fontFamily: fonts.bodySemiBold,
-    fontSize: 14,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -651,5 +474,8 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.bodyBold,
     fontSize: 14,
+  },
+  footerBtnDisabled: {
+    opacity: 0.4,
   },
 });
