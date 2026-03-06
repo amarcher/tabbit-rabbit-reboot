@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -8,7 +8,9 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useBillCache } from '@/src/hooks/useBillCache';
 import { formatAmount } from '@/src/utils/currency';
 import { colors, fonts } from '@/src/utils/theme';
@@ -18,10 +20,96 @@ const PRESSED_STYLE = { opacity: 0.7 } as const;
 const dateFormatter = new Intl.DateTimeFormat(undefined, { month: 'numeric', day: 'numeric', year: 'numeric' });
 const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
 
+interface BillRowProps {
+  shareToken: string;
+  tabName: string;
+  ownerName: string | null;
+  totalCents: number;
+  currencyCode: string;
+  viewedAt: string;
+  onPress: (token: string) => void;
+  onDelete: (token: string) => void;
+}
+
+const BillRow = React.memo(function BillRow({
+  shareToken,
+  tabName,
+  ownerName,
+  totalCents,
+  currencyCode,
+  viewedAt,
+  onPress,
+  onDelete,
+}: BillRowProps) {
+  const { t } = useTranslation();
+  const swipeableRef = useRef<Swipeable>(null);
+
+  const renderRightActions = useCallback(() => (
+    <View style={styles.swipeActions}>
+      <Pressable
+        style={({ pressed }) => [styles.deleteAction, pressed && PRESSED_STYLE]}
+        onPress={() => {
+          swipeableRef.current?.close();
+          onDelete(shareToken);
+        }}
+      >
+        <Text style={styles.actionText}>{t('actions.delete')}</Text>
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [styles.cancelAction, pressed && PRESSED_STYLE]}
+        onPress={() => swipeableRef.current?.close()}
+      >
+        <Text style={styles.actionText}>{t('actions.cancel')}</Text>
+      </Pressable>
+    </View>
+  ), [shareToken, onDelete, t]);
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      overshootRight={false}
+      rightThreshold={40}
+    >
+      <Pressable
+        style={({ pressed }) => [styles.row, pressed && PRESSED_STYLE]}
+        onPress={() => onPress(shareToken)}
+      >
+        <View style={styles.rowInfo}>
+          <Text style={styles.tabName}>{tabName}</Text>
+          {ownerName && (
+            <Text style={styles.ownerName}>{t('messages.sharedBy', { name: ownerName })}</Text>
+          )}
+          <Text style={styles.viewedDate}>
+            {dateFormatter.format(new Date(viewedAt))} at{' '}
+            {timeFormatter.format(new Date(viewedAt))}
+          </Text>
+        </View>
+        <Text style={styles.total}>{formatAmount(totalCents, currencyCode || 'USD')}</Text>
+      </Pressable>
+    </Swipeable>
+  );
+});
+
 export default function BillHistoryScreen() {
   const { t } = useTranslation();
-  const { cachedBills, loading, refresh } = useBillCache();
+  const { cachedBills, loading, refresh, removeBill } = useBillCache();
   const router = useRouter();
+
+  // Re-read from AsyncStorage whenever this tab gains focus
+  useFocusEffect(
+    React.useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const handlePress = useCallback((token: string) => {
+    router.push(`/bill/${token}`);
+  }, [router]);
+
+  const handleDelete = useCallback((token: string) => {
+    removeBill(token);
+  }, [removeBill]);
 
   if (loading) {
     return (
@@ -48,22 +136,16 @@ export default function BillHistoryScreen() {
       onRefresh={refresh}
       refreshing={loading}
       renderItem={({ item }) => (
-        <Pressable
-          style={({ pressed }) => [styles.row, pressed && PRESSED_STYLE]}
-          onPress={() => router.push(`/bill/${item.shareToken}`)}
-        >
-          <View style={styles.rowInfo}>
-            <Text style={styles.tabName}>{item.tabName}</Text>
-            {item.ownerName && (
-              <Text style={styles.ownerName}>{t('messages.sharedBy', { name: item.ownerName })}</Text>
-            )}
-            <Text style={styles.viewedDate}>
-              {dateFormatter.format(new Date(item.viewedAt))} at{' '}
-              {timeFormatter.format(new Date(item.viewedAt))}
-            </Text>
-          </View>
-          <Text style={styles.total}>{formatAmount(item.totalCents, item.currencyCode || 'USD')}</Text>
-        </Pressable>
+        <BillRow
+          shareToken={item.shareToken}
+          tabName={item.tabName}
+          ownerName={item.ownerName}
+          totalCents={item.totalCents}
+          currencyCode={item.currencyCode}
+          viewedAt={item.viewedAt}
+          onPress={handlePress}
+          onDelete={handleDelete}
+        />
       )}
       contentContainerStyle={styles.list}
     />
@@ -136,5 +218,28 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyBold,
     color: colors.text,
     marginLeft: 12,
+  },
+  swipeActions: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  deleteAction: {
+    backgroundColor: colors.danger,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+  },
+  cancelAction: {
+    backgroundColor: colors.muted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+  },
+  actionText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: fonts.bodySemiBold,
   },
 });

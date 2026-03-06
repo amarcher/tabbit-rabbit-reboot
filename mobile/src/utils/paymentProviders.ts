@@ -27,8 +27,10 @@ export const PAYMENT_PROVIDERS: PaymentProviderConfig[] = [
     regions: ['US'],
     buildPayUrl: (username, amount, note) =>
       `venmo://paycharge?txn=pay&recipients=${username}&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`,
-    buildChargeUrl: (username, amount, note) =>
-      `venmo://paycharge?txn=charge&recipients=${username}&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`,
+    buildChargeUrl: (username, amount, note) => {
+      const base = `venmo://paycharge?txn=charge&amount=${amount.toFixed(2)}&note=${encodeURIComponent(note)}`;
+      return username ? `${base}&recipients=${username}` : base;
+    },
   },
   {
     id: 'cashapp',

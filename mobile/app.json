@@ -23,6 +23,10 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSSpeechRecognitionUsageDescription": "Tabbit Rabbit uses speech recognition to assign bill items by voice.",
         "NSMicrophoneUsageDescription": "Tabbit Rabbit needs microphone access for voice-based item assignment.",
+        "LSApplicationQueriesSchemes": [
+          "venmo",
+          "upi"
+        ],
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
