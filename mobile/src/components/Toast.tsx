@@ -8,16 +8,16 @@ import React, {
 } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeOut,
-  useAnimatedStyle,
+  SlideInDown,
   useSharedValue,
+  useAnimatedStyle,
+  withDelay,
   withTiming,
-  Easing,
+  withSequence,
   runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fonts, shadow2, radii, spacing } from '@/src/utils/theme';
+import { colors, fonts, shadow3, radii, spacing } from '@/src/utils/theme';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -55,15 +55,23 @@ export function useToast(): ToastContextValue {
 
 const TOAST_DURATION_MS = 3000;
 
-const ACCENT_COLORS: Record<ToastType, string> = {
-  success: colors.accent,
-  error: colors.danger,
-  info: colors.sky,
+const TOAST_ICONS: Record<ToastType, string> = {
+  success: '\u2713',
+  error: '!',
+  info: 'i',
+};
+
+const CARD_COLORS: Record<ToastType, { bg: string; icon: string; iconBg: string }> = {
+  success: { bg: '#e8f5e9', icon: '#2e7d32', iconBg: '#c8e6c9' },
+  error: { bg: '#fce4ec', icon: colors.danger, iconBg: '#f8bbd0' },
+  info: { bg: '#e3f2fd', icon: colors.sky, iconBg: '#bbdefb' },
 };
 
 // ---------------------------------------------------------------------------
 // Individual Toast
 // ---------------------------------------------------------------------------
+
+const FADE_OUT_MS = 400;
 
 function ToastCard({
   item,
@@ -72,49 +80,41 @@ function ToastCard({
   item: ToastItem;
   onDismiss: (id: number) => void;
 }) {
-  const accentColor = ACCENT_COLORS[item.type];
-
-  // Progress bar animation: starts at 1 (full width) and animates to 0.
-  const progress = useSharedValue(1);
+  const palette = CARD_COLORS[item.type];
+  const opacity = useSharedValue(1);
 
   const dismiss = useCallback(() => {
     onDismiss(item.id);
   }, [item.id, onDismiss]);
 
-  // Start the countdown once the component mounts.
+  // Hold at full opacity, then fade out, then dismiss.
   React.useEffect(() => {
-    progress.value = withTiming(0, {
-      duration: TOAST_DURATION_MS,
-      easing: Easing.linear,
-    }, (finished) => {
-      if (finished) {
-        runOnJS(dismiss)();
-      }
-    });
+    opacity.value = withDelay(
+      TOAST_DURATION_MS,
+      withTiming(0, { duration: FADE_OUT_MS }, (finished) => {
+        if (finished) runOnJS(dismiss)();
+      }),
+    );
   }, []);
 
-  const progressStyle = useAnimatedStyle(() => ({
-    transform: [{ scaleX: progress.value }],
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
   }));
 
   return (
     <Animated.View
-      entering={FadeIn.duration(200)}
-      exiting={FadeOut.duration(200)}
-      style={[styles.card, { borderTopColor: accentColor }]}
+      entering={SlideInDown.duration(300)}
+      style={[styles.card, { backgroundColor: palette.bg }, animatedStyle]}
       accessibilityRole="alert"
       accessibilityLiveRegion="assertive"
     >
-      <Text style={styles.message}>{item.message}</Text>
-      {/* Progress bar */}
-      <View style={styles.progressTrack}>
-        <Animated.View
-          style={[
-            styles.progressBar,
-            { backgroundColor: accentColor },
-            progressStyle,
-          ]}
-        />
+      <View style={styles.content}>
+        <View style={[styles.iconCircle, { backgroundColor: palette.iconBg }]}>
+          <Text style={[styles.iconText, { color: palette.icon }]}>
+            {TOAST_ICONS[item.type]}
+          </Text>
+        </View>
+        <Text style={styles.message}>{item.message}</Text>
       </View>
     </Animated.View>
   );
@@ -134,7 +134,7 @@ function ToastContainer({ toasts, onDismiss }: {
 
   return (
     <View
-      style={[styles.container, { top: insets.top + spacing.sm }]}
+      style={[styles.container, { bottom: insets.bottom + spacing.lg }]}
       pointerEvents="box-none"
     >
       {toasts.map((t) => (
@@ -178,40 +178,41 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: spacing.md,
-    right: spacing.md,
+    left: spacing.lg,
+    right: spacing.lg,
     zIndex: 9999,
     gap: spacing.sm,
+    alignItems: 'center',
   },
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderTopWidth: 2,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xs,
-    overflow: 'hidden',
-    ...shadow2,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    width: '100%',
+    ...shadow3,
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconText: {
+    fontFamily: fonts.heading,
+    fontSize: 16,
+    lineHeight: 20,
   },
   message: {
+    flex: 1,
     color: colors.text,
     fontFamily: fonts.bodySemiBold,
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: spacing.sm,
-  },
-  progressTrack: {
-    height: 3,
-    backgroundColor: colors.border,
-    borderRadius: 1.5,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 1.5,
-    transformOrigin: 'left center',
+    fontSize: 15,
+    lineHeight: 22,
   },
 });

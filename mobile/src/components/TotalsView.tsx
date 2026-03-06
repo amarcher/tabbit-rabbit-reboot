@@ -13,7 +13,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import Slider from '@react-native-community/slider';
-import type { Item, Rabbit, ItemRabbit, Tab } from '../types';
+import type { Item, Rabbit, ItemRabbit, Tab, Profile } from '../types';
 import { buildChargeNote } from '../utils/payments';
 import { profileToHandles, getProviderById, openPaymentUrl } from '../utils/paymentProviders';
 import { amountToDecimal } from '../utils/currency';
@@ -75,6 +75,7 @@ interface TotalsViewProps {
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
   onUpdateTab: (updates: Partial<Tab>) => void;
+  currentUserProfile?: Profile | null;
 }
 
 interface RabbitTotal {
@@ -91,6 +92,7 @@ export default function TotalsView({
   rabbits,
   assignments,
   onUpdateTab,
+  currentUserProfile,
 }: TotalsViewProps) {
   const { t } = useTranslation();
   const currencyCode = tab.currency_code || 'USD';
@@ -310,9 +312,10 @@ export default function TotalsView({
                       }))
                   )}
                 />
-                {rabbit.profile && total > 0 && (() => {
-                  const chargeHandles = profileToHandles(rabbit.profile!).filter((handle) => {
-                    const cfg = getProviderById(handle.provider);
+                {currentUserProfile && total > 0 && (() => {
+                  const ownerHandles = profileToHandles(currentUserProfile);
+                  const chargeHandles = ownerHandles.filter((h) => {
+                    const cfg = getProviderById(h.provider);
                     return cfg?.buildChargeUrl != null;
                   });
                   if (chargeHandles.length === 0) return null;
@@ -324,12 +327,20 @@ export default function TotalsView({
                         splitCount: assignments.filter((x) => x.item_id === a.item_id).length,
                       }))
                   );
-                  return chargeHandles.map((handle) => {
-                    const cfg = getProviderById(handle.provider)!;
-                    const url = cfg.buildChargeUrl!(handle.username, amountToDecimal(total, currencyCode), chargeNote);
+                  // Use the rabbit's Venmo handle as recipient if available,
+                  // otherwise open Venmo without a recipient and let the user pick.
+                  const rabbitHandles = rabbit.profile ? profileToHandles(rabbit.profile) : [];
+                  return chargeHandles.map(({ provider }) => {
+                    const cfg = getProviderById(provider)!;
+                    const rabbitHandle = rabbitHandles.find((h) => h.provider === provider);
+                    const url = cfg.buildChargeUrl!(
+                      rabbitHandle?.username ?? '',
+                      amountToDecimal(total, currencyCode),
+                      chargeNote,
+                    );
                     return (
                       <Pressable
-                        key={handle.provider}
+                        key={provider}
                         style={({ pressed }) => [styles.chargeButton, pressed && PRESSED_STYLE]}
                         onPress={() => openPaymentUrl(url)}
                       >

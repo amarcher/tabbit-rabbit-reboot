@@ -427,6 +427,7 @@ export default function TabEditorScreen() {
         rabbits={rabbits}
         assignments={assignments}
         onUpdateTab={updateTab}
+        currentUserProfile={profile}
       />
 
       {/* Bottom Action Bar — only shown when content exists */}

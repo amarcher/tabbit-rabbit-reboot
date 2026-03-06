@@ -80,5 +80,14 @@ export function useBillCache() {
     }
   }, []);
 
-  return { cachedBills, loading, cacheBill, getCachedBill, refresh: loadIndex };
+  const removeBill = useCallback(async (shareToken: string) => {
+    await AsyncStorage.removeItem(CACHE_PREFIX + shareToken);
+    const raw = await AsyncStorage.getItem(CACHE_INDEX_KEY);
+    let entries: CachedBillEntry[] = raw ? JSON.parse(raw) : [];
+    entries = entries.filter((e) => e.shareToken !== shareToken);
+    await AsyncStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(entries));
+    setCachedBills(entries);
+  }, []);
+
+  return { cachedBills, loading, cacheBill, getCachedBill, removeBill, refresh: loadIndex };
 }
