@@ -59,6 +59,8 @@ export default function TabEditor() {
   const [sharing, setSharing] = useState(false);
 
   // Voice assignment state
+  const [showVoiceInput, setShowVoiceInput] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
   const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   // Confetti state
@@ -263,11 +265,11 @@ export default function TabEditor() {
             t('tabEditor.scanReceipt')
           )}
         </Button>
-        {hasItems && hasRabbits && (
+        {hasItems && hasRabbits && !showVoiceInput && (
           <Button
             variant="outline-primary"
             size="sm"
-            onClick={() => setShowVoiceModal(true)}
+            onClick={() => { setShowVoiceInput(true); setVoiceTranscript(''); }}
             title={t('voiceAssignment.title')}
           >
             &#127908; {t('voiceAssignment.buttonLabel')}
@@ -285,6 +287,39 @@ export default function TabEditor() {
           </Button>
         )}
       </div>
+      {showVoiceInput && (
+        <div className="mt-2">
+          <Form.Control
+            as="textarea"
+            rows={2}
+            placeholder={t('voiceAssignment.inputPlaceholder')}
+            value={voiceTranscript}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setVoiceTranscript(e.target.value)}
+            autoFocus
+            className="mb-2"
+          />
+          <div className="d-flex gap-2 justify-content-end">
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={() => setShowVoiceInput(false)}
+            >
+              {t('voiceAssignment.cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={!voiceTranscript.trim()}
+              onClick={() => {
+                setShowVoiceInput(false);
+                setShowVoiceModal(true);
+              }}
+            >
+              {t('voiceAssignment.commit')}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -401,7 +436,11 @@ export default function TabEditor() {
 
       <VoiceAssignmentModal
         show={showVoiceModal}
-        onHide={() => setShowVoiceModal(false)}
+        onHide={() => {
+          setShowVoiceModal(false);
+          setShowVoiceInput(true);
+        }}
+        transcript={voiceTranscript}
         items={items}
         rabbits={rabbits}
         assignments={assignments}

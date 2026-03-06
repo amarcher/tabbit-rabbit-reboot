@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Badge, Button, Form, ListGroup, Modal } from 'react-bootstrap';
+import { Alert, Badge, Button, ListGroup, Modal } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import type { Item, Rabbit, ItemRabbit } from '../types';
@@ -15,7 +15,7 @@ import LoadingSpinner from './LoadingSpinner';
 interface VoiceAssignmentModalProps {
   show: boolean;
   onHide: () => void;
-  initialTranscript?: string;
+  transcript: string;
   items: Item[];
   rabbits: Rabbit[];
   assignments: ItemRabbit[];
@@ -23,12 +23,12 @@ interface VoiceAssignmentModalProps {
   onApply: (assignments: ItemRabbit[]) => void;
 }
 
-type Phase = 'review' | 'processing' | 'confirm';
+type Phase = 'processing' | 'confirm';
 
 export default function VoiceAssignmentModal({
   show,
   onHide,
-  initialTranscript = '',
+  transcript,
   items,
   rabbits,
   assignments,
@@ -37,23 +37,17 @@ export default function VoiceAssignmentModal({
 }: VoiceAssignmentModalProps) {
   const { t } = useTranslation();
 
-  const [phase, setPhase] = useState<Phase>('review');
-  const [transcript, setTranscript] = useState('');
+  const [phase, setPhase] = useState<Phase>('processing');
   const [error, setError] = useState('');
   const [result, setResult] = useState<VoiceAssignmentResult | null>(null);
 
-  // Reset state when modal opens
+  // Start processing when modal opens with a transcript
   useEffect(() => {
-    if (show) {
-      setPhase('review');
-      setTranscript(initialTranscript);
-      setError('');
-      setResult(null);
-    }
-  }, [show, initialTranscript]);
+    if (!show || !transcript.trim()) return;
 
-  const processTranscript = useCallback(async (text: string) => {
-    if (!text.trim()) return;
+    setPhase('processing');
+    setError('');
+    setResult(null);
 
     const byokKey = getStoredApiKey();
     if (!byokKey && !canScanFree()) {
@@ -61,24 +55,30 @@ export default function VoiceAssignmentModal({
       return;
     }
 
-    setPhase('processing');
-    setError('');
+    let cancelled = false;
 
-    try {
-      let parsed: VoiceAssignmentResult;
-      if (byokKey) {
-        parsed = await parseVoiceAssignmentDirect(byokKey, text, items, rabbits, assignments);
-      } else {
-        parsed = await parseVoiceAssignmentFree(text, items, rabbits, assignments);
-        incrementScanCount();
+    (async () => {
+      try {
+        let parsed: VoiceAssignmentResult;
+        if (byokKey) {
+          parsed = await parseVoiceAssignmentDirect(byokKey, transcript, items, rabbits, assignments);
+        } else {
+          parsed = await parseVoiceAssignmentFree(transcript, items, rabbits, assignments);
+          incrementScanCount();
+        }
+        if (!cancelled) {
+          setResult(parsed);
+          setPhase('confirm');
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(err.message || t('voiceAssignment.processingFailed'));
+        }
       }
-      setResult(parsed);
-      setPhase('confirm');
-    } catch (err: any) {
-      setError(err.message || t('voiceAssignment.processingFailed'));
-      setPhase('review');
-    }
-  }, [items, rabbits, assignments, t]);
+    })();
+
+    return () => { cancelled = true; };
+  }, [show, transcript, items, rabbits, assignments, t]);
 
   const handleApply = useCallback(() => {
     if (!result) return;
@@ -102,7 +102,7 @@ export default function VoiceAssignmentModal({
           >
             <Modal.Header closeButton>
               <Modal.Title as="h6">
-                {phase === 'confirm' ? t('voiceAssignment.reviewAssignments') : t('voiceAssignment.reviewTitle')}
+                {phase === 'confirm' ? t('voiceAssignment.reviewAssignments') : t('voiceAssignment.processing')}
               </Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -112,20 +112,7 @@ export default function VoiceAssignmentModal({
                 </Alert>
               )}
 
-              {phase === 'review' && (
-                <div>
-                  <p className="text-muted small mb-3">{t('voiceAssignment.instructions')}</p>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    placeholder={t('voiceAssignment.inputPlaceholder')}
-                    value={transcript}
-                    onChange={(e) => setTranscript(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {phase === 'processing' && (
+              {phase === 'processing' && !error && (
                 <div className="text-center py-4">
                   <LoadingSpinner size="md" message={t('voiceAssignment.processing')} />
                 </div>
@@ -208,24 +195,9 @@ export default function VoiceAssignmentModal({
               )}
             </Modal.Body>
             <Modal.Footer>
-              {phase === 'review' && (
-                <>
-                  <Button variant="outline-secondary" size="sm" onClick={onHide}>
-                    {t('voiceAssignment.cancel')}
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    disabled={!transcript.trim()}
-                    onClick={() => processTranscript(transcript)}
-                  >
-                    {t('voiceAssignment.commit')}
-                  </Button>
-                </>
-              )}
               {phase === 'confirm' && result && result.assignments.length > 0 && (
                 <>
-                  <Button variant="outline-secondary" size="sm" onClick={() => setPhase('review')}>
+                  <Button variant="outline-secondary" size="sm" onClick={onHide}>
                     {t('voiceAssignment.tryAgain')}
                   </Button>
                   <Button variant="success" size="sm" onClick={handleApply}>
@@ -234,8 +206,13 @@ export default function VoiceAssignmentModal({
                 </>
               )}
               {phase === 'confirm' && result && result.assignments.length === 0 && (
-                <Button variant="outline-secondary" size="sm" onClick={() => setPhase('review')}>
+                <Button variant="outline-secondary" size="sm" onClick={onHide}>
                   {t('voiceAssignment.tryAgain')}
+                </Button>
+              )}
+              {error && (
+                <Button variant="outline-secondary" size="sm" onClick={onHide}>
+                  {t('voiceAssignment.cancel')}
                 </Button>
               )}
             </Modal.Footer>
