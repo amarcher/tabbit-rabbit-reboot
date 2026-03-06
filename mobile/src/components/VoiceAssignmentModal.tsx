@@ -291,7 +291,9 @@ export default function VoiceAssignmentModal({
                       if (!item || !rabbit) return null;
 
                       const { fraction, isSplit, label: fractionLabel } = computeAssignmentFraction(
-                        a, result.assignments, assignments,
+                        a,
+                        result.assignments,
+                        assignments,
                       );
 
                       return (
@@ -579,7 +581,6 @@ const styles = StyleSheet.create({
   },
   fractionBarFill: {
     height: '100%',
-    borderRadius: 4,
   },
   fractionText: {
     fontSize: 12,

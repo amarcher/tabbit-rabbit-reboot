@@ -256,7 +256,9 @@ export default function VoiceAssignmentModal({
                         if (!item || !rabbit) return null;
 
                         const { fraction, isSplit, label: fractionLabel } = computeAssignmentFraction(
-                          a, result.assignments, assignments,
+                          a,
+                          result.assignments,
+                          assignments,
                         );
 
                         return (
@@ -292,7 +294,6 @@ export default function VoiceAssignmentModal({
                                         height: '100%',
                                         borderRadius: 4,
                                         backgroundColor: COLOR_HEX[rabbit.color] || '#6c757d',
-                                        filter: 'brightness(0.7)',
                                       }}
                                     />
                                   </div>
