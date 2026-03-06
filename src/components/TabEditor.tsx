@@ -62,6 +62,7 @@ export default function TabEditor() {
   const [showVoiceInput, setShowVoiceInput] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const voiceInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Confetti state
   const [confettiActive, setConfettiActive] = useState(false);
@@ -265,11 +266,18 @@ export default function TabEditor() {
             t('tabEditor.scanReceipt')
           )}
         </Button>
-        {hasItems && hasRabbits && !showVoiceInput && (
+        {hasItems && hasRabbits && (
           <Button
-            variant="outline-primary"
+            variant={showVoiceInput ? 'primary' : 'outline-primary'}
             size="sm"
-            onClick={() => { setShowVoiceInput(true); setVoiceTranscript(''); }}
+            onClick={() => {
+              if (showVoiceInput) {
+                setShowVoiceInput(false);
+              } else {
+                setVoiceTranscript('');
+                setShowVoiceInput(true);
+              }
+            }}
             title={t('voiceAssignment.title')}
           >
             &#127908; {t('voiceAssignment.buttonLabel')}
@@ -287,39 +295,6 @@ export default function TabEditor() {
           </Button>
         )}
       </div>
-      {showVoiceInput && (
-        <div className="mt-2">
-          <Form.Control
-            as="textarea"
-            rows={2}
-            placeholder={t('voiceAssignment.inputPlaceholder')}
-            value={voiceTranscript}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setVoiceTranscript(e.target.value)}
-            autoFocus
-            className="mb-2"
-          />
-          <div className="d-flex gap-2 justify-content-end">
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              onClick={() => setShowVoiceInput(false)}
-            >
-              {t('voiceAssignment.cancel')}
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              disabled={!voiceTranscript.trim()}
-              onClick={() => {
-                setShowVoiceInput(false);
-                setShowVoiceModal(true);
-              }}
-            >
-              {t('voiceAssignment.commit')}
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 
@@ -433,6 +408,52 @@ export default function TabEditor() {
           />
         </div>
       </div>
+
+      {showVoiceInput && (
+        <div
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 10,
+            background: 'white',
+            padding: '12px 16px',
+            borderTop: '1px solid #dee2e6',
+            boxShadow: '0 -2px 8px rgba(0,0,0,0.08)',
+          }}
+        >
+          <Form.Control
+            as="textarea"
+            rows={2}
+            placeholder={t('voiceAssignment.inputPlaceholder')}
+            defaultValue={voiceTranscript}
+            ref={voiceInputRef}
+            autoFocus
+            className="mb-2"
+          />
+          <div className="d-flex gap-2 justify-content-end">
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={() => setShowVoiceInput(false)}
+            >
+              {t('voiceAssignment.cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                const text = voiceInputRef.current?.value?.trim() || '';
+                if (!text) return;
+                setVoiceTranscript(text);
+                setShowVoiceInput(false);
+                setShowVoiceModal(true);
+              }}
+            >
+              {t('voiceAssignment.commit')}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <VoiceAssignmentModal
         show={showVoiceModal}
