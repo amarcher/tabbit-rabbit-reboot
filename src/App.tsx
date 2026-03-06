@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
+import { Analytics } from '@vercel/analytics/react';
 import { useAuth } from './hooks/useAuth';
 import { NuxProvider } from './contexts/NuxContext';
 import Layout from './components/Layout';
@@ -105,6 +106,7 @@ function App() {
           </Layout>
         </NuxProvider>
       </BrowserRouter>
+      <Analytics />
     </MotionConfig>
   );
 }
