@@ -148,12 +148,9 @@
     "title": "Voice Assignment",
     "buttonLabel": "Assign",
     "instructions": "Say who had what — e.g. \"Alex had the soup and half the sandwich, Jamie had the salad.\"",
-    "tapToSpeak": "Tap to speak",
-    "listening": "Listening...",
-    "processTranscript": "Process",
-    "or": "or",
-    "textInputLabel": "Or type who had what",
-    "textPlaceholder": "e.g. Alex had the soup, Jamie had the salad",
+    "inputPlaceholder": "Type or dictate who had what...",
+    "commit": "Commit",
+    "reviewTitle": "Review Transcript",
     "processText": "Process",
     "processing": "Matching items and people...",
     "reviewAssignments": "Review the proposed assignments:",
@@ -162,8 +159,7 @@
     "tryAgain": "Try Again",
     "apply": "Apply {{count}} assignments",
     "scanLimitReached": "You've used all {{limit}} free AI actions this month. Add your own API key for unlimited use.",
-    "processingFailed": "Failed to process voice assignment",
-    "permissionDenied": "Microphone and speech recognition permissions are required."
+    "processingFailed": "Failed to process voice assignment"
   },
   "profile": {
     "languageLabel": "Language"

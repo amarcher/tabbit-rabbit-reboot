@@ -148,12 +148,9 @@
     "title": "Assegnazione Vocale",
     "buttonLabel": "Assegna",
     "instructions": "Di' chi ha ordinato cosa — es. \"Marco ha preso la zuppa e metà del panino, Giulia ha preso l'insalata.\"",
-    "tapToSpeak": "Tocca per parlare",
-    "listening": "In ascolto...",
-    "processTranscript": "Elabora",
-    "or": "o",
-    "textInputLabel": "Oppure scrivi chi ha ordinato cosa",
-    "textPlaceholder": "es. Marco ha preso la zuppa, Giulia ha preso l'insalata",
+    "inputPlaceholder": "Scrivi o detta chi ha ordinato cosa...",
+    "commit": "Conferma",
+    "reviewTitle": "Rivedi Trascrizione",
     "processText": "Elabora",
     "processing": "Abbinamento articoli e persone...",
     "reviewAssignments": "Controlla le assegnazioni proposte:",
@@ -161,9 +158,8 @@
     "noAssignmentsFound": "Nessuna assegnazione trovata. Riprova con parole diverse.",
     "tryAgain": "Riprova",
     "apply": "Applica {{count}} assegnazioni",
-    "scanLimitReached": "Hai usato tutte le {{limit}} azioni IA gratuite di questo mese. Aggiungi la tua chiave API per uso illimitato.",
-    "processingFailed": "Elaborazione dell'assegnazione vocale fallita",
-    "permissionDenied": "Sono richiesti i permessi per microfono e riconoscimento vocale."
+    "scanLimitReached": "Hai utilizzato tutte le {{limit}} azioni IA gratuite di questo mese. Aggiungi la tua chiave API per un uso illimitato.",
+    "processingFailed": "Impossibile elaborare l'assegnazione vocale"
   },
   "profile": {
     "languageLabel": "Lingua"
