@@ -63,6 +63,7 @@
     "unassignedWarning_other": "{{count}} articoli non ancora assegnati.",
     "rabbitBreakdown": "{{subtotal}} + {{tax}} tassa + {{tip}} mancia",
     "requestViaVenmo": "Richiedi tramite Venmo",
+    "requestViaProvider": "Richiedi tramite {{provider}}",
     "venmoModal": {
       "title": "Richiedi a {{name}} tramite Venmo",
       "usernameLabel": "Username Venmo",

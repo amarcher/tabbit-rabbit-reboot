@@ -65,6 +65,7 @@
     "unassignedWarning_other": "{{count}} позиций ещё не назначено никому.",
     "rabbitBreakdown": "{{subtotal}} + {{tax}} налог + {{tip}} чаев.",
     "requestViaVenmo": "Запросить через Venmo",
+    "requestViaProvider": "Запросить через {{provider}}",
     "venmoModal": {
       "title": "Запрос к {{name}} через Venmo",
       "usernameLabel": "Имя пользователя Venmo",

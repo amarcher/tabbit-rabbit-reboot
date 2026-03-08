@@ -63,6 +63,7 @@
     "unassignedWarning_other": "还有 {{count}} 个项目未分配。",
     "rabbitBreakdown": "{{subtotal}} + {{tax}} 税 + {{tip}} 小费",
     "requestViaVenmo": "通过 Venmo 请求付款",
+    "requestViaProvider": "通过 {{provider}} 请求付款",
     "venmoModal": {
       "title": "通过 Venmo 向 {{name}} 请求付款",
       "usernameLabel": "Venmo 用户名",

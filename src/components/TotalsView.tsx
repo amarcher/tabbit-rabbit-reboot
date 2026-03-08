@@ -149,7 +149,12 @@ export default function TotalsView({
       )
     );
     setChargeTarget(null);
-    window.open(url, '_blank', 'noopener');
+    // Use location.href for venmo:// deep links on mobile (window.open doesn't work for custom schemes)
+    if (url.startsWith('venmo://')) {
+      window.location.href = url;
+    } else {
+      window.open(url, '_blank', 'noopener');
+    }
   }, [chargeTarget, venmoHandle, tab.name, items, assignments, currencyCode]);
 
   const tipLabelKey = getTipLabelKey(tipPercent);
@@ -294,7 +299,7 @@ export default function TotalsView({
                           size="sm"
                           onClick={() => openChargeModal(rabbit, total)}
                         >
-                          {t('totals.requestViaProvider', { provider: config.name }, `Request via ${config.name}`)}
+                          {t('totals.requestViaProvider', { provider: config.name, defaultValue: `Request via ${config.name}` })}
                         </Button>
                       );
                     });

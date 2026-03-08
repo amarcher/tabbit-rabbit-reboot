@@ -63,6 +63,7 @@
     "unassignedWarning_other": "{{count}}개 항목이 아직 지정되지 않았습니다.",
     "rabbitBreakdown": "{{subtotal}} + {{tax}} 세금 + {{tip}} 팁",
     "requestViaVenmo": "Venmo로 요청",
+    "requestViaProvider": "{{provider}}로 요청",
     "venmoModal": {
       "title": "Venmo로 {{name}}에게 요청",
       "usernameLabel": "Venmo 사용자명",

@@ -63,6 +63,7 @@
     "unassignedWarning_other": "{{count}} आइटम अभी किसी को असाइन नहीं किए गए।",
     "rabbitBreakdown": "{{subtotal}} + {{tax}} टैक्स + {{tip}} टिप",
     "requestViaVenmo": "Venmo से रिक्वेस्ट करें",
+    "requestViaProvider": "{{provider}} से रिक्वेस्ट करें",
     "venmoModal": {
       "title": "{{name}} से Venmo के ज़रिए रिक्वेस्ट करें",
       "usernameLabel": "Venmo यूज़रनेम",

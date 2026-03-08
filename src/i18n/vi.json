@@ -63,6 +63,7 @@
     "unassignedWarning_other": "{{count}} món chưa được gán cho ai.",
     "rabbitBreakdown": "{{subtotal}} + {{tax}} thuế + {{tip}} tip",
     "requestViaVenmo": "Yêu cầu qua Venmo",
+    "requestViaProvider": "Yêu cầu qua {{provider}}",
     "venmoModal": {
       "title": "Yêu cầu {{name}} thanh toán qua Venmo",
       "usernameLabel": "Tên người dùng Venmo",

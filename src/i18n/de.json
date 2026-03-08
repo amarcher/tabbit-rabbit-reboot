@@ -63,6 +63,7 @@
     "unassignedWarning_other": "{{count}} Artikel noch niemandem zugewiesen.",
     "rabbitBreakdown": "{{subtotal}} + {{tax}} Steuer + {{tip}} Trinkgeld",
     "requestViaVenmo": "Per Venmo anfragen",
+    "requestViaProvider": "Per {{provider}} anfragen",
     "venmoModal": {
       "title": "Von {{name}} per Venmo anfragen",
       "usernameLabel": "Venmo-Benutzername",

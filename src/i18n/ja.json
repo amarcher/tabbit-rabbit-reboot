@@ -63,6 +63,7 @@
     "unassignedWarning_other": "{{count}}件のアイテムがまだ誰にも割り当てられていません。",
     "rabbitBreakdown": "{{subtotal}} + {{tax}} 税 + {{tip}} チップ",
     "requestViaVenmo": "Venmoでリクエスト",
+    "requestViaProvider": "{{provider}}でリクエスト",
     "venmoModal": {
       "title": "Venmoで{{name}}にリクエスト",
       "usernameLabel": "Venmoユーザー名",

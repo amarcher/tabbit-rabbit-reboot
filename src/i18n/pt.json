@@ -63,6 +63,7 @@
     "unassignedWarning_other": "{{count}} itens ainda não atribuídos a ninguém.",
     "rabbitBreakdown": "{{subtotal}} + {{tax}} imposto + {{tip}} gorjeta",
     "requestViaVenmo": "Solicitar pelo Venmo",
+    "requestViaProvider": "Solicitar pelo {{provider}}",
     "venmoModal": {
       "title": "Solicitar de {{name}} pelo Venmo",
       "usernameLabel": "Nome de usuário do Venmo",
