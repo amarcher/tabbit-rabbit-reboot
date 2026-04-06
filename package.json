@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@popperjs/core": "^2.11.8",
     "@tabbit/shared": "*",
     "@testing-library/dom": "^10.4.1",
