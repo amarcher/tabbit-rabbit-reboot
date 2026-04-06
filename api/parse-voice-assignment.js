@@ -1,6 +1,17 @@
 const { buildVoiceAssignmentPrompt, validateVoiceAssignmentResult } = require('@tabbit/shared');
+const { neon } = require('@neondatabase/serverless');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+
+function logUsage(tokensIn, tokensOut, model) {
+  const dbUrl = process.env.DASHBOARD_DATABASE_URL;
+  if (!dbUrl) return;
+  const sql = neon(dbUrl);
+  sql`INSERT INTO api_usage (project, service, endpoint, tokens_in, tokens_out, model)
+    VALUES ('tabbit-rabbit', 'anthropic', 'parse-voice-assignment', ${tokensIn}, ${tokensOut}, ${model})`.catch((e) =>
+    console.error('[parse-voice-assignment] usage log failed:', e)
+  );
+}
 
 module.exports = async function handler(req, res) {
   // CORS
@@ -54,6 +65,10 @@ module.exports = async function handler(req, res) {
 
     if (!response.ok) {
       return res.status(502).json({ error: 'Anthropic API error', details: data });
+    }
+
+    if (data.usage) {
+      logUsage(data.usage.input_tokens, data.usage.output_tokens, 'claude-haiku-4-5-20251001');
     }
 
     const content = data.content && data.content[0] && data.content[0].text;
