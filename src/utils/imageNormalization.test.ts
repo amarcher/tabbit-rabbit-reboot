@@ -7,15 +7,15 @@ import {
   JPEG_QUALITY,
 } from './imageNormalization';
 
-// Mock heic2any so we don't load the real WASM decoder in unit tests.
+// Mock heic-to so we don't load the real WASM decoder in unit tests.
 // The mock returns a JPEG-flavored Blob whose FileReader->Image->canvas path
 // is exercised via the same mocks used by the fast path.
-const mockHeic2any = jest.fn(async (_opts: any) =>
+const mockHeicTo = jest.fn(async (_opts: any) =>
   new Blob(['fake-jpeg'], { type: 'image/jpeg' })
 );
-jest.mock('heic2any', () => ({
+jest.mock('heic-to', () => ({
   __esModule: true,
-  default: (opts: any) => mockHeic2any(opts),
+  heicTo: (opts: any) => mockHeicTo(opts),
 }));
 
 describe('computeScaledDimensions', () => {
@@ -112,7 +112,7 @@ describe('normalizeImageToJpegBase64', () => {
   beforeEach(() => {
     toDataURLCalls = [];
     drawImageCalls = 0;
-    mockHeic2any.mockClear();
+    mockHeicTo.mockClear();
 
     originalFileReader = global.FileReader;
     class MockFileReader {
@@ -192,10 +192,10 @@ describe('normalizeImageToJpegBase64', () => {
       expect(drawImageCalls).toBe(1);
     });
 
-    it('does NOT load heic2any for non-HEIC inputs', async () => {
+    it('does NOT load heic-to for non-HEIC inputs', async () => {
       const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
       await normalizeImageToJpegBase64(file);
-      expect(mockHeic2any).not.toHaveBeenCalled();
+      expect(mockHeicTo).not.toHaveBeenCalled();
     });
 
     it('rejects when the canvas 2D context is unavailable', async () => {
@@ -218,13 +218,13 @@ describe('normalizeImageToJpegBase64', () => {
   });
 
   describe('HEIC path', () => {
-    it('routes HEIC files through heic2any before canvas encoding', async () => {
+    it('routes HEIC files through heic-to before canvas encoding', async () => {
       const file = new File(['heic-bytes'], 'photo.heic', { type: 'image/heic' });
       const result = await normalizeImageToJpegBase64(file);
-      expect(mockHeic2any).toHaveBeenCalledTimes(1);
-      expect(mockHeic2any).toHaveBeenCalledWith({
+      expect(mockHeicTo).toHaveBeenCalledTimes(1);
+      expect(mockHeicTo).toHaveBeenCalledWith({
         blob: file,
-        toType: 'image/jpeg',
+        type: 'image/jpeg',
         quality: 0.9,
       });
       // Canvas still runs on the converted blob
@@ -236,18 +236,13 @@ describe('normalizeImageToJpegBase64', () => {
     it('detects HEIC by .heic extension when MIME type is empty', async () => {
       const file = new File(['heic-bytes'], 'receipt.heic', { type: '' });
       await normalizeImageToJpegBase64(file);
-      expect(mockHeic2any).toHaveBeenCalledTimes(1);
+      expect(mockHeicTo).toHaveBeenCalledTimes(1);
     });
 
-    it('unwraps multi-frame HEIC (heic2any returns an array)', async () => {
-      mockHeic2any.mockResolvedValueOnce([
-        new Blob(['frame-0'], { type: 'image/jpeg' }),
-        new Blob(['frame-1'], { type: 'image/jpeg' }),
-      ] as any);
-      const file = new File(['heic-bytes'], 'burst.heic', { type: 'image/heic' });
-      const result = await normalizeImageToJpegBase64(file);
-      expect(result.image_base64).toBe('ENCODEDJPEG');
-      expect(drawImageCalls).toBe(1);
+    it('detects HEIC by .heif extension', async () => {
+      const file = new File(['heif-bytes'], 'receipt.heif', { type: '' });
+      await normalizeImageToJpegBase64(file);
+      expect(mockHeicTo).toHaveBeenCalledTimes(1);
     });
   });
 });
