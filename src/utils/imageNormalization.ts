@@ -1,8 +1,17 @@
 // Normalizes user-uploaded images to JPEG before sending to the Anthropic
-// vision API. iOS Safari can upload HEIC files directly from the Photos
-// library, which Anthropic rejects with "Could not process image". Full-res
-// phone photos can also exceed Anthropic's ~5MB base64 image limit. Running
-// every file through a canvas re-encode fixes both.
+// vision API. The API only accepts image/jpeg, image/png, image/gif, and
+// image/webp, with a ~5MB base64 payload cap. Two things can break scans:
+//
+//  1. Format mismatch. iOS Photos hands out HEIC by default, which Chrome's
+//     <img> element can't decode at all, so naive canvas re-encoding fails.
+//     We detect HEIC up front (by MIME type or filename extension) and run
+//     the blob through heic2any — a libheif/WASM browser decoder — before
+//     handing it to the canvas pipeline. heic2any is dynamic-imported so
+//     the ~800KB WASM bundle only loads when we actually see a HEIC file.
+//
+//  2. Oversized payloads. Full-res phone photos regularly exceed 5MB base64.
+//     The canvas path caps the longest edge at MAX_IMAGE_DIMENSION and
+//     re-encodes at JPEG_QUALITY, which keeps payloads well under the cap.
 
 export const MAX_IMAGE_DIMENSION = 1600;
 export const JPEG_QUALITY = 0.8;
@@ -34,18 +43,42 @@ export function stripDataUrlPrefix(dataUrl: string): string {
 }
 
 /**
- * Read an image File, draw it to a canvas at no more than MAX_IMAGE_DIMENSION
- * px on its longest edge, and return the JPEG-encoded base64 payload (no
- * data-URL prefix) plus a fixed `image/jpeg` media type.
+ * Returns true if the given File looks like HEIC/HEIF. Uses the MIME type
+ * first (most reliable), then falls back to the filename extension, since
+ * some browsers report an empty `file.type` for HEIC.
  */
-export async function normalizeImageToJpegBase64(
-  file: File
-): Promise<{ image_base64: string; media_type: 'image/jpeg' }> {
+export function isHeicFile(file: File): boolean {
+  const type = (file.type || '').toLowerCase();
+  if (type === 'image/heic' || type === 'image/heif') return true;
+  const name = file.name.toLowerCase();
+  return name.endsWith('.heic') || name.endsWith('.heif');
+}
+
+/**
+ * Decode a HEIC/HEIF File into a JPEG Blob using heic2any (libheif WASM).
+ * The library is dynamic-imported so the bundle cost is only paid when a
+ * user actually picks a HEIC file.
+ */
+export async function decodeHeicToJpegBlob(file: File): Promise<Blob> {
+  const mod = await import('heic2any');
+  const heic2any = mod.default;
+  const out = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+  // heic2any returns Blob | Blob[] (the array form is for multi-frame HEIC).
+  // Take the first frame for multi-frame inputs.
+  return Array.isArray(out) ? out[0] : out;
+}
+
+/**
+ * Canvas-decode any Blob the browser can render into a JPEG base64 payload
+ * capped at MAX_IMAGE_DIMENSION px on its longest edge. Throws if the browser
+ * can't decode the blob.
+ */
+async function canvasEncodeJpeg(blob: Blob): Promise<string> {
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
+    reader.onerror = () => reject(new Error('Failed to read blob'));
+    reader.readAsDataURL(blob);
   });
 
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -64,5 +97,18 @@ export async function normalizeImageToJpegBase64(
   ctx.drawImage(img, 0, 0, width, height);
 
   const jpegDataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
-  return { image_base64: stripDataUrlPrefix(jpegDataUrl), media_type: 'image/jpeg' };
+  return stripDataUrlPrefix(jpegDataUrl);
+}
+
+/**
+ * Main entry point. Normalizes a user-picked File to a JPEG base64 payload
+ * ready to send to the Anthropic vision API. Transparently decodes HEIC
+ * via heic2any when needed.
+ */
+export async function normalizeImageToJpegBase64(
+  file: File
+): Promise<{ image_base64: string; media_type: 'image/jpeg' }> {
+  const source: Blob = isHeicFile(file) ? await decodeHeicToJpegBlob(file) : file;
+  const image_base64 = await canvasEncodeJpeg(source);
+  return { image_base64, media_type: 'image/jpeg' };
 }
