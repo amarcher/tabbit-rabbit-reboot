@@ -139,9 +139,9 @@ export default function TabEditor() {
     setScanning(true);
 
     try {
-      // Normalize to JPEG via canvas so the bytes match the declared media_type
-      // (iOS Safari can upload HEIC from Photos) and stay under Anthropic's ~5MB
-      // base64 image limit.
+      // Normalize client-side to JPEG ≤1600px so the bytes match the declared
+      // media_type and fit under Anthropic's ~5MB base64 payload cap. HEIC
+      // input is transparently decoded via a dynamic-imported libheif WASM.
       const { image_base64, media_type } = await normalizeImageToJpegBase64(file);
       let result: ReceiptResult;
 

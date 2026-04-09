@@ -1,10 +1,22 @@
 import {
   computeScaledDimensions,
   stripDataUrlPrefix,
+  isHeicFile,
   normalizeImageToJpegBase64,
   MAX_IMAGE_DIMENSION,
   JPEG_QUALITY,
 } from './imageNormalization';
+
+// Mock heic2any so we don't load the real WASM decoder in unit tests.
+// The mock returns a JPEG-flavored Blob whose FileReader->Image->canvas path
+// is exercised via the same mocks used by the fast path.
+const mockHeic2any = jest.fn(async (_opts: any) =>
+  new Blob(['fake-jpeg'], { type: 'image/jpeg' })
+);
+jest.mock('heic2any', () => ({
+  __esModule: true,
+  default: (opts: any) => mockHeic2any(opts),
+}));
 
 describe('computeScaledDimensions', () => {
   it('returns input unchanged when within max', () => {
@@ -60,6 +72,36 @@ describe('stripDataUrlPrefix', () => {
   });
 });
 
+describe('isHeicFile', () => {
+  it('detects image/heic MIME type', () => {
+    expect(isHeicFile(new File([''], 'photo.jpg', { type: 'image/heic' }))).toBe(true);
+  });
+
+  it('detects image/heif MIME type', () => {
+    expect(isHeicFile(new File([''], 'photo.jpg', { type: 'image/heif' }))).toBe(true);
+  });
+
+  it('is case-insensitive on MIME type', () => {
+    expect(isHeicFile(new File([''], 'photo', { type: 'IMAGE/HEIC' }))).toBe(true);
+  });
+
+  it('falls back to .heic extension when MIME is missing', () => {
+    expect(isHeicFile(new File([''], 'receipt.heic', { type: '' }))).toBe(true);
+  });
+
+  it('falls back to .heif extension when MIME is missing', () => {
+    expect(isHeicFile(new File([''], 'receipt.HEIF', { type: '' }))).toBe(true);
+  });
+
+  it('returns false for plain JPEG', () => {
+    expect(isHeicFile(new File([''], 'photo.jpg', { type: 'image/jpeg' }))).toBe(false);
+  });
+
+  it('returns false for PNG', () => {
+    expect(isHeicFile(new File([''], 'photo.png', { type: 'image/png' }))).toBe(false);
+  });
+});
+
 describe('normalizeImageToJpegBase64', () => {
   // jsdom doesn't implement canvas — we mock the pieces we use.
   let originalImage: typeof Image;
@@ -70,15 +112,16 @@ describe('normalizeImageToJpegBase64', () => {
   beforeEach(() => {
     toDataURLCalls = [];
     drawImageCalls = 0;
+    mockHeic2any.mockClear();
 
     originalFileReader = global.FileReader;
     class MockFileReader {
       result: string | null = null;
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
-      readAsDataURL(_file: Blob) {
+      readAsDataURL(_blob: Blob) {
         setTimeout(() => {
-          this.result = 'data:image/heic;base64,AAAA';
+          this.result = 'data:image/jpeg;base64,AAAA';
           this.onload?.();
         }, 0);
       }
@@ -128,39 +171,83 @@ describe('normalizeImageToJpegBase64', () => {
     jest.restoreAllMocks();
   });
 
-  it('returns the base64 payload without a data-url prefix and forces jpeg media type', async () => {
-    const file = new File(['heic-bytes'], 'photo.heic', { type: 'image/heic' });
-    const result = await normalizeImageToJpegBase64(file);
-    expect(result.image_base64).toBe('ENCODEDJPEG');
-    expect(result.media_type).toBe('image/jpeg');
-  });
-
-  it('re-encodes as JPEG regardless of input type', async () => {
-    const file = new File(['heic-bytes'], 'photo.heic', { type: 'image/heic' });
-    await normalizeImageToJpegBase64(file);
-    expect(toDataURLCalls).toHaveLength(1);
-    expect(toDataURLCalls[0]).toEqual(['image/jpeg', JPEG_QUALITY]);
-  });
-
-  it('draws the (possibly scaled) image to the canvas exactly once', async () => {
-    const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
-    await normalizeImageToJpegBase64(file);
-    expect(drawImageCalls).toBe(1);
-  });
-
-  it('rejects when the canvas 2D context is unavailable', async () => {
-    (document.createElement as jest.Mock).mockImplementation((tag: string) => {
-      if (tag === 'canvas') {
-        return {
-          width: 0,
-          height: 0,
-          getContext: () => null,
-          toDataURL: () => '',
-        } as unknown as HTMLCanvasElement;
-      }
-      return document.createElement(tag);
+  describe('fast path (non-HEIC)', () => {
+    it('returns the base64 payload without a data-url prefix and forces jpeg media type', async () => {
+      const file = new File(['jpeg-bytes'], 'photo.jpg', { type: 'image/jpeg' });
+      const result = await normalizeImageToJpegBase64(file);
+      expect(result.image_base64).toBe('ENCODEDJPEG');
+      expect(result.media_type).toBe('image/jpeg');
     });
-    const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
-    await expect(normalizeImageToJpegBase64(file)).rejects.toThrow('Canvas 2D context unavailable');
+
+    it('re-encodes as JPEG regardless of input type', async () => {
+      const file = new File(['png-bytes'], 'photo.png', { type: 'image/png' });
+      await normalizeImageToJpegBase64(file);
+      expect(toDataURLCalls).toHaveLength(1);
+      expect(toDataURLCalls[0]).toEqual(['image/jpeg', JPEG_QUALITY]);
+    });
+
+    it('draws to the canvas exactly once', async () => {
+      const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+      await normalizeImageToJpegBase64(file);
+      expect(drawImageCalls).toBe(1);
+    });
+
+    it('does NOT load heic2any for non-HEIC inputs', async () => {
+      const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+      await normalizeImageToJpegBase64(file);
+      expect(mockHeic2any).not.toHaveBeenCalled();
+    });
+
+    it('rejects when the canvas 2D context is unavailable', async () => {
+      (document.createElement as jest.Mock).mockImplementation((tag: string) => {
+        if (tag === 'canvas') {
+          return {
+            width: 0,
+            height: 0,
+            getContext: () => null,
+            toDataURL: () => '',
+          } as unknown as HTMLCanvasElement;
+        }
+        return document.createElement(tag);
+      });
+      const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+      await expect(normalizeImageToJpegBase64(file)).rejects.toThrow(
+        'Canvas 2D context unavailable'
+      );
+    });
+  });
+
+  describe('HEIC path', () => {
+    it('routes HEIC files through heic2any before canvas encoding', async () => {
+      const file = new File(['heic-bytes'], 'photo.heic', { type: 'image/heic' });
+      const result = await normalizeImageToJpegBase64(file);
+      expect(mockHeic2any).toHaveBeenCalledTimes(1);
+      expect(mockHeic2any).toHaveBeenCalledWith({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 0.9,
+      });
+      // Canvas still runs on the converted blob
+      expect(drawImageCalls).toBe(1);
+      expect(result.image_base64).toBe('ENCODEDJPEG');
+      expect(result.media_type).toBe('image/jpeg');
+    });
+
+    it('detects HEIC by .heic extension when MIME type is empty', async () => {
+      const file = new File(['heic-bytes'], 'receipt.heic', { type: '' });
+      await normalizeImageToJpegBase64(file);
+      expect(mockHeic2any).toHaveBeenCalledTimes(1);
+    });
+
+    it('unwraps multi-frame HEIC (heic2any returns an array)', async () => {
+      mockHeic2any.mockResolvedValueOnce([
+        new Blob(['frame-0'], { type: 'image/jpeg' }),
+        new Blob(['frame-1'], { type: 'image/jpeg' }),
+      ] as any);
+      const file = new File(['heic-bytes'], 'burst.heic', { type: 'image/heic' });
+      const result = await normalizeImageToJpegBase64(file);
+      expect(result.image_base64).toBe('ENCODEDJPEG');
+      expect(drawImageCalls).toBe(1);
+    });
   });
 });
