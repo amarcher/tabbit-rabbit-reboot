@@ -20,6 +20,7 @@ import VoiceAssignmentModal from './VoiceAssignmentModal';
 import HintArrow from './HintArrow';
 import { useNux } from '../contexts/NuxContext';
 import { isZeroDecimalCurrency } from '../utils/currency';
+import { normalizeImageToJpegBase64 } from '../utils/imageNormalization';
 import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
@@ -138,17 +139,10 @@ export default function TabEditor() {
     setScanning(true);
 
     try {
-      const image_base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const dataUrl = reader.result as string;
-          resolve(dataUrl.split(',')[1]);
-        };
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.readAsDataURL(file);
-      });
-
-      const media_type = file.type || 'image/jpeg';
+      // Normalize to JPEG via canvas so the bytes match the declared media_type
+      // (iOS Safari can upload HEIC from Photos) and stay under Anthropic's ~5MB
+      // base64 image limit.
+      const { image_base64, media_type } = await normalizeImageToJpegBase64(file);
       let result: ReceiptResult;
 
       if (byokKey) {
