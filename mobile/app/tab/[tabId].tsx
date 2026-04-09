@@ -19,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useToast } from '@/src/components/Toast';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { CoachmarkAnchor, useCoachmark } from '@edwardloopez/react-native-coachmark';
@@ -262,7 +263,14 @@ export default function TabEditorScreen() {
     setScanning(true);
     const tabCurrency = tab.currency_code || 'USD';
     try {
-      const image_base64 = await readAsStringAsync(uri, {
+      // Normalize to JPEG + cap width so the bytes match the declared media_type
+      // (iOS library picks can be HEIC) and stay under Anthropic's base64 image limit.
+      const manipulated = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 1600 } }],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      const image_base64 = await readAsStringAsync(manipulated.uri, {
         encoding: EncodingType.Base64,
       });
 
