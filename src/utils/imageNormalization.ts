@@ -5,9 +5,12 @@
 //  1. Format mismatch. iOS Photos hands out HEIC by default, which Chrome's
 //     <img> element can't decode at all, so naive canvas re-encoding fails.
 //     We detect HEIC up front (by MIME type or filename extension) and run
-//     the blob through heic2any — a libheif/WASM browser decoder — before
-//     handing it to the canvas pipeline. heic2any is dynamic-imported so
-//     the ~800KB WASM bundle only loads when we actually see a HEIC file.
+//     the blob through heic-to — a libheif/WASM browser decoder — before
+//     handing it to the canvas pipeline. heic-to is dynamic-imported so the
+//     WASM bundle only loads when we actually see a HEIC file. NOTE: we
+//     tried heic2any first but it's unmaintained and ships an old libheif
+//     that rejects newer iPhone HEIC variants (HEVC Main 10) with
+//     ERR_LIBHEIF format not supported. heic-to bundles a current libheif.
 //
 //  2. Oversized payloads. Full-res phone photos regularly exceed 5MB base64.
 //     The canvas path caps the longest edge at MAX_IMAGE_DIMENSION and
@@ -55,17 +58,13 @@ export function isHeicFile(file: File): boolean {
 }
 
 /**
- * Decode a HEIC/HEIF File into a JPEG Blob using heic2any (libheif WASM).
+ * Decode a HEIC/HEIF File into a JPEG Blob using heic-to (libheif WASM).
  * The library is dynamic-imported so the bundle cost is only paid when a
  * user actually picks a HEIC file.
  */
 export async function decodeHeicToJpegBlob(file: File): Promise<Blob> {
-  const mod = await import('heic2any');
-  const heic2any = mod.default;
-  const out = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
-  // heic2any returns Blob | Blob[] (the array form is for multi-frame HEIC).
-  // Take the first frame for multi-frame inputs.
-  return Array.isArray(out) ? out[0] : out;
+  const { heicTo } = await import('heic-to');
+  return heicTo({ blob: file, type: 'image/jpeg', quality: 0.9 });
 }
 
 /**
