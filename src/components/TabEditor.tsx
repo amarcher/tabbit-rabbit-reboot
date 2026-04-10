@@ -21,7 +21,7 @@ import HintArrow from './HintArrow';
 import { useNux } from '../contexts/NuxContext';
 import { isZeroDecimalCurrency } from '../utils/currency';
 import { normalizeImageToJpegBase64 } from '../utils/imageNormalization';
-import { trackShare, trackReceiptScan, trackVoiceAssignment } from '../utils/analytics';
+import { trackShare, trackReceiptScan } from '../utils/analytics';
 import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
