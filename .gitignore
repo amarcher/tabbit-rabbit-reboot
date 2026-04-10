@@ -37,3 +37,4 @@ packages/shared/dist
 # local tool state
 .claude/
 .expo/
+.env*.local

@@ -58,6 +58,7 @@ export default function TabEditor() {
   // Share bill state
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   // Voice assignment state
   const [showVoiceInput, setShowVoiceInput] = useState(false);
@@ -183,6 +184,7 @@ export default function TabEditor() {
   const handleShareBill = async () => {
     if (!tab) return;
     setSharing(true);
+    setShareError(null);
 
     // Capture button position for confetti origin
     if (shareBtnRef.current) {
@@ -218,6 +220,7 @@ export default function TabEditor() {
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
+      setShareError(t('tabEditor.shareFailed'));
     } finally {
       setSharing(false);
     }
@@ -289,6 +292,11 @@ export default function TabEditor() {
           </Button>
         )}
       </div>
+      {shareError && (
+        <Alert variant="danger" className="mt-2 mb-0" dismissible onClose={() => setShareError(null)}>
+          {shareError}
+        </Alert>
+      )}
     </div>
   );
 
