@@ -6,6 +6,7 @@ import type { Item, Rabbit, ItemRabbit } from '../types';
 import { COLOR_HEX } from '../types';
 import { formatAmount } from '../utils/currency';
 import { parseVoiceAssignmentDirect, parseVoiceAssignmentFree } from '../utils/voiceAssignment';
+import { trackVoiceAssignment } from '../utils/analytics';
 import type { VoiceAssignmentResult } from '../utils/voiceAssignment';
 import { computeAssignmentFraction } from '@tabbit/shared';
 import { getStoredApiKey } from '../utils/anthropic';
@@ -62,9 +63,11 @@ export default function VoiceAssignmentModal({
         let parsed: VoiceAssignmentResult;
         if (byokKey) {
           parsed = await parseVoiceAssignmentDirect(byokKey, transcript, items, rabbits, assignments);
+          trackVoiceAssignment('byok');
         } else {
           parsed = await parseVoiceAssignmentFree(transcript, items, rabbits, assignments);
           incrementScanCount();
+          trackVoiceAssignment('free');
         }
         if (!cancelled) {
           setResult(parsed);

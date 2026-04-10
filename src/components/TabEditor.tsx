@@ -21,6 +21,7 @@ import HintArrow from './HintArrow';
 import { useNux } from '../contexts/NuxContext';
 import { isZeroDecimalCurrency } from '../utils/currency';
 import { normalizeImageToJpegBase64 } from '../utils/imageNormalization';
+import { trackShare, trackReceiptScan, trackVoiceAssignment } from '../utils/analytics';
 import type { RabbitColor, Tab } from '../types';
 
 export default function TabEditor() {
@@ -148,6 +149,7 @@ export default function TabEditor() {
 
       if (byokKey) {
         result = await scanReceiptDirect(byokKey, image_base64, media_type, tab.currency_code || 'USD');
+        trackReceiptScan('byok');
       } else {
         const res = await fetch('/api/parse-receipt', {
           method: 'POST',
@@ -160,6 +162,7 @@ export default function TabEditor() {
         }
         result = await res.json();
         incrementScanCount();
+        trackReceiptScan('free');
       }
 
       if (result?.items?.length) {
@@ -211,9 +214,11 @@ export default function TabEditor() {
       const url = `${window.location.origin}/bill/${token}`;
       if (navigator.share) {
         await navigator.share({ title: tab.name, url });
+        trackShare('native_share');
         setConfettiActive(true);
       } else {
         await navigator.clipboard.writeText(url);
+        trackShare('clipboard');
         setCopied(true);
         setConfettiActive(true);
         setTimeout(() => setCopied(false), 2000);

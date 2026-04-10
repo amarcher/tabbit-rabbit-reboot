@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Tab, Item, Rabbit, ItemRabbit, Profile } from '../types';
 import { getDefaultTaxTip } from '../utils/currency';
+import { trackTabCreate } from '../utils/analytics';
 
 // Safari does not support requestIdleCallback — fall back to a 1ms setTimeout
 const scheduleIdle =
@@ -71,6 +72,7 @@ export function useTabs() {
     localStorage.setItem(TABS_INDEX_KEY, JSON.stringify(tabsList));
 
     setTabs(tabsList);
+    trackTabCreate();
     return newTab;
   };
 
