@@ -1,4 +1,4 @@
-import { encodeBill, decodeBill, isLegacyToken } from './billEncoder';
+import { encodeBill, decodeBill, isLegacyToken, shareBill } from './billEncoder';
 
 describe('encodeBill / decodeBill roundtrip', () => {
   const tab = { name: 'Dinner', tax_percent: 8, tip_percent: 20 };
@@ -80,6 +80,63 @@ describe('encodeBill / decodeBill roundtrip', () => {
 describe('decodeBill', () => {
   it('returns null for invalid encoded string', () => {
     expect(decodeBill('not-valid-lz-string')).toBeNull();
+  });
+});
+
+describe('shareBill', () => {
+  const billData = {
+    tab: { name: 'Dinner', tax_percent: 8, tip_percent: 20 },
+    items: [{ id: 'item-a', description: 'Pizza', price_cents: 1500 }],
+    rabbits: [{ id: 'rabbit-1', name: 'Alice', color: 'success' }],
+    assignments: [{ item_id: 'item-a', rabbit_id: 'rabbit-1' }],
+    ownerProfile: {
+      display_name: 'Alice',
+      venmo_username: null,
+      cashapp_cashtag: null,
+      paypal_username: null,
+    },
+  };
+
+  beforeEach(() => {
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('returns token on success', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ token: 'abc123' }),
+    });
+    const token = await shareBill(billData);
+    expect(token).toBe('abc123');
+    expect(global.fetch).toHaveBeenCalledWith('/api/share', expect.objectContaining({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    }));
+  });
+
+  it('throws on server error (500)', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 500,
+    });
+    await expect(shareBill(billData)).rejects.toThrow('Failed to share bill (500)');
+  });
+
+  it('throws on bad request (400)', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 400,
+    });
+    await expect(shareBill(billData)).rejects.toThrow('Failed to share bill (400)');
+  });
+
+  it('throws on network failure', async () => {
+    (global.fetch as jest.Mock).mockRejectedValue(new TypeError('Failed to fetch'));
+    await expect(shareBill(billData)).rejects.toThrow('Failed to fetch');
   });
 });
 
