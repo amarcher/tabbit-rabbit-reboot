@@ -98,15 +98,15 @@ describe('shareBill', () => {
   };
 
   beforeEach(() => {
-    global.fetch = jest.fn();
+    global.fetch = vi.fn();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('returns token on success', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: async () => ({ token: 'abc123' }),
     });
@@ -119,7 +119,7 @@ describe('shareBill', () => {
   });
 
   it('throws on server error (500)', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: false,
       status: 500,
     });
@@ -127,7 +127,7 @@ describe('shareBill', () => {
   });
 
   it('throws on bad request (400)', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: false,
       status: 400,
     });
@@ -135,7 +135,7 @@ describe('shareBill', () => {
   });
 
   it('throws on network failure', async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(new TypeError('Failed to fetch'));
+    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new TypeError('Failed to fetch'));
     await expect(shareBill(billData)).rejects.toThrow('Failed to fetch');
   });
 });

@@ -10,10 +10,10 @@ import {
 // Mock heic-to so we don't load the real WASM decoder in unit tests.
 // The mock returns a JPEG-flavored Blob whose FileReader->Image->canvas path
 // is exercised via the same mocks used by the fast path.
-const mockHeicTo = jest.fn(async (_opts: any) =>
+const mockHeicTo = vi.fn(async (_opts: any) =>
   new Blob(['fake-jpeg'], { type: 'image/jpeg' })
 );
-jest.mock('heic-to', () => ({
+vi.mock('heic-to', () => ({
   __esModule: true,
   heicTo: (opts: any) => mockHeicTo(opts),
 }));
@@ -141,17 +141,16 @@ describe('normalizeImageToJpegBase64', () => {
     (global as any).Image = MockImage;
 
     // Mock canvas 2d context + toDataURL
-    const mockGetContext = jest.fn(() => ({
-      drawImage: jest.fn(() => {
+    const mockGetContext = vi.fn(() => ({
+      drawImage: vi.fn(() => {
         drawImageCalls += 1;
       }),
     }));
-    const mockToDataURL = jest.fn((type: string, quality: number) => {
+    const mockToDataURL = vi.fn((type: string, quality: number) => {
       toDataURLCalls.push([type, quality]);
       return 'data:image/jpeg;base64,ENCODEDJPEG';
     });
-    jest
-      .spyOn(document, 'createElement')
+    vi.spyOn(document, 'createElement')
       .mockImplementation((tag: string) => {
         if (tag === 'canvas') {
           return {
@@ -168,7 +167,7 @@ describe('normalizeImageToJpegBase64', () => {
   afterEach(() => {
     (global as any).FileReader = originalFileReader;
     (global as any).Image = originalImage;
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('fast path (non-HEIC)', () => {
@@ -199,7 +198,7 @@ describe('normalizeImageToJpegBase64', () => {
     });
 
     it('rejects when the canvas 2D context is unavailable', async () => {
-      (document.createElement as jest.Mock).mockImplementation((tag: string) => {
+      (document.createElement as ReturnType<typeof vi.fn>).mockImplementation((tag: string) => {
         if (tag === 'canvas') {
           return {
             width: 0,
