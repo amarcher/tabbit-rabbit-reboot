@@ -91,6 +91,8 @@ module.exports = async function handler(req, res) {
 <head>
   <meta charset="utf-8">
   <title>${escapeHtml(title)} | Tabbit Rabbit</title>
+  <link rel="icon" href="https://tabbitrabbit.com/tbicon.png" />
+  <link rel="apple-touch-icon" href="https://tabbitrabbit.com/apple-touch-icon.png" />
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
   <meta property="og:image" content="${ogImageUrl}" />
