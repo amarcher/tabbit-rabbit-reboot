@@ -1,6 +1,6 @@
 const { getBill } = require('./_lib/getBill');
 
-const CRAWLER_UA = /facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot|Discordbot|TelegramBot/i;
+const CRAWLER_UA = /facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot|Discordbot|TelegramBot|Applebot|AppleNewsBot/i;
 
 const ZERO_DECIMAL = new Set(['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'UGX', 'RWF', 'PYG']);
 
